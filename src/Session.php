@@ -49,6 +49,11 @@ class Session
     const TRANSLATION_MODE  = 1; // no more used
     const DEBUG_MODE        = 2;
 
+    /**
+     * @var bool $bypass_right_checks
+     * @internal
+     */
+    private static bool $bypass_right_checks = false;
 
     /**
      * Destroy the current session
@@ -1220,7 +1225,7 @@ class Session
     {
         global $DB;
 
-        if (Session::isInventory()) {
+        if (self::isRightChecksDisabled() || self::isInventory()) {
             return true;
         }
 
@@ -1931,5 +1936,34 @@ class Session
     public static function getLanguage(): ?string
     {
         return $_SESSION['glpilanguage'] ?? null;
+    }
+
+    /**
+     * Diasble the right checks for `Session::checkRight*` and `Session::haveRight*` methods.
+     * @return void
+     * @internal No backwards compatibility promise.
+     */
+    public static function disableRightChecks(): void
+    {
+        self::$bypass_right_checks = true;
+    }
+
+    /**
+     * Re-enable the right checks for `Session::checkRight*` and `Session::haveRight*` methods.
+     * @return void
+     * @internal No backwards compatibility promise.
+     */
+    public static function enableRightChecks(): void
+    {
+        self::$bypass_right_checks = false;
+    }
+
+    /**
+     * @return bool Whether the right checks are disabled.
+     * @internal No backwards compatibility promise.
+     */
+    public static function isRightChecksDisabled(): bool
+    {
+        return self::$bypass_right_checks;
     }
 }

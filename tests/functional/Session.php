@@ -450,4 +450,18 @@ class Session extends \DbTestCase
         ]);
         $this->boolean($result)->isTrue();
     }
+
+    public function testRightCheckBypass()
+    {
+        $this->login();
+        $this->boolean(\Session::isRightChecksDisabled())->isFalse();
+        $this->boolean(\Session::haveRight('_nonexistant_module', READ))->isFalse();
+        \Session::disableRightChecks();
+        $this->boolean(\Session::isRightChecksDisabled())->isTrue();
+        $this->boolean(\Session::haveRight('_nonexistant_module', READ))->isTrue();
+        \Session::enableRightChecks();
+        $this->boolean(\Session::isRightChecksDisabled())->isFalse();
+        $this->boolean(\Session::haveRight('_nonexistant_module', READ))->isFalse();
+
+    }
 }
