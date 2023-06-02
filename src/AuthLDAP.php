@@ -2480,7 +2480,11 @@ class AuthLDAP extends CommonDBTM
                       //depending on the type of search when groups are imported
                       //the DN may be in two separate fields
                     if (isset($group["ldap_group_dn"]) && !empty($group["ldap_group_dn"])) {
-                        $glpi_groups[$group["ldap_group_dn"]] = 1;
+                        $dn = $group['ldap_group_dn'];
+                        preg_match('/(,dc=.*$)/', $dn, $dc);
+                        $dn_prefix = substr($dn, 0, strlen($dn) - strlen($dc[1]));
+                        $normalizedDn = $dn_prefix . strtolower($dc[1]);
+                        $glpi_groups[$normalizedDn] = 1;
                     } else if (isset($group["ldap_value"]) && !empty($group["ldap_value"])) {
                         $glpi_groups[$group["ldap_value"]] = 1;
                     }
@@ -2654,7 +2658,10 @@ class AuthLDAP extends CommonDBTM
                                     ]);
 
                                     foreach ($iterator as $group) {
-                                         $groups[$group['ldap_value']] = ["cn"          => $group['ldap_value'],
+                                         $dn = $group['ldap_value'];
+                                         preg_match('/(,dc=.*$)/', $dn, $dc);
+                                         $dn_prefix = substr($dn, 0, strlen($dn) - strlen($dc[1]));
+                                         $groups[$dn_prefix . strtolower($dc[1])] = ["cn"          => $dn,
                                              "search_type" => "users"
                                          ];
                                     }
@@ -2664,14 +2671,13 @@ class AuthLDAP extends CommonDBTM
                                     $ligne_extra = 0; $ligne_extra < $infos[$ligne][$extra_attribute]["count"];
                                     $ligne_extra++
                                 ) {
-                                    $groups[$infos[$ligne][$extra_attribute][$ligne_extra]]
-                                    = ["cn"   => self::getGroupCNByDn(
-                                        $ldap_connection,
-                                        $infos[$ligne][$extra_attribute][$ligne_extra]
-                                    ),
-                                        "search_type"
-                                             => "users"
-                                    ];
+                                    $dn = $infos[$ligne][$extra_attribute][$ligne_extra];
+                                    preg_match('/(,dc=.*$)/', $dn, $dc);
+                                    $dn_prefix = substr($dn, 0, strlen($dn) - strlen($dc[1]));
+                                    $groups[$dn_prefix . strtolower($dc[1])]
+                                       = ["cn"   => self::getGroupCNByDn($ldap_connection, $dn),
+                                           "search_type" => "users"
+                                       ];
                                 }
                             }
                         }
