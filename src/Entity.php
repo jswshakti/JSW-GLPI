@@ -38,11 +38,14 @@ use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Event;
 use Glpi\Plugin\Hooks;
+use Glpi\Search\AdvancedSearchInterface;
+use Glpi\Search\SearchEngine;
+use Glpi\Search\SearchOption;
 
 /**
  * Entity class
  */
-class Entity extends CommonTreeDropdown
+class Entity extends CommonTreeDropdown implements AdvancedSearchInterface
 {
     use Glpi\Features\Clonable;
     use MapGeolocation;
@@ -3606,6 +3609,26 @@ class Entity extends CommonTreeDropdown
         if ($entity->getFromDB($entity_id)) {
             return self::badgeCompletenameLink($entity);
         }
+        return null;
+    }
+
+    public static function getSQLDefaultSelectCriteria(string $itemtype): ?array
+    {
+        global $DB;
+        $itemtable = SearchEngine::getOrigTableName($itemtype);
+        return [
+            "{$itemtable}.id AS entities_id",
+            new QueryExpression($DB::quoteValue('1') . ' AS ' . $DB::quoteName('is_recursive')),
+        ];
+    }
+
+    public static function getSQLSelectCriteria(string $itemtype, SearchOption $opt, bool $meta = false, string $meta_type = ''): ?array
+    {
+        return null;
+    }
+
+    public static function getSQLWhereCriteria(string $itemtype, SearchOption $opt, bool $nott, string $searchtype, mixed $val, bool $meta, callable $fn_append_with_search): ?array
+    {
         return null;
     }
 }

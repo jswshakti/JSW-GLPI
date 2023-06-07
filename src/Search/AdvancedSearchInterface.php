@@ -35,16 +35,37 @@
 
 namespace Glpi\Search;
 
+use Glpi\DBAL\QueryFunction;
+
 interface AdvancedSearchInterface
 {
     /**
      * @param class-string<\CommonDBTM> $itemtype
-     * @param SearchOption $opt
-     * @param bool $nott
-     * @param string $searchtype
-     * @param mixed $val
-     * @param bool $meta
      * @return array|null
      */
-    public static function getSQLWhereCriteria(string $itemtype, SearchOption $opt, bool $nott, string $searchtype, mixed $val, bool $meta = false): ?array;
+    public static function getSQLDefaultSelectCriteria(string $itemtype): ?array;
+
+    /**
+     * @param class-string<\CommonDBTM> $itemtype
+     * @param SearchOption $opt
+     * @param bool $meta
+     * @param string $meta_type
+     * @return array|null
+     */
+    public static function getSQLSelectCriteria(string $itemtype, SearchOption $opt, bool $meta = false, string $meta_type = ''): ?array;
+
+    /**
+     * This method is called on the class that the search option belongs to (based on the table).
+     * It can return an array of criteria to handle the search option in a non-standard way, or return null to indicate it wasn't handled at all.
+     * @param class-string<\CommonDBTM> $itemtype The main itemtype being searched on
+     * @param SearchOption $opt The search option being handled
+     * @param bool $nott Whether the search option is negated
+     * @param string $searchtype The search type (e.g. 'contains')
+     * @param mixed $val The value to search for
+     * @param bool $meta Whether the search option is for a meta field
+     * @param callable $fn_append_with_search A helper function to append a criterion to a criteria array in a standardized way
+     * @phpstan-param callable(array &$criteria, string|QueryFunction $value): void $fn_append_with_search
+     * @return array|null
+     */
+    public static function getSQLWhereCriteria(string $itemtype, SearchOption $opt, bool $nott, string $searchtype, mixed $val, bool $meta, callable $fn_append_with_search): ?array;
 }

@@ -10855,10 +10855,20 @@ abstract class CommonITILObject extends CommonDBTM implements AdvancedSearchInte
         }
     }
 
-    public static function getSQLWhereCriteria(string $itemtype, SearchOption $opt, bool $nott, string $searchtype, mixed $val, bool $meta = false): ?array
+    public static function getSQLDefaultSelectCriteria(string $itemtype): ?array
+    {
+        return null;
+    }
+
+    public static function getSQLSelectCriteria(string $itemtype, SearchOption $opt, bool $meta = false, string $meta_type = ''): ?array
+    {
+        return null;
+    }
+
+    public static function getSQLWhereCriteria(string $itemtype, SearchOption $opt, bool $nott, string $searchtype, mixed $val, bool $meta, callable $fn_append_with_search): ?array
     {
         // Only handle core ITIL objects here
-        if (!in_array($opt['table'], [Ticket::getTable(), Change::getTable(), Problem::getTable()], true)) {
+        if (!in_array($itemtype, [Ticket::class, Change::class, Problem::class], true)) {
             return null;
         }
 
