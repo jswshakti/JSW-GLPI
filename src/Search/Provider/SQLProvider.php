@@ -1034,6 +1034,12 @@ final class SQLProvider implements SearchProviderInterface
             return [];
         }
         $opt = new SearchOption($searchopt[$ID]);
+        if (method_exists($itemtype, 'getSQLWhereCriteria')) {
+            $criteria = $itemtype::getSQLWhereCriteria($itemtype, $opt, $nott, $searchtype, $val, $meta);
+            if ($criteria !== null) {
+                return $criteria;
+            }
+        }
 
         $table     = $opt["table"];
         $field     = $opt["field"];
@@ -1423,92 +1429,6 @@ final class SQLProvider implements SearchProviderInterface
                 }
                 break;
 
-            case "glpi_tickets.status":
-            case "glpi_problems.status":
-            case "glpi_changes.status":
-                $tocheck = [];
-                /** @var \CommonITILObject $item */
-                if ($item = getItemForItemtype($itemtype)) {
-                    switch ($val) {
-                        case 'process':
-                            $tocheck = $item->getProcessStatusArray();
-                            break;
-
-                        case 'notclosed':
-                            $tocheck = $item::getAllStatusArray();
-                            foreach ($item::getClosedStatusArray() as $status) {
-                                if (isset($tocheck[$status])) {
-                                    unset($tocheck[$status]);
-                                }
-                            }
-                            $tocheck = array_keys($tocheck);
-                            break;
-
-                        case 'old':
-                            $tocheck = array_merge(
-                                $item::getSolvedStatusArray(),
-                                $item::getClosedStatusArray()
-                            );
-                            break;
-
-                        case 'notold':
-                            $tocheck = $item::getNotSolvedStatusArray();
-                            break;
-
-                        case 'all':
-                            $tocheck = array_keys($item::getAllStatusArray());
-                            break;
-                    }
-                }
-
-                if (count($tocheck) === 0) {
-                    $statuses = $item::getAllStatusArray();
-                    if (isset($statuses[$val])) {
-                        $tocheck = [$val];
-                    }
-                }
-
-                if (count($tocheck)) {
-                    if ($nott) {
-                        return [
-                            "$table.$field" => ['NOT IN', $tocheck]
-                        ];
-                    }
-                    return [
-                        "$table.$field" => $tocheck
-                    ];
-                }
-                break;
-
-            case "glpi_tickets_tickets.tickets_id_1":
-                $tmplink = 'OR';
-                $compare = '=';
-                if ($nott) {
-                    $tmplink = 'AND';
-                    $compare = '<>';
-                }
-                $toadd2 = '';
-                if (
-                    $nott
-                    && ($val != 'NULL') && ($val != 'null')
-                ) {
-                    $toadd2 = " OR `$table`.`$field` IS NULL";
-                }
-
-                return new QueryExpression(" (((`$table`.`tickets_id_1` $compare '$val'
-                              $tmplink `$table`.`tickets_id_2` $compare '$val')
-                             AND `glpi_tickets`.`id` <> '$val')
-                            $toadd2)");
-
-            case "glpi_tickets.priority":
-            case "glpi_tickets.impact":
-            case "glpi_tickets.urgency":
-            case "glpi_problems.priority":
-            case "glpi_problems.impact":
-            case "glpi_problems.urgency":
-            case "glpi_changes.priority":
-            case "glpi_changes.impact":
-            case "glpi_changes.urgency":
             case "glpi_projects.priority":
                 if (is_numeric($val)) {
                     if ($val > 0) {
@@ -1530,38 +1450,6 @@ final class SQLProvider implements SearchProviderInterface
                     ];
                 }
                 return [];
-
-            case "glpi_tickets.global_validation":
-            case "glpi_ticketvalidations.status":
-            case "glpi_changes.global_validation":
-            case "glpi_changevalidations.status":
-                if ($val == 'all') {
-                    return [];
-                }
-                $tocheck = [];
-                switch ($val) {
-                    case 'can':
-                        $tocheck = \CommonITILValidation::getCanValidationStatusArray();
-                        break;
-
-                    case 'all':
-                        $tocheck = \CommonITILValidation::getAllValidationStatusArray();
-                        break;
-                }
-                if (count($tocheck) == 0) {
-                    $tocheck = [$val];
-                }
-                if (count($tocheck)) {
-                    if ($nott) {
-                        return [
-                            "$table.$field" => ['NOT IN', $tocheck]
-                        ];
-                    }
-                    return [
-                        "$table.$field" => $tocheck
-                    ];
-                }
-                break;
 
             case "glpi_notifications.event":
                 if (in_array($searchtype, ['equals', 'notequals']) && strpos($val, \Search::SHORTSEP)) {

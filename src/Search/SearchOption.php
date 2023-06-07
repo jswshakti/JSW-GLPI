@@ -689,4 +689,9 @@ final class SearchOption implements \ArrayAccess
 
         return $options;
     }
+
+    public function getTableField(): string
+    {
+        return "{$this['table']}.{$this['field']}";
+    }
 }
