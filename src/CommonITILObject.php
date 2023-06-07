@@ -10867,13 +10867,13 @@ abstract class CommonITILObject extends CommonDBTM implements AdvancedSearchInte
         if ($opt['field'] === 'status') {
             $to_check = [];
             if ($item !== false) {
-                $to_check = match($val) {
+                $to_check = match ($val) {
                     'process' => $item->getProcessStatusArray(),
                     'notclosed' => array_diff(array_keys($item::getAllStatusArray()), $item::getClosedStatusArray()),
                     'old' => array_merge($item::getSolvedStatusArray(), $item::getClosedStatusArray()),
                     'notold' => $item::getNotSolvedStatusArray(),
                     'all' => array_keys($item::getAllStatusArray()),
-                    default => $item::getAllStatusArray()[$val] ? [$val] : []
+                    default => array_key_exists($val, $item::getAllStatusArray()) ? [$val] : []
                 };
             }
             if (count($to_check) > 0) {
@@ -10913,7 +10913,7 @@ abstract class CommonITILObject extends CommonDBTM implements AdvancedSearchInte
             if (!is_numeric($val)) {
                 return [];
             }
-            return match(true) {
+            return match (true) {
                 $val > 0 => [$opt->getTableField() => [$nott ? '<>' : '=', $val]],
                 $val < 0 => [$opt->getTableField() => [$nott ? '<' : '>=', $val]],
                 default => [$opt->getTableField() => [$nott ? '<' : '>=', 0]],
@@ -10928,7 +10928,7 @@ abstract class CommonITILObject extends CommonDBTM implements AdvancedSearchInte
             if ($val == 'all') {
                 return [];
             }
-            $to_check = match($val) {
+            $to_check = match ($val) {
                 'can' => CommonITILValidation::getCanValidationStatusArray(),
                 'add' => CommonITILValidation::getAllValidationStatusArray(), // Dead case? Handled above
                 default => []
@@ -10936,7 +10936,7 @@ abstract class CommonITILObject extends CommonDBTM implements AdvancedSearchInte
             if (count($to_check) === 0) {
                 $to_check = [$val];
             }
-            return match($nott) {
+            return match ($nott) {
                 true => [$opt->getTableField() => ['NOT IN' => $to_check]],
                 default => [$opt->getTableField() => $to_check],
             };
