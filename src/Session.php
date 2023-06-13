@@ -1951,7 +1951,7 @@ class Session
             return $fn();
         } catch (Throwable $e) {
             $caught_throwable = $e;
-		} finally {
+        } finally {
             self::$bypass_right_checks = false;
         }
         if ($caught_throwable !== null) {
