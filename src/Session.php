@@ -1939,23 +1939,24 @@ class Session
     }
 
     /**
-     * Diasble the right checks for `Session::checkRight*` and `Session::haveRight*` methods.
-     * @return void
-     * @internal No backwards compatibility promise.
+     * Runs a callable with the right checks disabled.
+     * @return mixed The return value of the callable.
+     * @throws Throwable Any throwable that was caught from the callable if any.
      */
-    public static function disableRightChecks(): void
+    public static function callAsSystem(callable $fn)
     {
-        self::$bypass_right_checks = true;
-    }
-
-    /**
-     * Re-enable the right checks for `Session::checkRight*` and `Session::haveRight*` methods.
-     * @return void
-     * @internal No backwards compatibility promise.
-     */
-    public static function enableRightChecks(): void
-    {
-        self::$bypass_right_checks = false;
+        $caught_throwable = null;
+        try {
+            self::$bypass_right_checks = true;
+            return $fn();
+        } catch (Throwable $e) {
+            $caught_throwable = $e;
+		} finally {
+            self::$bypass_right_checks = false;
+        }
+        if ($caught_throwable !== null) {
+            throw $caught_throwable;
+        }
     }
 
     /**
