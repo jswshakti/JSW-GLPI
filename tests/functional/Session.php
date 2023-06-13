@@ -470,6 +470,5 @@ class Session extends \DbTestCase
         })->hasMessage('test');
         $this->boolean(\Session::isRightChecksDisabled())->isFalse();
         $this->boolean(\Session::haveRight('_nonexistant_module', READ))->isFalse();
-
     }
 }

@@ -1940,7 +1940,7 @@ class Session
 
     /**
      * Runs a callable with the right checks disabled.
-     * @return mixed The return value of the callable.
+     * @return mixed|void The return value of the callable.
      * @throws Throwable Any throwable that was caught from the callable if any.
      */
     public static function callAsSystem(callable $fn)
