@@ -221,11 +221,12 @@ class KnowbaseItem_Revision extends CommonDBTM
                   }
                })
                .done(function(data) {
+                  const name  = escapeMarkupText(data.name);
                   glpi_html_dialog({
                      title: __('Show revision %rev').replace(/%rev/, _this.data('rev')),
                      body: `<div>
                         <h2>\${__('Subject')}</h2>
-                        <div>\${data.name}</div>
+                        <div>\${name}</div>
                         <h2>\${__('Content')}</h2>
                         <div>\${data.answer}</div>
                      </div>`,
@@ -258,6 +259,9 @@ class KnowbaseItem_Revision extends CommonDBTM
                      _diffid = __('current');
                   }
 
+                  const old_name  = escapeMarkupText(data['old']['name']);
+                  const diff_name = escapeMarkupText(data['diff']['name']);
+
                   glpi_html_dialog({
                      title: __('Compare revisions old and diff')
                         .replace(/old/, _oldid)
@@ -272,8 +276,8 @@ class KnowbaseItem_Revision extends CommonDBTM
                            </tr>
                            <tr>
                               <th>\${__('Subject')}</th>
-                              <td class='original'>\${data['old']['name']}</td>
-                              <td class='changed'>\${data['diff']['name']}</td>
+                              <td class='original'>\${old_name}</td>
+                              <td class='changed'>\${diff_name}</td>
                               <td class='diff'></td>
                            </tr>
                            <tr>
