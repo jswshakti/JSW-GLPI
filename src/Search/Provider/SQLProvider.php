@@ -1237,7 +1237,6 @@ final class SQLProvider implements SearchProviderInterface
             }
         }
         switch ($inittable . "." . $field) {
-
             case "glpi_ipaddresses.name":
                 if (preg_match("/^\s*([<>])([=]*)[[:space:]]*([0-9\.]+)/", $val, $regs)) {
                     if ($nott) {
