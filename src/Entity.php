@@ -580,6 +580,13 @@ class Entity extends CommonTreeDropdown
         return true;
     }
 
+    public static function getAdditionalMenuLinks()
+    {
+        $adv_config_title = __('Advanced configuration');
+        return [
+            '<i class="ti ti-adjustments pointer" title="' . $adv_config_title . '"></i><span class="d-none d-xxl-block">' . $adv_config_title . '</span>' => 'front/advconfig.php',
+        ];
+    }
 
     /**
      * Print a good title for entity pages
