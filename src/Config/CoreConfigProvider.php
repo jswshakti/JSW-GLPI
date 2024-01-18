@@ -119,9 +119,6 @@ final class CoreConfigProvider implements ConfigProviderInterface
                 max: 4
             ),
             new Option\BooleanOption($scopes_global, $general, 'use_public_faq', __('Allow FAQ anonymous access')),
-            new Option\BooleanOption($scopes_global, $translations, 'translate_dropdowns', __('Translation of dropdowns')),
-            new Option\BooleanOption($scopes_global, $translations, 'translate_kb', __('Knowledge base translation')),
-            new Option\BooleanOption($scopes_global, $translations, 'translate_reminders', __('Translation of reminders')),
             new Option\NumberOption($scopes_global, $dynamic_ui, 'dropdown_max', __('Page size for dropdown (paging using scroll)')),
             new Option\NumberOption(
                 scopes: $scopes_global,
