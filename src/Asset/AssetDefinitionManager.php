@@ -284,7 +284,7 @@ final class AssetDefinitionManager
      *
      * @return AssetDefinition[]
      */
-    private function getDefinitions(): array
+    public function getDefinitions(): array
     {
         if (!isset($this->definitions_data)) {
             $this->definitions_data = getAllDataFromTable(AssetDefinition::getTable());
