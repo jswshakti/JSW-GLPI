@@ -980,6 +980,16 @@ class Session
             Html::redirectToLogin();
         }
 
+        $lastAccess = time();
+
+        $result = $DB->update(
+            'glpi_users',
+            ['last_access' => $lastAccess],
+            [
+                'id'   => $user_id
+            ]
+        );
+
         return true;
     }
 

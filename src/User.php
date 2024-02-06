@@ -62,6 +62,8 @@ class User extends CommonDBTM
     const READAUTHENT         = 2048;
     const UPDATEAUTHENT       = 4096;
 
+    const TIME_ONLINE   = 10;
+
     public static $rightname = 'user';
 
     public static $undisclosedFields = [
@@ -3006,6 +3008,37 @@ HTML;
                 printf(__('Last login on %s'), Html::convDateTime($this->fields["last_login"]));
             }
             echo "</td><td colspan='2'class='center'>";
+
+            echo "<tr class='tab_bg_1'>";
+            echo "<td colspan='2' class='center'>";
+            if (
+                $this->fields["last_access"]
+                && abs(strtotime($_SESSION['glpi_currenttime']) - $this->fields["last_access"]) < self::TIME_ONLINE
+            ) {
+                $bgColor = "#4cd137";
+                echo __('User is online');
+            } else {
+                if ($this->fields["last_access"] === null) {
+                    printf(__('Last seen %s'), __('never'));
+                } else {
+                    $lastseen = strtotime($_SESSION['glpi_currenttime']) - $this->fields["last_access"];
+                    printf(__('Last seen %s'), Html::timestampToString($lastseen, $lastseen < 60 ? true : false));
+                }
+                $bgColor = "#e84118";
+            }
+            echo "</td><td colspan='2'class='center'>";
+            echo '<style>.tab_cadre_fixe .avatar::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                transform: translate(50%, 50%);
+                width: 10px;
+                height: 10px;
+                background-color: ' . $bgColor . '; /* Depending on activity status */
+                border: 2px solid white;
+                border-radius: 50%;
+            }</style>';
 
             echo "</td></tr>";
         }
