@@ -89,9 +89,6 @@ abstract class NotificationEventAbstract implements NotificationEventInterface
                 'notify_me'          => $notify_me
             ]);
 
-           // get original timezone
-            $orig_tz = $DB->guessTimezone();
-
            //Foreach notification targets
             foreach ($targets as $target) {
                  //Get all users affected by this notification
@@ -107,19 +104,6 @@ abstract class NotificationEventAbstract implements NotificationEventInterface
                         if (!isset($processed[$users_infos['language']][$key])) {
                             //If ther user's language is the same as the template's one
                             $options['item'] = $item;
-
-                            // set timezone from user
-                            // as we work on a copy of the item object, no reload is required after
-                            if (
-                                isset($users_infos['additionnaloption']['timezone'])
-                                && is_a($options['item'], CommonDBTM::class, true) // item may be a `CommonGLPI`
-                            ) {
-                                 $DB->setTimezone($users_infos['additionnaloption']['timezone']);
-                                 // reload object for get timezone correct dates
-                                 $options['item']->getFromDB($item->fields['id']);
-
-                                 $DB->setTimezone($orig_tz);
-                            }
 
                             if (
                                 $tid = $template->getTemplateByLanguage(

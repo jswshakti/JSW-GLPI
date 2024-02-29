@@ -246,6 +246,8 @@ class NotificationTemplate extends CommonDBTM
         $event = '',
         $options = []
     ) {
+        /** @var \DBmysql $DB */
+        global $DB;
 
         $lang     = [];
         $language = $user_infos['language'];
@@ -268,6 +270,18 @@ class NotificationTemplate extends CommonDBTM
             Session::loadLanguage($language);
             $bak_language = $_SESSION["glpilanguage"];
             $_SESSION["glpilanguage"] = $language;
+
+            // set timezone from user, and reload object
+            $orig_tz = null;
+            if (isset($user_infos['additionnaloption']['timezone'])) {
+                $orig_tz = $DB->guessTimezone();
+                $DB->setTimezone($user_infos['additionnaloption']['timezone']);
+
+                if (is_a($options['item'], CommonDBTM::class, true)) {
+                    // reload item to ensure timestamps will be converted to the current user timezone
+                    $options['item']->getFromDB($options['item']->fields['id']);
+                }
+            }
 
            //If event is raised by a plugin, load it in order to get the language file available
             if ($plug = isPluginItemType(get_class($target->obj))) {
@@ -343,6 +357,11 @@ class NotificationTemplate extends CommonDBTM
             }
             if ($plug = isPluginItemType(get_class($target->obj))) {
                 Plugin::loadLang(strtolower($plug['plugin']));
+            }
+
+            // Restore original timezone
+            if ($orig_tz !== null) {
+                 $DB->setTimezone($orig_tz);
             }
         }
         if (isset($this->templates_by_languages[$tid])) {
