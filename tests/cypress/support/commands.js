@@ -98,7 +98,7 @@ Cypress.Commands.add('changeProfile', (profile, verify = false) => {
         cy.blockGLPIDashboards();
         cy.visit(href);
         if (verify) {
-            cy.get('a.user-menu-dropdown-toggle').contains(profile_pattern);
+            cy.get('a.user-menu-dropdown-toggle:visible').contains(profile_pattern);
         }
     });
 });
