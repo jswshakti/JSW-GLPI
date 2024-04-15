@@ -1085,26 +1085,28 @@ class User extends CommonDBTM
             $_SESSION["glpidefault_entity"] = $input["entities_id"];
         }
 
-       // Security on default profile update
-        if (isset($input['profiles_id'])) {
-            if (!in_array($input['profiles_id'], Profile_User::getUserProfiles($input['id']))) {
-                unset($input['profiles_id']);
+        // Security on default values (manually update)
+        if (!isset($input['_ruleright_process'])) { // if no rule right process
+            if (isset($input['profiles_id'])) { //check if desired profile can be set (depending on user's profiles)
+                if (!in_array($input['profiles_id'], Profile_User::getUserProfiles($input['id']))) {
+                    unset($input['profiles_id']);
+                }
             }
-        }
 
-       // Security on default entity  update
-        if (isset($input['entities_id'])) {
-            if (!in_array($input['entities_id'], Profile_User::getUserEntities($input['id']))) {
-                unset($input['entities_id']);
+            // Security on default entity  update
+            if (isset($input['entities_id'])) { //check if desired entity can be set (depending on user's entities)
+                if (!in_array($input['entities_id'], Profile_User::getUserEntities($input['id']))) {
+                    unset($input['entities_id']);
+                }
             }
-        }
 
-       // Security on default group  update
-        if (
-            isset($input['groups_id'])
-            && !Group_User::isUserInGroup($input['id'], $input['groups_id'])
-        ) {
-            unset($input['groups_id']);
+            // Security on default group  update
+            if (
+                isset($input['groups_id']) //check if desired group can be set (depending on user's groups)
+                && !Group_User::isUserInGroup($input['id'], $input['groups_id'])
+            ) {
+                unset($input['groups_id']);
+            }
         }
 
         if (
@@ -1363,7 +1365,31 @@ class User extends CommonDBTM
                     $right->delete($db_profile);
                 }
             }
+
+            $default_option = [];
+            // Security on default entity update by rule
+            // if input contain default entity and if it not user's entity
+            if (isset($this->input['entities_id']) && $this->input['entities_id'] != $this->fields['entities_id']) {
+                // Check if the entity is in the user's entities
+                if (in_array($this->input['entities_id'], Profile_User::getUserEntities($this->input['id']))) {
+                    $default_option['entities_id'] = $this->input['entities_id'];
+                }
+            }
+
+            // Security on default profile update by rule
+             // if input contain default profile and if it not user's profile
+            if (isset($this->input['profiles_id']) && $this->input['profiles_id'] != $this->fields['profiles_id']) {
+                // Check if the profile is in the user's profiles
+                if (in_array($this->input['profiles_id'], Profile_User::getUserProfiles($this->input['id']))) {
+                    $default_option['profiles_id'] = $this->input['profiles_id'];
+                }
+            }
+
+            if (count($default_option)) {
+                $this->update(['id' =>  $this->input['id']] + $default_option);
+            }
         }
+
         return $return;
     }
 
@@ -6520,6 +6546,15 @@ HTML;
             if (!$group_user->getFromDBByCrit($data)) {
                 $group_user->add($data);
             }
+        }
+
+        // Security on default group update
+        if (
+            isset($this->input['groups_id'])
+            && $this->input['groups_id'] != $this->fields['groups_id']
+            && Group_User::isUserInGroup($this->input['id'], $this->input['groups_id'])
+        ) {
+            $this->update(['id' =>  $this->input['id']] + ['groups_id' => $this->input['groups_id']]);
         }
     }
 
