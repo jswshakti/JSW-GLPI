@@ -1,5 +1,5 @@
 <script setup>
-    /* global glpi_toast_info, glpi_toast_warning, glpi_toast_error */
+    /* global glpi_toast_info, glpi_toast_warning, glpi_toast_error, displaySessionMessages */
     /**
      * @typedef ColumnMetadata
      * @property {boolean} protected If the column is protected from being deleted or modified.
