@@ -149,6 +149,7 @@ The present file will list all changes made to the project; according to the
 - Usage of `ajax/dropdownValidator.php` with the `users_id_validate` parameter is no longer supported. Use `items_id_target` instead.
 - `Glpi\Dashboard\Filters\AbstractFilter::field()` method has been made protected.
 - Usage of `CommonITILValidation::dropdownValidator()` with the `name` and `users_id_validate` options are no longer supported. Use `prefix` and `itemtype_target`/`items_id_target` respectively instead.
+- The refusal of the collected emails corresponding to a GLPI notification will now be made based on a default rule.
 
 #### Deprecated
 - Usage of `MAIL_SMTPSSL` and `MAIL_SMTPTLS` constants.
@@ -306,6 +307,7 @@ The present file will list all changes made to the project; according to the
 - `KnowbaseItemTranslation::isKbTranslationActive()`. Translations are now always active.
 - `Link::showForItem()`
 - `Link_Itemtype::showForLink()`
+- `MailCollector::isMessageSentByGlpi()`
 - `MailCollector::listEncodings()`
 - `MailCollector::title()`
 - `ManualLink::showForItem()`
