@@ -223,6 +223,7 @@ The present file will list all changes made to the project; according to the
 - `X-GLPI-Sanitized-Content` REST API header support.
 - Handling of encoded/escaped value in `autoName()`.
 - `regenerateTreeCompleteName()`
+- `AuthLDAP::displayLdapFilter()`
 - `AuthLDAP::manageValuesInSession()`
 - `AuthLDAP::showDateRestrictionForm()`
 - `Cartridge::getNotificationParameters()`
