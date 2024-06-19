@@ -38,6 +38,7 @@ describe('Planning view', () => {
     });
     it('Accessibility', () => {
         cy.visit('/front/planning.php');
+        cy.disableAnimations();
         cy.get('#planning_container').injectAndCheckA11y();
     });
 });
