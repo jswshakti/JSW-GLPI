@@ -227,6 +227,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
                 this.getResultsView().setID(ajax_container.find(".masssearchform").attr('id'));
 
                 this.getElement().trigger('search_refresh', [this.getElement()]);
+                window.displaySessionMessages();
                 this.hideLoadingSpinner();
                 this.shiftSelectAllCheckbox();
             }, () => {
