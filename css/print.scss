@@ -43,6 +43,9 @@ html, body {
     width: 210mm;
     height: 297mm;
 }
+.page-wrapper {
+    background-color: white;
+}
 
 #header,
 #footer,
@@ -68,7 +71,8 @@ form[action*="asset_peripheralasset"],
 form[action*="socket"],
 form[action*="document"],
 form[action*="item_line"],
-form[action*="networkport"] {
+form[action*="networkport"],
+form[action*="item_softwarelicense"] {
     @include hide-elements;
 }
 
@@ -100,6 +104,10 @@ table, .table {
         white-space: normal;
         word-wrap: break-word;
         overflow-wrap: break-word;
+    }
+
+    tfoot {
+        display: none !important;
     }
 }
 

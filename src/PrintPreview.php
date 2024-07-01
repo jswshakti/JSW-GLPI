@@ -167,6 +167,10 @@ class PrintPreview
                         });
                     }
                 });
+
+                document.querySelectorAll('.ms-auto.d-inline-flex.align-items-center.d-none.d-md-block.my-2').forEach(showentries => {
+                    showentries.remove();
+                });
             });
 JS;
         echo Html::scriptBlock($js);

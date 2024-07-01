@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 if (!defined('GLPI_ROOT')) {
     include('../inc/includes.php');
 }
