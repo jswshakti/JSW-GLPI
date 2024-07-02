@@ -31,7 +31,7 @@
  * ---------------------------------------------------------------------
  */
 
-/* global bootstrap, validateFormWithBootstrap */
+/* global bootstrap, validateFormWithBootstrap, displaySessionMessages */
 
 import GenericView from './GenericView.js';
 
@@ -227,7 +227,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
                 this.getResultsView().setID(ajax_container.find(".masssearchform").attr('id'));
 
                 this.getElement().trigger('search_refresh', [this.getElement()]);
-                window.displaySessionMessages();
+                displaySessionMessages();
                 this.hideLoadingSpinner();
                 this.shiftSelectAllCheckbox();
             }, () => {
