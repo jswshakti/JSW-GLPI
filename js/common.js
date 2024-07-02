@@ -1963,4 +1963,4 @@ window.displaySessionMessages = () => {
             });
         });
     });
-}
+};
