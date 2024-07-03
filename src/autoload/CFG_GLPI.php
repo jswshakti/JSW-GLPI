@@ -601,12 +601,9 @@ $CFG_GLPI["impact_asset_types"] = $CFG_GLPI["default_impact_asset_types"] + [
 
 $CFG_GLPI['itemantivirus_types'] = ['Computer', 'Phone'];
 $CFG_GLPI['itemvirtualmachines_types'] = ['Computer'];
-<<<<<<< HEAD:src/autoload/CFG_GLPI.php
 $CFG_GLPI['plug_types'] = ['PDU'];
-=======
 
 $CFG_GLPI["print_preview_types"]  = ['Computer', 'Monitor', 'Software', 'NetworkEquipment',
     'Devices', 'Printers', 'Cartridge', 'ConsumableItem', 'Phone', 'Racks', 'Enclosure', 'Pdu', 'PassiveDCEquipment',
     'Unmanaged', 'Cable', 'DeviceSimcard'
 ];
->>>>>>> fcc79b90da (Change Pdf to PrintPreview):inc/define.php

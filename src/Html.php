@@ -1219,7 +1219,6 @@ HTML;
             $tpl_vars['css_files'][] = ['path' => 'css/core_palettes.scss'];
         }
 
-<<<<<<< HEAD
         // Add specific meta tags for plugins
         $custom_header_tags = [];
         if (isset($PLUGIN_HOOKS[Hooks::ADD_HEADER_TAG]) && count($PLUGIN_HOOKS[Hooks::ADD_HEADER_TAG])) {
@@ -1232,11 +1231,9 @@ HTML;
         }
         $tpl_vars['custom_header_tags'] = $custom_header_tags;
 
-=======
         if ($option === 'print') {
             $tpl_vars['css_files'][] = ['path' => 'css/print.scss'];
         }
->>>>>>> dc9c3d1d3c (Update css file)
 
         $tpl_vars['js_files'][] = ['path' => 'public/lib/base.js'];
         $tpl_vars['js_files'][] = ['path' => 'js/webkit_fix.js'];
