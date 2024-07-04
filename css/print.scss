@@ -72,7 +72,13 @@ form[action*="socket"],
 form[action*="document"],
 form[action*="item_line"],
 form[action*="networkport"],
-form[action*="item_softwarelicense"] {
+form[action*="item_softwarelicense"],
+form[action*="item_softwareversion"],
+form[action*="contract_item"],
+form[action*="knowbaseitem_item"],
+form[action*="certificate_item"],
+form[action*="domain"],
+form[action*="appliance_item"] {
     @include hide-elements;
 }
 
