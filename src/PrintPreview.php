@@ -227,6 +227,7 @@ JS;
     {
         return [
             \Impact::class,
+            \Log::class,
         ];
     }
 

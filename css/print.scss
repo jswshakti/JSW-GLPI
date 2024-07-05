@@ -43,8 +43,18 @@ html, body {
     width: 210mm;
     height: 297mm;
 }
+
 .page-wrapper {
     background-color: white;
+}
+
+.card-header {
+    padding-left: 0;
+}
+
+.page-body {
+    padding: 0;
+    margin: 0;
 }
 
 #header,
@@ -64,8 +74,9 @@ input[type="checkbox"],
 [class*="btn "],
 [class*="search-pager"],
 [class*="tab_cadre_pager"],
-[class*="alert-important"],
+[class*="alert-"],
 [class*="selection__arrow"],
+[class*="fileupload"],
 form[action="contract_item"],
 form[action*="asset_peripheralasset"],
 form[action*="socket"],
@@ -78,7 +89,8 @@ form[action*="contract_item"],
 form[action*="knowbaseitem_item"],
 form[action*="certificate_item"],
 form[action*="domain"],
-form[action*="appliance_item"] {
+form[action*="appliance_item"],
+label[for*="pictures_"] {
     @include hide-elements;
 }
 
