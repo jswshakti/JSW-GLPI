@@ -651,23 +651,7 @@ class NetworkPort extends InventoryAsset
         }
         $netport = new \NetworkPort();
         if (empty($itemtype)) {
-            // Check if MAC address exists before assume it's an Unmanaged device.
-            $criteria = [
-                'SELECT'    => ['itemtype'],
-                'FROM'      => \NetworkPort::getTable(),
-                'WHERE'     => [
-                    'mac'       => $port->mac,
-                    ],
-                'LIMIT'     => 1
-                ];
-
-            $iterator = $DB->request($criteria);
-            if (count($iterator)) {
-                $row = $iterator->current();
-                $itemtype = $row['itemtype'];
-            } else { 
-                $itemtype = 'Unmanaged';
-            }
+            $itemtype = 'Unmanaged';
         }
         $port = $this->current_connection ?? $this->current_port;
         $item = new $itemtype();
