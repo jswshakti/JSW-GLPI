@@ -489,34 +489,52 @@ abstract class MainAsset extends InventoryAsset
             }
         }
 
+        // Check if MAC address is associated to a managed device from inventory.
         if($this->item->getType() == Unmanaged::getType()) {
             if (property_exists($val, 'mac')) {
-                // Check if MAC address exists before assume it's an Unmanaged device
                 $macs_with_items = NetworkPortInstantiation::getItemsByMac($val->mac);
+                
                 if (count($macs_with_items)) {
-                   // Get the first item that is matching entity
+                    foreach ($macs_with_items as $key => $tab) {
+                        if (
+                            isset($tab[0])
+                            && ($tab[0]->getEntityID() != $this->entities_id
+                            || $tab[0]->isDeleted()
+                            || $tab[0]->isTemplate())
+                        ) {
+                            unset($macs_with_items[$key]);
+                        }
+                    }
+                }
+                
+                $need_to_add = true;
+                if (count($macs_with_items)) {
+                    // Unmanaged devices netports are inventoried as 'NetworkPortAggregate' by default.
                     foreach ($macs_with_items as $items) {
-                        foreach ($items as $item) {
-                            if(
-                                $item->getEntityID() == $this->entities_id
-                                && !$item->isDeleted()
-                                && !$item->isTemplate()
+                        for ($i=0; $i <= count($items); $i++) {
+                            $item = $items[$i];
+                            if (
+                                $item->getType() == NetworkPort::getType()
+                                && isset($item->fields['instantiation_type'])
+                                && ($item->fields['instantiation_type'] == 'NetworkPortAggregate')
                             ) {
-                                // Manage converted object
+                                // Manage converted object.
                                 $this->item = $item;
                                 $this->itemtype = $val->type = $item->getType();
                                 $device_name = new IPAddress($input['name']);
                                 if ($device_name->is_valid()) {
-                                    // Keep current device name
+                                    // Keep current device name.
                                     $input['name'] = $val->name = $item->fields['name'];
                                 }
-                                unset($item);
-                                unset($macs_with_items);
-                                if($item->getType() != Unmanaged::getType()) {
+                                // Update the Unmanaged device only if it's the only one asset available.
+                                if ($item->getType() != Unmanaged::getType()) {
+                                    $need_to_add = false;
                                     break;
                                 }
                             }
                         }
+                        
+                        if (!$need_to_add) break;
                     }
                 }
             }
