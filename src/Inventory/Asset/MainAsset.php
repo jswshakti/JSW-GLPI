@@ -46,6 +46,7 @@ use Glpi\Inventory\Conf;
 use Glpi\Inventory\Request;
 use Glpi\Toolbox\Sanitizer;
 use IPAddress;
+use NetworkPort;
 use NetworkPortInstantiation;
 use NetworkEquipment;
 use Printer;
@@ -500,7 +501,6 @@ abstract class MainAsset extends InventoryAsset
                                 $item->getEntityID() == $this->entities_id
                                 && !$item->isDeleted()
                                 && !$item->isTemplate()
-                                && $item->getType() != Unmanaged::getType()
                             ) {
                                 // Manage converted object
                                 $this->item = $item;
@@ -510,8 +510,11 @@ abstract class MainAsset extends InventoryAsset
                                     // Keep current device name
                                     $input['name'] = $val->name = $item->fields['name'];
                                 }
+                                unset($item);
                                 unset($macs_with_items);
-                                break;
+                                if($item->getType() != Unmanaged::getType()) {
+                                    break;
+                                }
                             }
                         }
                     }
