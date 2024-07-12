@@ -45,8 +45,11 @@ use Glpi\Inventory\Asset\Printer as AssetPrinter;
 use Glpi\Inventory\Conf;
 use Glpi\Inventory\Request;
 use Glpi\Toolbox\Sanitizer;
+use IPAddress;
+use NetworkPortInstantiation;
 use NetworkEquipment;
 use Printer;
+use Unmanaged;
 use RefusedEquipment;
 use RuleImportAsset;
 use RuleImportAssetCollection;
@@ -485,6 +488,37 @@ abstract class MainAsset extends InventoryAsset
             }
         }
 
+        if($this->item->getType() == Unmanaged::getType()) {
+            if (property_exists($val, 'mac')) {
+                // Check if MAC address exists before assume it's an Unmanaged device
+                $macs_with_items = NetworkPortInstantiation::getItemsByMac($val->mac);
+                if (count($macs_with_items)) {
+                   // Get the first item that is matching entity
+                    foreach ($macs_with_items as $items) {
+                        foreach ($items as $item) {
+                            if(
+                                $item->getEntityID() == $this->entities_id
+                                && !$item->isDeleted()
+                                && !$item->isTemplate()
+                                && $item->getType() != Unmanaged::getType()
+                            ) {
+                                // Manage converted object
+                                $this->item = $item;
+                                $this->itemtype = $val->type = $item->getType();
+                                $device_name = new IPAddress($input['name']);
+                                if ($device_name->is_valid()) {
+                                    // Keep current device name
+                                    $input['name'] = $val->name = $item->fields['name'];
+                                }
+                                unset($macs_with_items);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         $input['itemtype'] = $this->item->getType();
 
         if (property_exists($val, 'comment')) {
