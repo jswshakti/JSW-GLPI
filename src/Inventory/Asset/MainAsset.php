@@ -490,41 +490,41 @@ abstract class MainAsset extends InventoryAsset
         }
 
         // Check if MAC address is associated to a managed device from inventory.
-        if($this->item->getType() == Unmanaged::getType()) {
-            if (property_exists($val, 'mac')) {
-                $macs_with_items = NetworkPortInstantiation::getItemsByMac($val->mac);
+        if (property_exists($val, 'mac')) {
+            $macs_with_items = NetworkPortInstantiation::getItemsByMac($val->mac);
+            
+            if (count($macs_with_items)) {
+                foreach ($macs_with_items as $key => $tab) {
+                    if (
+                        isset($tab[0])
+                        && ($tab[0]->getEntityID() != $this->entities_id
+                        || $tab[0]->isDeleted()
+                        || $tab[0]->isTemplate())
+                    ) {
+                        unset($macs_with_items[$key]);
+                    }
+                }
+            }
                 
-                if (count($macs_with_items)) {
-                    foreach ($macs_with_items as $key => $tab) {
+            // If MAC address isn't unique on this entity.
+            if (count($macs_with_items) > 1) {
+                foreach ($macs_with_items as $key => $tab) {
+                    $asset = $tab[0];
+                    if ($asset->getType() == Unmanaged::getType()) {
+                        $device_name = new IPAddress($asset->fields['name']);
                         if (
-                            isset($tab[0])
-                            && ($tab[0]->getEntityID() != $this->entities_id
-                            || $tab[0]->isDeleted()
-                            || $tab[0]->isTemplate())
+                            $device_name->is_valid()
+                            && ($asset->fields['is_dynamic'] == 1)
                         ) {
+                            // Remove duplicate asset.
+                            $asset->delete(['id' => $asset->fields['id']], true);
                             unset($macs_with_items[$key]);
                         }
                     }
                 }
-                
-                // If MAC address isn't unique on this entity.
-                if (count($macs_with_items) > 1) {
-                    foreach ($macs_with_items as $key => $tab) {
-                        $asset = $tab[0];
-                        if ($asset->getType() == Unmanaged::getType()) {
-                            $device_name = new IPAddress($asset->fields['name']);
-                            if (
-                                $device_name->is_valid()
-                                && ($asset->fields['is_dynamic'] == 1)
-                            ) {
-                                // Remove duplicate asset.
-                                $asset->delete(['id' => $asset->fields['id']], true);
-                                unset($macs_with_items[$key]);
-                            }
-                        }
-                    }
-                }
-                
+            }
+            
+            if($this->item->getType() == Unmanaged::getType()) {    
                 $need_to_add = true;
                 if (count($macs_with_items)) {
                     // Unmanaged devices netports are inventoried as 'NetworkPortAggregate' by default.
