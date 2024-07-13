@@ -507,30 +507,49 @@ abstract class MainAsset extends InventoryAsset
                     }
                 }
                 
+                // If MAC address isn't unique on this entity.
+                if (count($macs_with_items) > 1) {
+                    foreach ($macs_with_items as $key => $tab) {
+                        $asset = $tab[0];
+                        if ($asset->getType() == Unmanaged::getType()) {
+                            $device_name = new IPAddress($asset->fields['name']);
+                            if (
+                                $device_name->is_valid()
+                                && ($asset->fields['is_dynamic'] == 1)
+                            ) {
+                                // Remove duplicate asset.
+                                $asset->delete(['id' => $asset->fields['id']], true);
+                                unset($macs_with_items[$key]);
+                            }
+                        }
+                    }
+                }
+                
                 $need_to_add = true;
                 if (count($macs_with_items)) {
                     // Unmanaged devices netports are inventoried as 'NetworkPortAggregate' by default.
                     foreach ($macs_with_items as $items) {
                         for ($i=0; $i <= count($items); $i++) {
+                            $asset = $items[0];
                             $item = $items[$i];
+                            
+                            // Manage converted object.
+                            $this->item = $asset;
+                            $this->itemtype = $val->type = $item->fields['itemtype'];
+                            // Keep current device name if new device name is an
+                            // IP address, except if current device name is an IP address.
+                            $new_device_name = new IPAddress($input['name']);
+                            $current_device_name = new IPAddress($asset->fields['name']);
                             if (
-                                $item->getType() == NetworkPort::getType()
-                                && isset($item->fields['instantiation_type'])
-                                && ($item->fields['instantiation_type'] == 'NetworkPortAggregate')
+                                $new_device_name->is_valid()
+                                && !$current_device_name->is_valid()
                             ) {
-                                // Manage converted object.
-                                $this->item = $item;
-                                $this->itemtype = $val->type = $item->getType();
-                                $device_name = new IPAddress($input['name']);
-                                if ($device_name->is_valid()) {
-                                    // Keep current device name.
-                                    $input['name'] = $val->name = $item->fields['name'];
-                                }
-                                // Update the Unmanaged device only if it's the only one asset available.
-                                if ($item->getType() != Unmanaged::getType()) {
-                                    $need_to_add = false;
-                                    break;
-                                }
+                                $input['name'] = $val->name = $asset->fields['name'];
+                            }
+                            // Update the Unmanaged device only if it's the only one asset available.
+                            if ($asset->getType() != Unmanaged::getType()) {
+                                $need_to_add = false;
+                                break;
                             }
                         }
                         
