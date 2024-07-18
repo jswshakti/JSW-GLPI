@@ -81,6 +81,7 @@ input[type="checkbox"],
 [class*="alert-"],
 [class*="selection__arrow"],
 [class*="fileupload"],
+[class*="add_relation"],
 form[action="contract_item"],
 form[action*="asset_peripheralasset"],
 form[action*="socket"],
@@ -94,7 +95,9 @@ form[action*="knowbaseitem_item"],
 form[action*="certificate_item"],
 form[action*="domain"],
 form[action*="appliance_item"],
-label[for*="pictures_"] {
+label[for*="pictures_"],
+form[id*="form_device_add"],
+span[class*="fa-plus pointer"] {
     @include hide-elements;
 }
 
