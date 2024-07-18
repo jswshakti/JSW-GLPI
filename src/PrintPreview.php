@@ -122,7 +122,7 @@ class PrintPreview
                     <div class="card my-0 border-0 shadow-none">
                         <div class="card-header">
                             <h4 class="card-title ps-4">
-                                <i class="' . $key::getIcon() . '"></i> &nbsp' . $key::getTypeName(1) . '
+                                <i class="' . $key::getIcon() . '"></i> &nbsp' . ($key == 'Item_Devices' ? 'Components' : $key::getTypeName(0)) . '
                             </h4>
                         </div>
                     </div>

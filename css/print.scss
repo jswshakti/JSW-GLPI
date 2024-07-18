@@ -31,6 +31,10 @@
  * ---------------------------------------------------------------------
  */
 
+@page {
+    size: A4;
+}
+
 @mixin hide-elements {
     display: none !important;
 }
@@ -124,9 +128,15 @@ table, .table {
         overflow-wrap: break-word;
     }
 
-    tfoot {
+    tfoot, tr[class*="noHover"] {
         display: none !important;
     }
+}
+
+div[class*="form-field"] {
+    display: flex;
+    align-items: center; // Centre les éléments verticalement
+    flex-wrap: wrap; // Permet aux éléments de passer à la ligne si l'espace horizontal est insuffisant
 }
 
 th.more-than-three-columns, .th.more-than-three-columns {
@@ -139,37 +149,4 @@ th.more-than-three-columns, .th.more-than-three-columns {
 .card-header {
     background-color: lightgrey !important;
     color: black !important;
-}
-
-@media print {
-    @include hide-elements;
-
-    .navigationheader > .main-header > h3 {
-        padding-left: 0rem !important;
-    }
-
-    .break {
-        break-before: page !important;
-    }
-
-    table, .table {
-        width: 100%;
-        max-width: 210mm;
-        box-sizing: border-box;
-        table-layout: fixed;
-        overflow-x: hidden;
-
-        td, a, span {
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-    }
-
-    th.more-than-three-columns, .th.more-than-three-columns {
-        writing-mode: vertical-rl;
-        transform: rotate(180deg);
-        white-space: nowrap;
-        vertical-align: top;
-    }
 }
