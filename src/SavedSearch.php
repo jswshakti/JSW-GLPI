@@ -43,7 +43,7 @@ use Glpi\Toolbox\Sanitizer;
  *
  * @since 9.2
  **/
-class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
+class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
 {
     use Clonable;
 
@@ -184,9 +184,26 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
     {
 
         $ong = [];
-        $this->addDefaultFormTab($ong)
-           ->addStandardTab('SavedSearch_Alert', $ong, $options);
+        $this->addDefaultFormTab($ong);
+        $this->addStandardTab('SavedSearch', $ong, $options);
+        $this->addStandardTab('SavedSearch_Alert', $ong, $options);
         return $ong;
+    }
+
+    /**
+     * @param $item         CommonGLPI object
+     * @param $tabnum       (default 1)
+     * @param $withtemplate (default 0)
+     **/
+    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
+    {
+
+        switch ($item->getType()) {
+            case 'SavedSearch':
+                $item->showVisibility();
+                return true;
+        }
+        return false;
     }
 
 
