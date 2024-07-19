@@ -39,6 +39,12 @@
 abstract class CommonDBVisible extends CommonDBTM
 {
     /**
+     * Types of target available for the itemtype
+     * @var string[]
+     */
+    public static $types = ['Entity', 'Group', 'Profile', 'User'];
+
+    /**
      * Entities on which item is visible.
      * Keys are ID, values are DB fields values.
      * @var array
@@ -202,6 +208,10 @@ abstract class CommonDBVisible extends CommonDBTM
               + count($this->profiles));
     }
 
+    public function getVisibilityRight() {
+        return strtolower($this::getType()) . '_public';
+    }
+
     /**
      * Show visibility configuration
      *
@@ -230,7 +240,7 @@ abstract class CommonDBVisible extends CommonDBTM
             echo "<tr class='tab_bg_1'><th colspan='4'>" . __('Add a target') . "</tr>";
             echo "<tr class='tab_bg_1'><td class='tab_bg_2' width='100px'>";
 
-            $types   = ['Entity', 'Group', 'Profile', 'User'];
+            $types   = self::$types;
 
             $addrand = Dropdown::showItemTypes('_type', $types);
             $params = $this->getShowVisibilityDropdownParams();
@@ -436,7 +446,7 @@ abstract class CommonDBVisible extends CommonDBTM
     {
         return [
             'type'  => '__VALUE__',
-            'right' => strtolower($this::getType()) . '_public'
+            'right' => $this->getVisibilityRight()
         ];
     }
 }

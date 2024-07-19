@@ -157,6 +157,43 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
     }
 
+    public function haveVisibilityAccess()
+    {
+        if (!self::canView()) {
+            return false;
+        }
+
+        return parent::haveVisibilityAccess();
+    }
+
+    /**
+     * Return visibility joins to add to SQL
+     *
+     * @param $forceall force all joins (false by default)
+     *
+     * @return string joins to add
+     **/
+    public static function addVisibilityJoins($forceall = false)
+    {
+        //not deprecated because used in Search
+        /** @var \DBmysql $DB */
+        global $DB;
+
+        //get and clean criteria
+        $criteria = self::getVisibilityCriteria();
+        unset($criteria['WHERE']);
+        $criteria['FROM'] = self::getTable();
+
+        $it = new \DBmysqlIterator(null);
+        $it->buildQuery($criteria);
+        $sql = $it->getSql();
+        $sql = trim(str_replace(
+            'SELECT * FROM ' . $DB->quoteName(self::getTable()),
+            '',
+            $sql
+        ));
+        return $sql;
+    }
 
     public function canCreateItem()
     {
@@ -177,6 +214,44 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
                  || $this->fields['users_id'] == Session::getLoginUserID());
         }
         return parent::canViewItem();
+    }
+
+    public function post_getFromDB()
+    {
+        // Entities
+        $this->entities = Entity_SavedSearch::getEntities($this);
+
+        // Group / entities
+        $this->groups   = Group_SavedSearch::getGroups($this);
+
+        // Profile / entities
+        $this->profiles = Profile_SavedSearch::getProfiles($this);
+    }
+
+    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
+    {
+
+        if (self::canView()) {
+            $nb = 0;
+            switch ($item->getType()) {
+                case 'SavedSearch':
+                    if (Session::haveRight(self::$rightname, CREATE)) {
+                        if ($item->fields['is_private']) {
+                            if ($_SESSION['glpishow_count_on_tabs']) {
+                                $nb = $item->countVisibilities();
+                            }
+                            return [1 => self::createTabEntry(_n(
+                                'Target',
+                                'Targets',
+                                Session::getPluralNumber()
+                            ), $nb)
+                            ];
+                        }
+                    }
+                    break;
+            }
+        }
+        return '';
     }
 
 
@@ -376,11 +451,15 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
 
     public function cleanDBonPurge()
     {
-
         $this->deleteChildrenAndRelationsFromDb(
             [
                 SavedSearch_Alert::class,
                 SavedSearch_User::class,
+                Entity_SavedSearch::class,
+                Group_SavedSearch::class,
+                PlanningRecall::class,
+                Profile_SavedSearch::class,
+                SavedSearch_User::class
             ]
         );
     }
@@ -1449,8 +1528,118 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         if (Session::haveRight('config', UPDATE)) {
             return ['WHERE' => []];
         }
+        if (!Session::haveRight(self::$rightname, READ)) {
+            return [
+                'WHERE' => ['glpi_savedsearches.users_id' => Session::getLoginUserID()],
+            ];
+        }
 
-        return self::getVisibilityCriteriaForMine();
+        $join = [];
+        $where = [];
+
+        // Users
+        $join['glpi_savedsearches_users'] = [
+            'FKEY' => [
+                'glpi_savedsearches_users'  => 'savedsearches_id',
+                'glpi_savedsearches'        => 'id'
+            ]
+        ];
+
+        if (Session::getLoginUserID()) {
+            $where['OR'] = [
+                'glpi_savedsearches.users_id'        => Session::getLoginUserID(),
+                'glpi_savedsearches_users.users_id'  => Session::getLoginUserID(),
+            ];
+        } else {
+            $where = [
+                0
+            ];
+        }
+
+        // Groups
+        if (
+            $forceall
+            || (isset($_SESSION["glpigroups"]) && count($_SESSION["glpigroups"]))
+        ) {
+            $join['glpi_groups_savedsearches'] = [
+                'FKEY' => [
+                    'glpi_groups_savedsearches' => 'savedsearches_id',
+                    'glpi_savedsearches'        => 'id'
+                ]
+            ];
+
+            $or = ['glpi_groups_savedsearches.no_entity_restriction' => 1];
+            $restrict = getEntitiesRestrictCriteria(
+                'glpi_groups_savedsearches',
+                '',
+                $_SESSION['glpiactiveentities'],
+                true
+            );
+            if (count($restrict)) {
+                $or = $or + $restrict;
+            }
+            $where['OR'][] = [
+                'glpi_groups_savedsearches.groups_id' => count($_SESSION["glpigroups"])
+                    ? $_SESSION["glpigroups"]
+                    : [-1],
+                'OR' => $or
+            ];
+        }
+
+        // Profiles
+        if (
+            $forceall
+            || (isset($_SESSION["glpiactiveprofile"])
+                && isset($_SESSION["glpiactiveprofile"]['id']))
+        ) {
+            $join['glpi_profiles_savedsearches'] = [
+                'FKEY' => [
+                    'glpi_profiles_savedsearches'  => 'savedsearches_id',
+                    'glpi_savedsearches'           => 'id'
+                ]
+            ];
+
+            $or = ['glpi_profiles_savedsearches.no_entity_restriction' => 1];
+            $restrict = getEntitiesRestrictCriteria(
+                'glpi_profiles_savedsearches',
+                '',
+                $_SESSION['glpiactiveentities'],
+                true
+            );
+            if (count($restrict)) {
+                $or = $or + $restrict;
+            }
+            $where['OR'][] = [
+                'glpi_profiles_savedsearches.profiles_id' => $_SESSION["glpiactiveprofile"]['id'],
+                'OR' => $or
+            ];
+        }
+
+        // Entities
+        if (
+            $forceall
+            || (isset($_SESSION["glpiactiveentities"]) && count($_SESSION["glpiactiveentities"]))
+        ) {
+            $join['glpi_entities_savedsearches'] = [
+                'FKEY' => [
+                    'glpi_entities_savedsearches'  => 'savedsearches_id',
+                    'glpi_savedsearches'           => 'id'
+                ]
+            ];
+        }
+        if (isset($_SESSION["glpiactiveentities"]) && count($_SESSION["glpiactiveentities"])) {
+            $restrict = getEntitiesRestrictCriteria('glpi_entities_savedsearches', '', '', true, true);
+            if (count($restrict)) {
+                $where['OR'] = $where['OR'] + $restrict;
+            }
+        }
+
+        $criteria = [
+            'LEFT JOIN' => $join,
+            'WHERE'     => $where
+        ];
+
+        return $criteria;
     }
 
 
@@ -1461,6 +1650,11 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
 
     public function getCloneRelations(): array
     {
-        return [];
+        return [
+            Entity_SavedSearch::class,
+            Group_SavedSearch::class,
+            Profile_SavedSearch::class,
+            SavedSearchTranslation::class,
+        ];
     }
 }
