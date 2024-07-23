@@ -63,6 +63,12 @@ if (
             if (Session::canViewAllEntities()) {
                 $params['toadd'] = [-1 => __('No restriction')];
             }
+            if (isset($_POST['entity']) && $_POST['entity'] >= 0) {
+                $params['entity'] = $_POST['entity'];
+                if (isset($_POST['entity_sons'])) {
+                    $params['entity_sons'] = $_POST['entity_sons'];
+                }
+            }
             echo "<table class='tab_format'><tr><td>";
             echo Entity::getTypeName(1);
             echo "</td><td>";

@@ -48,6 +48,7 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
     use Clonable;
 
     public static $rightname               = 'bookmark_public';
+    public static $types                   = ['Group', 'User'];
 
     const SEARCH = 1; //SEARCH SYSTEM bookmark
     const URI    = 2;
@@ -218,14 +219,11 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
 
     public function post_getFromDB()
     {
-        // Entities
-        $this->entities = Entity_SavedSearch::getEntities($this);
-
-        // Group / entities
+        // Group
         $this->groups   = Group_SavedSearch::getGroups($this);
 
-        // Profile / entities
-        $this->profiles = Profile_SavedSearch::getProfiles($this);
+        // Users
+        $this->users    = SavedSearch_UserTarget::getUsers($this);
     }
 
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
@@ -455,11 +453,9 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
             [
                 SavedSearch_Alert::class,
                 SavedSearch_User::class,
-                Entity_SavedSearch::class,
+                SavedSearch_UserTarget::class,
                 Group_SavedSearch::class,
-                PlanningRecall::class,
-                Profile_SavedSearch::class,
-                SavedSearch_User::class
+                PlanningRecall::class
             ]
         );
     }
@@ -1650,11 +1646,14 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
 
     public function getCloneRelations(): array
     {
-        return [
-            Entity_SavedSearch::class,
-            Group_SavedSearch::class,
-            Profile_SavedSearch::class,
-            SavedSearchTranslation::class,
-        ];
+        return [];
+    }
+
+    /**
+     * No specific right needed to be a target
+     * @return false
+     */
+    public function getVisibilityRight() {
+        return false;
     }
 }

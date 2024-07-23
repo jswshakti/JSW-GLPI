@@ -74,16 +74,12 @@ if (isset($_POST["add"])) {
         isset($_POST["_type"]) && !empty($_POST["_type"])
         && isset($_POST["savedsearches_id"]) && $_POST["savedsearches_id"]
     ) {
-        if (array_key_exists('entities_id', $_POST) && $_POST['entities_id'] == -1) {
-            // "No restriction" value selected
-            $_POST['entities_id'] = 'NULL';
-            $_POST['no_entity_restriction'] = 1;
-        }
         $item = null;
         switch ($_POST["_type"]) {
             case 'User':
                 if (isset($_POST['users_id']) && $_POST['users_id']) {
-                    $item = new SavedSearch_User();
+                    $item = new SavedSearch_UserTarget();
+                    $_POST['itemtype'] = $savedsearch->getType();
                 }
                 break;
 
@@ -91,16 +87,6 @@ if (isset($_POST["add"])) {
                 if (isset($_POST['groups_id']) && $_POST['groups_id']) {
                     $item = new Group_SavedSearch();
                 }
-                break;
-
-            case 'Profile':
-                if (isset($_POST['profiles_id']) && $_POST['profiles_id']) {
-                    $item = new Profile_SavedSearch();
-                }
-                break;
-
-            case 'Entity':
-                $item = new Entity_SavedSearch();
                 break;
         }
         if (!is_null($item)) {

@@ -46,10 +46,7 @@ if (strpos($_SERVER['PHP_SELF'], "visibility.php")) {
 
 Session::checkCentralAccess();
 
-if (
-    isset($_POST['type']) && !empty($_POST['type'])
-    && isset($_POST['right'])
-) {
+if (isset($_POST['type']) && !empty($_POST['type'])) {
     $display = false;
     $rand    = mt_rand();
     $prefix = '';
@@ -65,10 +62,18 @@ if (
     switch ($_POST['type']) {
         case 'User':
             echo "<td>";
-            $params = [
-                'right' => isset($_POST['allusers']) ? 'all' : $_POST['right'],
-                'name' => $prefix . 'users_id' . $suffix
-            ];
+            $params =
+            $params = ['name' => $prefix . 'users_id' . $suffix];
+            if (isset($_POST['right'])) {
+                $params['right'] = isset($_POST['allusers']) ? 'all' : $_POST['right'];
+            }
+            if (isset($_POST['entity']) && $_POST['entity'] >= 0) {
+                $params['entity'] = $_POST['entity'];
+                if (isset($_POST['entity_sons'])) {
+                    $params['entity_sons'] = $_POST['entity_sons'];
+                }
+            }
+
             User::dropdown($params);
             echo "</td>";
             $display = true;
@@ -88,6 +93,14 @@ if (
                     'prefix'   => $_POST['prefix']
                 ]
             ];
+            if (isset($_POST['entity']) && $_POST['entity'] >= 0) {
+                $params['entity'] = $_POST['entity'];
+                $params['toupdate']['moreparams']['entity'] = $_POST['entity'];
+                if (isset($_POST['entity_sons'])) {
+                    $params['entity_sons'] = $_POST['entity_sons'];
+                    $params['toupdate']['moreparams']['entity_sons'] = $_POST['entity_sons'];
+                }
+            }
 
             Group::dropdown($params);
             echo "</td><td>";

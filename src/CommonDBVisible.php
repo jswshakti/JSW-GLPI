@@ -208,6 +208,10 @@ abstract class CommonDBVisible extends CommonDBTM
               + count($this->profiles));
     }
 
+    /**
+     * Get right which will be used to determine which users can be targeted
+     * @return string
+     */
     public function getVisibilityRight() {
         return strtolower($this::getType()) . '_public';
     }
@@ -240,7 +244,7 @@ abstract class CommonDBVisible extends CommonDBTM
             echo "<tr class='tab_bg_1'><th colspan='4'>" . __('Add a target') . "</tr>";
             echo "<tr class='tab_bg_1'><td class='tab_bg_2' width='100px'>";
 
-            $types   = self::$types;
+            $types   = static::$types;
 
             $addrand = Dropdown::showItemTypes('_type', $types);
             $params = $this->getShowVisibilityDropdownParams();
@@ -444,9 +448,16 @@ abstract class CommonDBVisible extends CommonDBTM
      */
     protected function getShowVisibilityDropdownParams()
     {
-        return [
-            'type'  => '__VALUE__',
-            'right' => $this->getVisibilityRight()
-        ];
+        $params = ['type'  => '__VALUE__'];
+        if ($right = $this->getVisibilityRight()) {
+            $params['right'] = $right;
+        }
+        if (isset($this->fields['entities_id'])) {
+            $params['entity'] = $this->fields['entities_id'];
+            if (isset($this->fields['is_recursive'])) {
+                $params['entity_sons'] = $this->fields['is_recursive'];
+            }
+        }
+        return $params;
     }
 }
