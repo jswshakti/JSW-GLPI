@@ -33,26 +33,57 @@
  * ---------------------------------------------------------------------
  */
 
-class Profile_SavedSearch extends CommonDBRelation
+class SavedSearch_UserTarget extends CommonDBRelation
 {
-    // From CommonDBRelation
+    public $auto_message_on_action = false;
+
     public static $itemtype_1          = 'SavedSearch';
     public static $items_id_1          = 'savedsearches_id';
-    public static $itemtype_2          = 'Profile';
-    public static $items_id_2          = 'profiles_id';
 
-    public static $checkItem_2_Rights  = self::DONT_CHECK_ITEM_RIGHTS;
-    public static $logs_for_item_2     = false;
+    public static $itemtype_2          = 'User';
+    public static $items_id_2          = 'users_id';
 
+    public function prepareInputForUpdate($input)
+    {
+        return $this->can($input['id'], READ) ? $input : false;
+    }
 
     /**
-     * Get groups for a saved search
+     * Summary of getDefault
+     * @param mixed $users_id id of the user
+     * @param mixed $itemtype type of item
+     * @return array|boolean same output than SavedSearch::getParameters()
+     * @since 9.2
+     */
+    public static function getDefault($users_id, $itemtype)
+    {
+        /** @var \DBmysql $DB */
+        global $DB;
+
+        $iter = $DB->request(['SELECT' => 'savedsearches_id',
+            'FROM'   => 'glpi_savedsearches_users',
+            'WHERE'  => ['users_id' => $users_id,
+                'itemtype' => $itemtype
+            ]
+        ]);
+        if (count($iter)) {
+            $row = $iter->current();
+            // Load default bookmark for this $itemtype
+            $bookmark = new SavedSearch();
+            // Only get data for bookmarks
+            return $bookmark->getParameters($row['savedsearches_id']);
+        }
+        return false;
+    }
+
+    /**
+     * Get users for a saved search
      *
      * @param SavedSearch $savedSearch SavedSearch instance
      *
-     * @return array of groups linked to a saved search
+     * @return array of users linked to a saved search
      **/
-    public static function getProfiles(SavedSearch $savedSearch)
+    public static function getUsers(SavedSearch $savedSearch)
     {
         /** @var \DBmysql $DB */
         global $DB;
