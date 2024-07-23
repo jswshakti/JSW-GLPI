@@ -42,8 +42,8 @@ $default_charset = DBConnection::getDefaultCharset();
 $default_collation = DBConnection::getDefaultCollation();
 $default_key_sign = DBConnection::getDefaultPrimaryKeySignOption();
 
-if (!$DB->tableExists('glpi_groups_savedsearches')) {
-    $query = "CREATE TABLE `glpi_users_savedsearches_targets` (
+if (!$DB->tableExists('glpi_savedsearches_usertargets')) {
+    $query = "CREATE TABLE `glpi_savedsearches_usertargets` (
         `id` int {$default_key_sign} NOT NULL AUTO_INCREMENT,
         `savedsearches_id` int {$default_key_sign}  NOT NULL DEFAULT '0',
         `users_id` int {$default_key_sign}  NOT NULL DEFAULT '0',
@@ -51,5 +51,5 @@ if (!$DB->tableExists('glpi_groups_savedsearches')) {
         KEY `savedsearches_id` (`savedsearches_id`),
         KEY `users_id` (`users_id`)
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC DEFAULT CHARSET = {$default_charset} COLLATE = {$default_collation};";
-    $DB->doQueryOrDie($query, "add table glpi_users_savedsearches_targets");
+    $DB->doQueryOrDie($query, "add table glpi_savedsearches_usertargets");
 }
