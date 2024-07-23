@@ -43,6 +43,9 @@ class SavedSearch_UserTarget extends CommonDBRelation
     public static $itemtype_2          = 'User';
     public static $items_id_2          = 'users_id';
 
+    public static $checkItem_2_Rights  = self::DONT_CHECK_ITEM_RIGHTS;
+    public static $logs_for_item_2     = false;
+
     public function prepareInputForUpdate($input)
     {
         return $this->can($input['id'], READ) ? $input : false;

@@ -931,7 +931,20 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
                         $utable  => 'savedsearches_id',
                         $table   => 'id'
                     ]
-                ]
+                ],
+                // relations for targetted savedsearch
+                SavedSearch_UserTarget::getTable() => [
+                    'ON' => [
+                        SavedSearch_UserTarget::getTable()  => 'savedsearches_id',
+                        $table   => 'id'
+                    ]
+                ],
+                Group_SavedSearch::getTable() => [
+                    'ON' => [
+                        Group_SavedSearch::getTable()  => 'savedsearches_id',
+                        $table   => 'id'
+                    ]
+                ],
             ],
             'ORDERBY'   => [
                 'itemtype',
@@ -1494,9 +1507,28 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         $criteria = ['WHERE' => []];
         $restrict = [
             self::getTable() . '.is_private' => 1,
-            self::getTable() . '.users_id'    => Session::getLoginUserID()
+            'OR' => [
+                // is owner
+                self::getTable() . '.users_id'    => Session::getLoginUserID(),
+                // directly targetted
+                SavedSearch_UserTarget::getTable().'.users_id' => Session::getLoginUserID(),
+                // targetted through groups
+                [
+                    'glpi_groups_savedsearches.groups_id' => count($_SESSION["glpigroups"])
+                        ? $_SESSION["glpigroups"]
+                        : [-1],
+                    'OR' => [
+                        ['glpi_groups_savedsearches.no_entity_restriction' => 1],
+                        getEntitiesRestrictCriteria(
+                            'glpi_groups_savedsearches',
+                            '',
+                            $_SESSION['glpiactiveentities'],
+                            true
+                        )
+                    ]
+                ]
+            ]
         ];
-
         if (Session::haveRight(self::$rightname, READ)) {
             $restrict = [
                 'OR' => [
