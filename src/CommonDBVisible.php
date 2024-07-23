@@ -303,7 +303,8 @@ abstract class CommonDBVisible extends CommonDBTM
                     echo "<tr class='tab_bg_1'>";
                     if ($canedit) {
                         echo "<td>";
-                        Html::showMassiveActionCheckBox($this::getType() . '_User', $data["id"]);
+                        $itemtype = $this::getType() != SavedSearch::getType() ? $this::getType() . '_User' : $this::getType() . '_UserTarget';
+                        Html::showMassiveActionCheckBox($itemtype, $data["id"]);
                         echo "</td>";
                     }
                     echo "<td>" . User::getTypeName(1) . "</td>";

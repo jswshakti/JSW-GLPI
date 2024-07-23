@@ -932,7 +932,7 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
                         $table   => 'id'
                     ]
                 ],
-                // relations for targeted savedsearch
+                // relations for targetted savedsearch
                 SavedSearch_UserTarget::getTable() => [
                     'ON' => [
                         SavedSearch_UserTarget::getTable()  => 'savedsearches_id',
@@ -1510,9 +1510,9 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
             'OR' => [
                 // is owner
                 self::getTable() . '.users_id'    => Session::getLoginUserID(),
-                // directly targeted
+                // directly targetted
                 SavedSearch_UserTarget::getTable().'.users_id' => Session::getLoginUserID(),
-                // targeted through groups
+                // targetted through groups
                 [
                     'glpi_groups_savedsearches.groups_id' => count($_SESSION["glpigroups"])
                         ? $_SESSION["glpigroups"]
