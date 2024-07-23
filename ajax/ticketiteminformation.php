@@ -35,13 +35,12 @@
 
 // Direct access to file
 if (strpos($_SERVER['PHP_SELF'], "ticketiteminformation.php")) {
-    $AJAX_INCLUDE = 1;
-    include('../inc/includes.php');
+    /** @var $this \Glpi\Controller\LegacyFileLoadController */
+    $this->setAjax();
+
     header("Content-Type: text/html; charset=UTF-8");
     Html::header_nocache();
 }
-
-Session::checkLoginUser();
 
 if (isset($_POST["my_items"]) && !empty($_POST["my_items"])) {
     $splitter = explode("_", $_POST["my_items"]);
@@ -61,8 +60,9 @@ if (
     }
 
     $days   = 3;
+
     $ticket = new Ticket();
-    $data   = $ticket->getActiveOrSolvedLastDaysTicketsForItem(
+    $data   = $ticket->getActiveOrSolvedLastDaysForItem(
         $_POST['itemtype'],
         $_POST['items_id'],
         $days

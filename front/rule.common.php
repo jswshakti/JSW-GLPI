@@ -38,10 +38,6 @@
  * @var RuleCollection $rulecollection
  */
 
-if (!defined('GLPI_ROOT')) {
-    die("Sorry. You can't access this file directly");
-}
-
 if (!isset($_GET["id"])) {
     $_GET["id"] = "";
 }
@@ -57,19 +53,19 @@ if (isset($_POST["action"])) {
     $ruleclass = $rulecollection->getRuleClass();
     if ($ruleclass::initRules()) {
         Session::addMessageAfterRedirect(
-            sprintf(
+            htmlspecialchars(sprintf(
             //TRANS: first parameter is the rule type name
                 __('%1$s has been reset.'),
                 $rulecollection->getTitle()
-            )
+            ))
         );
     } else {
         Session::addMessageAfterRedirect(
-            sprintf(
+            htmlspecialchars(sprintf(
                 //TRANS: first parameter is the rule type name
                 __('%1$s reset failed.'),
                 $rulecollection->getTitle()
-            ),
+            )),
             false,
             ERROR
         );
@@ -105,10 +101,13 @@ if (isset($_POST["action"])) {
 
     echo "<table class='tab_cadrehov'>";
 
-    echo "<tr><th><div class='relative b'>" . $rulecollection->getTitle() . "<br>" .
-         __('Replay the rules dictionary') . "</div></th></tr>\n";
+    echo "<tr><th><div class='relative b'>" . htmlspecialchars($rulecollection->getTitle()) . "<br>" .
+         __s('Replay the rules dictionary') . "</div></th></tr>\n";
     echo "<tr><td class='center'>";
-    Html::createProgressBar(__('Work in progress...'));
+    Html::progressBar('doaction_progress', [
+        'create' => true,
+        'message' => __s('Work in progress...')
+    ]);
     echo "</td></tr>\n";
     echo "</table>";
 

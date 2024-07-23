@@ -37,11 +37,8 @@ $ajax = false;
 // Direct access to file
 if (strpos($_SERVER['PHP_SELF'], "searchoptionvalue.php")) {
     $ajax = true;
-    include('../inc/includes.php');
     header("Content-Type: text/html; charset=UTF-8");
     Html::header_nocache();
-} else if (!defined('GLPI_ROOT')) {
-    die("Sorry. You can't access this file directly");
 }
 
 Session::checkLoginUser();
@@ -165,6 +162,6 @@ if (isset($_POST['searchtype'])) {
    // Default case : text field
     if (!$display) {
         echo "<input type='text' size='13' name='$inputname' value=\"" .
-               Html::cleanInputText($_POST['value']) . "\">";
+               htmlspecialchars($_POST['value']) . "\">";
     }
 }

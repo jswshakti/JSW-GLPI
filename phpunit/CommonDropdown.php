@@ -36,6 +36,7 @@
 namespace tests\units;
 
 use DbTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 abstract class CommonDropdown extends DbTestCase
 {
@@ -50,6 +51,7 @@ abstract class CommonDropdown extends DbTestCase
     /**
      * @dataProvider typenameProvider
      */
+    #[dataProvider('typenameProvider')]
     public function testGetTypeName($string, $expected)
     {
         $this->assertSame($expected, $string);

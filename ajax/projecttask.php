@@ -37,11 +37,9 @@
  * @since 9.2
  */
 
-use Glpi\Toolbox\Sanitizer;
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
-$AJAX_INCLUDE = 1;
-
-include('../inc/includes.php');
 header("Content-Type: application/json; charset=UTF-8");
 Html::header_nocache();
 
@@ -51,16 +49,13 @@ if (isset($_POST['projecttasktemplates_id']) && ($_POST['projecttasktemplates_id
     $template = new ProjectTaskTemplate();
     $template->getFromDB($_POST['projecttasktemplates_id']);
 
-    if (DropdownTranslation::isDropdownTranslationActive()) {
-        $template->fields['description'] = DropdownTranslation::getTranslatedValue(
-            $template->getID(),
-            $template->getType(),
-            'description',
-            $_SESSION['glpilanguage'],
-            $template->fields['description']
-        );
-    }
+    $template->fields['description'] = DropdownTranslation::getTranslatedValue(
+        $template->getID(),
+        $template->getType(),
+        'description',
+        $_SESSION['glpilanguage'],
+        $template->fields['description']
+    );
 
-    $template->fields = Sanitizer::decodeHtmlSpecialCharsRecursive($template->fields);
     echo json_encode($template->fields);
 }

@@ -39,6 +39,7 @@
 class Cluster extends CommonDBTM
 {
     use Glpi\Features\Clonable;
+    use Glpi\Features\State;
 
    // From CommonDBTM
     public $dohistory                   = true;
@@ -65,7 +66,7 @@ class Cluster extends CommonDBTM
          ->addStandardTab('NetworkPort', $ong, $options)
          ->addStandardTab('Contract_Item', $ong, $options)
          ->addStandardTab('Document_Item', $ong, $options)
-         ->addStandardTab('Ticket', $ong, $options)
+         ->addStandardTab('Item_Ticket', $ong, $options)
          ->addStandardTab('Item_Problem', $ong, $options)
          ->addStandardTab('Change_Item', $ong, $options)
          ->addStandardTab('Appliance_Item', $ong, $options)
@@ -80,12 +81,21 @@ class Cluster extends CommonDBTM
         $tab = parent::rawSearchOptions();
 
         $tab[] = [
+            'id'                 => 2,
+            'table'              => self::getTable(),
+            'field'              => 'id',
+            'name'               => __('ID'),
+            'datatype'           => 'number',
+            'massiveaction'      => false,
+        ];
+
+        $tab[] = [
             'id'                 => '31',
-            'table'              => 'glpi_states',
+            'table'              => State::getTable(),
             'field'              => 'completename',
             'name'               => __('Status'),
             'datatype'           => 'dropdown',
-            'condition'          => ['is_visible_cluster' => 1]
+            'condition'          => $this->getStateVisibilityCriteria()
         ];
 
         $tab[] = [
@@ -155,6 +165,28 @@ class Cluster extends CommonDBTM
                 Item_Cluster::class,
             ]
         );
+    }
+
+    /**
+     * Get the cluster of an item
+     *
+     * @param CommonDBTM $item
+     *
+     * @return Cluster|null
+     */
+    public static function getClusterByItem(CommonDBTM $item): ?Cluster
+    {
+        $cluster = new self();
+        $item_cluster = new Item_Cluster();
+        if (
+            $item_cluster->getFromDBByCrit(['itemtype' => $item->getType(), 'items_id' => $item->getID()])
+            && $item_cluster->fields['clusters_id'] != 0
+            && $cluster->getFromDB($item_cluster->fields['clusters_id'])
+        ) {
+            return $cluster;
+        }
+
+        return null;
     }
 
 

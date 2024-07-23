@@ -36,12 +36,6 @@
 use Glpi\Inventory\Conf;
 use Glpi\Inventory\Request;
 
-$SECURITY_STRATEGY = 'no_check'; // allow anonymous requests from inventory agent
-
-if (!defined('GLPI_ROOT')) {
-    include(__DIR__ . '/../inc/includes.php');
-}
-
 $conf = new Conf();
 if ($conf->enabled_inventory != 1) {
     die("Inventory is disabled");

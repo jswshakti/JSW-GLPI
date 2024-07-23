@@ -409,6 +409,8 @@ class CableTest extends DbTestCase
             'name'                  => 'cable',
             'entities_id'           => $computer1->fields['entities_id'],
             'is_recursive'          => 0,
+            'is_template' => 0,
+            'template_name' => null,
             'itemtype_endpoint_a'         => 'Computer',
             'itemtype_endpoint_b'        => 'Computer',
             'items_id_endpoint_a'         => $computer1->getID(),

@@ -33,8 +33,8 @@
  * ---------------------------------------------------------------------
  */
 
-$AJAX_INCLUDE = 1;
-include('../inc/includes.php');
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
 Html::header_nocache();
 Session::checkLoginUser();

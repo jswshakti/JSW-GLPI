@@ -35,6 +35,8 @@
 
 namespace tests\units\Glpi\Inventory;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 /**
  * Test class for src/Glpi/Inventory/Request.php
  */
@@ -98,9 +100,8 @@ class RequestTest extends \GLPITestCase
 
     /**
      * Test known queries
-     *
-     * @dataProvider queriesProvider
      */
+    #[dataProvider('queriesProvider')]
     public function testSnmpQuery($query)
     {
         $data = "<?xml version=\"1.0\"?>\n<REQUEST><DEVICEID>atoumized-device</DEVICEID><CONTENT><DEVICE></DEVICE></CONTENT><QUERY>$query</QUERY></REQUEST>";
@@ -131,9 +132,8 @@ class RequestTest extends \GLPITestCase
 
     /**
      * Test unknown queries
-     *
-     * @dataProvider unhandledQueriesProvider
      */
+    #[dataProvider('unhandledQueriesProvider')]
     public function testWrongQuery($query)
     {
         $data = "<?xml version=\"1.0\"?>\n<REQUEST><DEVICEID>atoumized-device</DEVICEID><QUERY>$query</QUERY></REQUEST>";
@@ -246,10 +246,9 @@ class RequestTest extends \GLPITestCase
      * @param string $function Compression method to use
      * @param string $mime     Mime type to set
      *
-     * @dataProvider compressionProvider
-     *
      * @return void
      */
+    #[dataProvider('compressionProvider')]
     public function testCompression(string $function, string $mime)
     {
         $data = "<?xml version=\"1.0\"?>\n<REQUEST><DEVICEID>atoumized-device</DEVICEID><QUERY>PROLOG</QUERY></REQUEST>";

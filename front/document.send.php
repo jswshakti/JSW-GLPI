@@ -35,10 +35,6 @@
 
 use Glpi\Inventory\Conf;
 
-$SECURITY_STRATEGY = 'no_check'; // may allow unauthenticated access, for public FAQ images
-
-include('../inc/includes.php');
-
 $doc = new Document();
 
 if (isset($_GET['docid'])) {
@@ -61,8 +57,7 @@ if (isset($_GET['docid'])) {
         ) {
             Html::displayErrorAndDie(__('File is altered (bad checksum)'), true); // Doc alterated
         } else {
-            $context = isset($_GET['context']) ? $_GET['context'] : null;
-            $doc->send($context);
+            $doc->send();
         }
     } else {
         Html::displayErrorAndDie(__('Unauthorized access to this file'), true); // No right

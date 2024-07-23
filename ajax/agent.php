@@ -35,8 +35,9 @@
 
 use Glpi\Http\Response;
 
-$AJAX_INCLUDE = 1;
-include('../inc/includes.php');
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
+
 header("Content-Type: application/json; charset=UTF-8");
 Html::header_nocache();
 

@@ -37,9 +37,8 @@
  * @since 0.85
  */
 
-$AJAX_INCLUDE = 1;
-
-include('../inc/includes.php');
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
 header('Content-type: application/json');
 Html::header_nocache();

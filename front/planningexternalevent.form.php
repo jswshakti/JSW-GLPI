@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-include('../inc/includes.php');
-
 Session::checkRight("planning", READ);
 
 if (empty($_GET["id"])) {
@@ -66,6 +64,15 @@ if (isset($_POST["add"])) {
     $extevent->redirectToList();
 } else if (isset($_POST["purge_instance"])) {
     $extevent->check($_POST["id"], PURGE);
+    $extevent->deleteInstance((int) $_POST["id"], $_POST['day']);
+    $extevent->redirectToList();
+} else if (isset($_POST["save_instance"])) {
+    $input = $_POST;
+    unset($input['id']);
+    unset($input['rrule']);
+    $input['plan']['begin'] = $_POST['day'] . date(" H:i:s", strtotime($_POST['plan']['begin']));
+    $extevent->check(-1, CREATE, $input);
+    $extevent->add($input);
     $extevent->deleteInstance((int) $_POST["id"], $_POST['day']);
     $extevent->redirectToList();
 } else if (isset($_POST["update"])) {

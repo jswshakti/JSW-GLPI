@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-include('../inc/includes.php');
-
 Session::checkRight("config", UPDATE);
 
 if (!isset($_GET["id"])) {
@@ -64,9 +62,9 @@ if (isset($_POST["update"])) {
     $config_mail->redirectToList();
 } else if (isset($_POST["test"])) {
     if (AuthMail::testAuth($_POST["imap_string"], $_POST["imap_login"], $_POST["imap_password"])) {
-        Session::addMessageAfterRedirect(__('Test successful'));
+        Session::addMessageAfterRedirect(__s('Test successful'));
     } else {
-        Session::addMessageAfterRedirect(__('Test failed'), false, ERROR);
+        Session::addMessageAfterRedirect(__s('Test failed'), false, ERROR);
     }
     Html::back();
 }

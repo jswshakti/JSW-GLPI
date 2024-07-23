@@ -56,6 +56,7 @@ class TicketTemplate extends ITILTemplate
             TicketTemplateHiddenField::class,
             TicketTemplateMandatoryField::class,
             TicketTemplatePredefinedField::class,
+            TicketTemplateReadonlyField::class,
         ];
     }
 
@@ -114,6 +115,11 @@ class TicketTemplate extends ITILTemplate
                 'name',
                 'glpi_contracts'
             )   => '_contracts_id',
+            $itil_object->getSearchOptionIDByField(
+                'field',
+                'type',
+                'glpi_tickets'
+            )   => 'type',
 
         ];
 

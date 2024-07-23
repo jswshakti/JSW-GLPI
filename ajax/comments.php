@@ -33,11 +33,13 @@
  * ---------------------------------------------------------------------
  */
 
-/** @var array $CFG_GLPI */
+/**
+ * @var array $CFG_GLPI
+ */
 global $CFG_GLPI;
 
-$AJAX_INCLUDE = 1;
-include('../inc/includes.php');
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
 // Send UTF8 Headers
 header("Content-Type: text/html; charset=UTF-8");

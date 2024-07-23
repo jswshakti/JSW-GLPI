@@ -58,7 +58,7 @@ class TransferTest extends DbTestCase
 
         $location_id = getItemByTypeName('Location', '_location01', true);
 
-        $itemtypeslist = $this->getClasses(
+        $itemtypeslist = self::getClasses(
             'searchOptions',
             [
                 '/^Rule.*/',
@@ -66,7 +66,6 @@ class TransferTest extends DbTestCase
                 '/^DB.*/',
                 '/^SlaLevel.*/',
                 '/^OlaLevel.*/',
-                '/^Event$/',
                 '/^Glpi\\Event$/',
                 '/^KnowbaseItem$/',
                 '/SavedSearch.*/',
@@ -84,7 +83,6 @@ class TransferTest extends DbTestCase
                 '/^USBVendor$/',
                 '/^PCIVendor$/',
                 '/^PendingReasonCron$/',
-                '/^Netpoint$/',
             ]
         );
 

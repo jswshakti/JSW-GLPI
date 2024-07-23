@@ -36,7 +36,7 @@
 namespace tests\units;
 
 use DbTestCase;
-use Glpi\Toolbox\Sanitizer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LogLevel;
 
 /* Test for inc/location.class.php */
@@ -235,14 +235,12 @@ class LocationTest extends DbTestCase
         }
     }
 
-    /**
-     * @dataProvider importProvider
-     */
+    #[dataProvider('importProvider')]
     public function testImport(array $input, array $imported): void
     {
         $instance = new \Location();
         $count_before_import = countElementsInTable(\Location::getTable());
-        $this->assertGreaterThan(0, $instance->import(Sanitizer::sanitize($input)));
+        $this->assertGreaterThan(0, $instance->import($input));
         $this->assertEquals(count($imported), countElementsInTable(\Location::getTable()) - $count_before_import);
         foreach ($imported as $location_data) {
             $this->assertEquals(
@@ -283,7 +281,7 @@ class LocationTest extends DbTestCase
         ];
 
         $count_before_import = countElementsInTable(\Location::getTable());
-        $this->assertGreaterThan(0, $instance->import(Sanitizer::sanitize($input)));
+        $this->assertGreaterThan(0, $instance->import($input));
         $this->assertEquals(count($imported), countElementsInTable(\Location::getTable()) - $count_before_import);
         foreach ($imported as $location_data) {
             $this->assertEquals(
@@ -340,7 +338,7 @@ class LocationTest extends DbTestCase
             ]
         ];
         $count_before_import = countElementsInTable(\Location::getTable());
-        $this->assertGreaterThan(0, $instance->import(Sanitizer::sanitize($input)));
+        $this->assertGreaterThan(0, $instance->import($input));
         $this->assertEquals(count($imported), countElementsInTable(\Location::getTable()) - $count_before_import);
         foreach ($imported as $location_data) {
             $this->assertEquals(

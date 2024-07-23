@@ -36,9 +36,9 @@
 use Glpi\Http\Response;
 use Glpi\RichText\RichText;
 
-$AJAX_INCLUDE = 1;
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
-include('../inc/includes.php');
 header("Content-Type: application/json; charset=UTF-8");
 Html::header_nocache();
 
@@ -89,16 +89,13 @@ if ($apply_twig) {
    // Render template content using twig
     $template->fields['content'] = $template->getRenderedContent($parent);
 } else {
-    $content = $template->fields['content'];
-    if (DropdownTranslation::isDropdownTranslationActive()) {
-        $content = DropdownTranslation::getTranslatedValue(
-            $template->getID(),
-            $template->getType(),
-            'content',
-            $_SESSION['glpilanguage'],
-            $content
-        );
-    }
+    $content = DropdownTranslation::getTranslatedValue(
+        $template->getID(),
+        $template->getType(),
+        'content',
+        $_SESSION['glpilanguage'],
+        $template->fields['content']
+    );
     $template->fields['content'] = RichText::getSafeHtml($content);
 }
 

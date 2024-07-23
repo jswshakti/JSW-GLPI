@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-include('../inc/includes.php');
-
 Session::checkCentralAccess();
 
 $ira = new \Item_Rack();
@@ -81,7 +79,13 @@ if (isset($_GET['id'])) {
 $ajax = isset($_REQUEST['ajax']) ? true : false;
 
 if ($ajax) {
-    $ira->display($params);
+    $item = new Item_Rack();
+    $id = $params['id'] ?? 0;
+    if ($id > 0 && !$item->getFromDB($params['id'])) {
+        Html::displayNotFoundError();
+        return;
+    }
+    $item->showForm($id, $params);
 } else {
     $menus = ["assets", "rack"];
     Item_Rack::displayFullPageForItem($params['id'] ?? 0, $menus, $params);

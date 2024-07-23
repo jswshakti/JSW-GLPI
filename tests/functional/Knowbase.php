@@ -37,14 +37,13 @@ namespace test\units;
 
 use DbTestCase;
 
-/* Test for inc/knowbase.class.php */
-
 class Knowbase extends DbTestCase
 {
     public function testGetTreeCategoryList()
     {
+        $itemtype = 'KnowbaseItem';
 
-       // Create empty categories
+        // Create empty categories
         $kbcat = new \KnowbaseItemCategory();
 
         $cat_1_id = $kbcat->add(
@@ -103,21 +102,22 @@ class Knowbase extends DbTestCase
         );
         $this->integer($cat_1_3_id)->isGreaterThan(0);
 
-       // Returned tree should only containes root, as categories does not contains any elements
         $this->login('normal', 'normal');
 
-       // Expected root category item for normal user
-        $expected_root_cat = [
-            'key'    => 0,
-            'parent' => null,
-            'title'  => 'Root category <span class="badge bg-azure-lt" title="This category contains articles">2</span>',
-            'a_attr' => ['data-id' => 0]
+        // Expected for normal user
+        $expected = [
+            [
+                'key' => -1,
+                'title' => 'Without Category <span class="badge bg-azure-lt" title="This category contains Knowledge base">2</span>',
+                'parent' => 0,
+                'a_attr' => ['data-id' => -1],
+            ]
         ];
 
-        $tree = \Knowbase::getTreeCategoryList();
-        $this->array($tree)->isEqualTo([$expected_root_cat]);
+        $tree = $itemtype::getTreeCategoryList($itemtype, []);
+        $this->array($tree)->isEqualTo($expected);
 
-       // Add a private item (not FAQ)
+        // Add a private item (not FAQ)
         $kbitem = new \KnowbaseItem();
         $kbitem_id = $kbitem->add(
             [
@@ -145,40 +145,40 @@ class Knowbase extends DbTestCase
         );
         $this->integer($kbitem_target_id)->isGreaterThan(0);
 
-       // Check that tree contains root + category branch containing kb item of user
-        $tree = \Knowbase::getTreeCategoryList();
-        $this->array($tree)->isEqualTo(
+        $tree = $itemtype::getTreeCategoryList($itemtype, []);
+        $expected = [
             [
-                array_merge($expected_root_cat, [
-                    'children' => [
-                        [
-                            'key'      => $cat_1_id,
-                            'parent'   => 0,
-                            'title'    => 'cat 1',
-                            'a_attr'   => ['data-id' => $cat_1_id],
-                            'children' => [
-                                [
-                                    'key'      => $cat_1_1_id,
-                                    'parent'   => $cat_1_id,
-                                    'title'    => 'cat 1.1',
-                                    'a_attr'   => ['data-id' => $cat_1_1_id],
-                                    'children' => [
-                                        [
-                                            'key'    => $cat_1_1_2_id,
-                                            'parent' => $cat_1_1_id,
-                                            'title'  => 'cat 1.1.2 <span class="badge bg-azure-lt" title="This category contains articles">1</span>',
-                                            'a_attr' => ['data-id' => $cat_1_1_2_id]
-                                        ],
-                                    ]
-                                ],
+                'key' => $cat_1_id,
+                'title' => 'cat 1',
+                'parent' => 0,
+                'a_attr' => ['data-id' => $cat_1_id],
+                'children' => [
+                    [
+                        'key' => $cat_1_1_id,
+                        'title' => 'cat 1.1',
+                        'parent' => $cat_1_id,
+                        'a_attr' => ['data-id' => $cat_1_1_id],
+                        'children' => [
+                            [
+                                'key' => $cat_1_1_2_id,
+                                'title' => 'cat 1.1.2 <span class="badge bg-azure-lt" title="This category contains Knowledge base">1</span>',
+                                'parent' => $cat_1_1_id,
+                                'a_attr' => ['data-id' => $cat_1_1_2_id],
                             ]
-                        ],
+                        ]
                     ]
-                ]),
+                ]
+            ],
+            [
+                'key' => -1,
+                'title' => 'Without Category <span class="badge bg-azure-lt" title="This category contains Knowledge base">2</span>',
+                'parent' => 0,
+                'a_attr' => ['data-id' => -1],
             ]
-        );
+        ];
+        $this->array($tree)->isEqualTo($expected);
 
-       // Add 2nd category
+        // Add 2nd category
         $kbitem_cat_id = $kbitem_cat->add(
             [
                 'knowbaseitemcategories_id' => "$cat_1_3_id",
@@ -197,46 +197,46 @@ class Knowbase extends DbTestCase
         );
         $this->integer($kbitem_target_id)->isGreaterThan(0);
 
-       // Check that tree contains root + category branch containing kb item of user
-        $tree = \Knowbase::getTreeCategoryList();
-        $this->array($tree)->isEqualTo(
+        $tree = $itemtype::getTreeCategoryList($itemtype, []);
+        $expected = [
             [
-                array_merge($expected_root_cat, [
-                    'children' => [
-                        [
-                            'key'      => $cat_1_id,
-                            'parent'   => 0,
-                            'title'    => 'cat 1',
-                            'a_attr'   => ['data-id' => $cat_1_id],
-                            'children' => [
-                                [
-                                    'key'      => $cat_1_1_id,
-                                    'parent'   => $cat_1_id,
-                                    'title'    => 'cat 1.1',
-                                    'a_attr'   => ['data-id' => $cat_1_1_id],
-                                    'children' => [
-                                        [
-                                            'key'    => $cat_1_1_2_id,
-                                            'parent' => $cat_1_1_id,
-                                            'title'  => 'cat 1.1.2 <span class="badge bg-azure-lt" title="This category contains articles">1</span>',
-                                            'a_attr' => ['data-id' => $cat_1_1_2_id]
-                                        ],
-                                    ]
-                                ],
-                                [
-                                    'key'    => $cat_1_3_id,
-                                    'parent' => $cat_1_id,
-                                    'title'  => 'cat 1.3 <span class="badge bg-azure-lt" title="This category contains articles">1</span>',
-                                    'a_attr' => ['data-id' => $cat_1_3_id]
-                                ]
+                'key' => $cat_1_id,
+                'title' => 'cat 1',
+                'parent' => 0,
+                'a_attr' => ['data-id' => $cat_1_id],
+                'children' => [
+                    [
+                        'key' => $cat_1_1_id,
+                        'title' => 'cat 1.1',
+                        'parent' => $cat_1_id,
+                        'a_attr' => ['data-id' => $cat_1_1_id],
+                        'children' => [
+                            [
+                                'key' => $cat_1_1_2_id,
+                                'title' => 'cat 1.1.2 <span class="badge bg-azure-lt" title="This category contains Knowledge base">1</span>',
+                                'parent' => $cat_1_1_id,
+                                'a_attr' => ['data-id' => $cat_1_1_2_id],
                             ]
-                        ],
+                        ]
+                    ],
+                    [
+                        'key' => $cat_1_3_id,
+                        'title' => 'cat 1.3 <span class="badge bg-azure-lt" title="This category contains Knowledge base">1</span>',
+                        'parent' => $cat_1_id,
+                        'a_attr' => ['data-id' => $cat_1_3_id],
                     ]
-                ]),
+                ]
+            ],
+            [
+                'key' => -1,
+                'title' => 'Without Category <span class="badge bg-azure-lt" title="This category contains Knowledge base">2</span>',
+                'parent' => 0,
+                'a_attr' => ['data-id' => -1],
             ]
-        );
+        ];
+        $this->array($tree)->isEqualTo($expected);
 
-       // Add a FAQ item
+        // Add a FAQ item
         $kbitem = new \KnowbaseItem();
         $kbitem_id = $kbitem->add(
             [
@@ -264,60 +264,62 @@ class Knowbase extends DbTestCase
         );
         $this->integer($kbitem_target_id)->isGreaterThan(0);
 
-       // Expected root category item for anonymous user
-        $expected_root_cat = [
-            'key'    => 0,
-            'parent' => null,
-            'title'  => 'Root category',
-            'a_attr' => ['data-id' => 0]
-        ];
-
-       // Check that tree contains root only (FAQ is not public) for anonymous user
-       // Force session reset
+        // Check that tree contains root only (FAQ is not public) for anonymous user
+        // Force session reset
         $session_bck = $_SESSION;
         $this->resetSession();
-        $tree_with_no_public_faq = \Knowbase::getTreeCategoryList();
+        $tree_with_no_public_faq = $itemtype::getTreeCategoryList($itemtype, []);
 
-       // Check that tree contains root + category branch containing FAQ item (FAQ is public) for anonymous user
+        // Check that tree contains root + category branch containing FAQ item (FAQ is public) for anonymous user
         global $CFG_GLPI;
         $use_public_faq_bck = $CFG_GLPI['use_public_faq'];
         $CFG_GLPI['use_public_faq'] = 1;
-        $tree_with_public_faq = \Knowbase::getTreeCategoryList();
+        $tree_with_public_faq = $itemtype::getTreeCategoryList($itemtype, []);
 
-       // Put back globals
+        // Put back globals
         $_SESSION = $session_bck;
         $CFG_GLPI['use_public_faq'] = $use_public_faq_bck;
 
-        $this->array($tree_with_no_public_faq)->isEqualTo([$expected_root_cat]);
-        $this->array($tree_with_public_faq)->isEqualTo(
+        $expected = [
             [
-                array_merge($expected_root_cat, [
-                    'children' => [
-                        [
-                            'key'      => $cat_1_id,
-                            'parent'   => 0,
-                            'title'    => 'cat 1',
-                            'a_attr'   => ['data-id' => $cat_1_id],
-                            'children' => [
-                                [
-                                    'key'      => $cat_1_2_id,
-                                    'parent'   => $cat_1_id,
-                                    'title'    => 'cat 1.2',
-                                    'a_attr'   => ['data-id' => $cat_1_2_id],
-                                    'children' => [
-                                        [
-                                            'key'    => $cat_1_2_1_id,
-                                            'parent' => $cat_1_2_id,
-                                            'title'  => 'cat 1.2.1 <span class="badge bg-azure-lt" title="This category contains articles">1</span>',
-                                            'a_attr' => ['data-id' => $cat_1_2_1_id]
-                                        ],
-                                    ]
-                                ],
+                'key' => -1,
+                'title' => 'Without Category',
+                'parent' => 0,
+                'a_attr' => ['data-id' => -1],
+            ]
+        ];
+        $this->array($tree_with_no_public_faq)->isEqualTo($expected);
+
+        $expected = [
+            [
+                'key' => $cat_1_id,
+                'title' => 'cat 1',
+                'parent' => 0,
+                'a_attr' => ['data-id' => $cat_1_id],
+                'children' => [
+                    [
+                        'key' => $cat_1_2_id,
+                        'title' => 'cat 1.2',
+                        'parent' => $cat_1_id,
+                        'a_attr' => ['data-id' => $cat_1_2_id],
+                        'children' => [
+                            [
+                                'key' => $cat_1_2_1_id,
+                                'title' => 'cat 1.2.1 <span class="badge bg-azure-lt" title="This category contains Knowledge base">1</span>',
+                                'parent' => $cat_1_2_id,
+                                'a_attr' => ['data-id' => $cat_1_2_1_id],
                             ]
                         ]
                     ],
-                ]),
+                ]
+            ],
+            [
+                'key' => -1,
+                'title' => 'Without Category',
+                'parent' => 0,
+                'a_attr' => ['data-id' => -1],
             ]
-        );
+        ];
+        $this->array($tree_with_public_faq)->isEqualTo($expected);
     }
 }

@@ -39,11 +39,11 @@
 
 use Glpi\Event;
 
-include('../inc/includes.php');
-
 $ticket_ticket = new Ticket_Ticket();
 
 Session::checkCentralAccess();
+
+Toolbox::deprecated();
 
 if (isset($_POST['purge'])) {
     $ticket_ticket->check($_POST['id'], PURGE);

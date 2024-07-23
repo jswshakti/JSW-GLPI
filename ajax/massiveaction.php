@@ -37,12 +37,8 @@
  * @since 0.84
  */
 
-use Glpi\Toolbox\Sanitizer;
-
 /** @var array $CFG_GLPI */
 global $CFG_GLPI;
-
-include('../inc/includes.php');
 
 header("Content-Type: text/html; charset=UTF-8");
 Html::header_nocache();
@@ -64,9 +60,7 @@ Html::openMassiveActionsForm();
 $params = ['action' => '__VALUE__'];
 $input  = $ma->getInput();
 foreach ($input as $key => $val) {
-    // Value will be sanitized again when massive action form will be submitted.
-    // It have to be unsanitized here to prevent double sanitization.
-    $params[$key] = Sanitizer::unsanitize($val);
+    $params[$key] = $val;
 }
 
 $actions = $params['actions'];

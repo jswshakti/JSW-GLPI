@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-include('../inc/includes.php');
 Html::header_nocache();
 
 Session::checkLoginUser();
@@ -57,8 +56,8 @@ if (isset($_REQUEST['is_recursive'])) {
     $is_recursive = (bool) $_REQUEST['is_recursive'];
 }
 
-echo Location::dropdown([
-    'value'        => $locations_id,
-    'entity'       => $entities_id,
-    'entity_sons'  => $is_recursive,
+Location::dropdown([
+    'value' => $locations_id,
+    'entity' => $entities_id,
+    'entity_sons' => $is_recursive,
 ]);

@@ -33,9 +33,12 @@
  * ---------------------------------------------------------------------
  */
 
-$AJAX_INCLUDE = 1;
+use Glpi\Application\View\TemplateRenderer;
+
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
+
 if (strpos($_SERVER['PHP_SELF'], "uemailUpdate.php")) {
-    include('../inc/includes.php');
     header("Content-Type: text/html; charset=UTF-8");
     Html::header_nocache();
 }
@@ -70,8 +73,7 @@ if (
     $default_notif = $_POST['use_notification'][$user_index] ?? true;
 
     if (
-        isset($_POST['alternative_email'][$user_index])
-        && !empty($_POST['alternative_email'][$user_index])
+        !empty($_POST['alternative_email'][$user_index])
         && empty($default_email)
     ) {
         if (NotificationMailing::isUserAddressValid($_POST['alternative_email'][$user_index])) {
@@ -85,7 +87,7 @@ if (
     echo "<div class='my-1 d-flex align-items-center'>
          <label  for='email_fup_check'>
             <i class='far fa-envelope me-1'></i>
-            " . __('Email followup') . "
+            " . __s('Email followup') . "
          </label>
          <div class='ms-2'>
             " . Dropdown::showYesNo($_POST['field'] . '[use_notification][]', $default_notif, -1, ['display' => false]) . "
@@ -123,7 +125,7 @@ if (
         );
     } else {
         $email_string = "<input type='mail' class='form-control' name='" . $_POST['field'] . "[alternative_email][]'
-                        value='" . htmlentities($default_email, ENT_QUOTES, 'utf-8') . "'>";
+                        value='" . htmlspecialchars($default_email) . "'>";
     }
 
     echo "$email_string";

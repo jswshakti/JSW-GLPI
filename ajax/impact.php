@@ -39,8 +39,8 @@ const DELTA_ACTION_ADD    = 1;
 const DELTA_ACTION_UPDATE = 2;
 const DELTA_ACTION_DELETE = 3;
 
-$AJAX_INCLUDE = 1;
-include('../inc/includes.php');
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
 // Send UTF8 Headers
 header("Content-Type: application/json; charset=UTF-8");
@@ -126,7 +126,6 @@ switch ($_SERVER['REQUEST_METHOD']) {
         if (!is_array($data)) {
             Response::sendError(400, "Payload should be an array");
         }
-        $data = Toolbox::addslashes_deep($data);
 
         $readonly = true;
 
@@ -179,6 +178,12 @@ switch ($_SERVER['REQUEST_METHOD']) {
             switch ($action) {
                 case DELTA_ACTION_ADD:
                     $em->add($impact);
+                    break;
+
+                case DELTA_ACTION_UPDATE:
+                    $edge['id']   = ImpactRelation::getIDFromInput($impact);
+                    $edge['name'] = $impact['name'];
+                    $em->update($edge);
                     break;
 
                 case DELTA_ACTION_DELETE:

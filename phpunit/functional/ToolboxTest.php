@@ -42,9 +42,8 @@ use Glpi\Features\Clonable;
 use Glpi\Features\DCBreadcrumb;
 use Glpi\Features\Kanban;
 use Glpi\Features\PlanningEvent;
-use Glpi\Toolbox\Sanitizer;
-use Glpi\Toolbox\VersionParser;
 use ITILFollowup;
+use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
 use Ticket;
 use Psr\Log\LogLevel;
@@ -80,9 +79,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider slugifyProvider
-     */
+    #[dataProvider('slugifyProvider')]
     public function testSlugify($string, $expected)
     {
         $this->assertSame($expected, \Toolbox::slugify($string));
@@ -95,9 +92,8 @@ class ToolboxTest extends DbTestCase
                 'name'  => '00-logoteclib.png',
                 'expected'  => '00-logoteclib.png',
             ], [
-                // Space is missing between "France" and "très" due to a bug in laminas-mail
-                'name'  => '01-Screenshot-2018-4-12 Observatoire - Francetrès haut débit.png',
-                'expected'  => '01-screenshot-2018-4-12-observatoire-francetres-haut-debit.png',
+                'name'  => '01-Screenshot-2018-4-12 Observatoire - France très haut débit.png',
+                'expected'  => '01-screenshot-2018-4-12-observatoire-france-tres-haut-debit.png',
             ], [
                 'name'  => '01-test.JPG',
                 'expected'  => '01-test.JPG',
@@ -132,9 +128,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider filenameProvider
-     */
+    #[dataProvider('filenameProvider')]
     public function testFilename($name, $expected)
     {
         $this->assertSame($expected, \Toolbox::filename($name));
@@ -155,9 +149,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider dataGetSize
-     */
+    #[dataProvider('dataGetSize')]
     public function testGetSize($input, $expected)
     {
         $this->assertSame($expected, \Toolbox::getSize($input));
@@ -221,9 +213,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider cleanIntegerProvider
-     */
+    #[dataProvider('cleanIntegerProvider')]
     public function testCleanInteger($value, $expected)
     {
         $this->assertSame($expected, \Toolbox::cleanInteger($value));
@@ -235,19 +225,11 @@ class ToolboxTest extends DbTestCase
             [
                 '{"Monitor":[6],"Computer":[35]}',
                 ['Monitor' => [6], 'Computer' => [35]]
-            ], [
-                '{\"Monitor\":[\"6\"],\"Computer\":[\"35\"]}',
-                ['Monitor' => ["6"], 'Computer' => ["35"]]
-            ], [
-                '{\"content\":\"&#60;p&#62;HTML !&#60;/p&#62;\"}',
-                ['content' => '<p>HTML !</p>']
-            ]
+            ],
         ];
     }
 
-    /**
-     * @dataProvider jsonDecodeProvider
-     */
+    #[dataProvider('jsonDecodeProvider')]
     public function testJsonDecode($json, $expected)
     {
         $this->assertSame($expected, \Toolbox::jsonDecode($json, true));
@@ -288,9 +270,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider isJsonProvider
-     */
+    #[dataProvider('isJSONProvider')]
     public function testIsJSON($json, bool $expected)
     {
         $this->assertSame(
@@ -318,9 +298,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider ucProvider
-     */
+    #[dataProvider('ucProvider')]
     public function testUcfirst($in, $out)
     {
         $this->assertSame($out, \Toolbox::ucfirst($in));
@@ -336,9 +314,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider shortcutProvider
-     */
+    #[dataProvider('shortcutProvider')]
     public function testShortcut($string, $letter, $expected)
     {
         $this->assertSame($expected, \Toolbox::shortcut($string, $letter));
@@ -359,9 +335,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider strposProvider
-     */
+    #[dataProvider('strposProvider')]
     public function testStrpos($string, $search, $offset, $expected)
     {
         $this->assertSame(
@@ -383,9 +357,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider padProvider
-     */
+    #[dataProvider('padProvider')]
     public function testStr_pad($string, $length, $char, $pad, $expected)
     {
         $this->assertSame(
@@ -402,9 +374,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider strlenProvider
-     */
+    #[dataProvider('strlenProvider')]
     public function testStrlen($string, $length)
     {
         $this->assertSame($length, \Toolbox::strlen($string));
@@ -422,9 +392,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider substrProvider
-     */
+    #[dataProvider('substrProvider')]
     public function testSubstr($string, $start, $length, $expected)
     {
         $this->assertSame(
@@ -442,9 +410,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider lowercaseProvider
-     */
+    #[dataProvider('lowercaseProvider')]
     public function testStrtolower($upper, $lower)
     {
         $this->assertSame($lower, \Toolbox::strtolower($upper));
@@ -459,9 +425,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider uppercaseProvider
-     */
+    #[dataProvider('uppercaseProvider')]
     public function testStrtoupper($lower, $upper)
     {
         $this->assertSame($upper, \Toolbox::strtoupper($lower));
@@ -477,18 +441,16 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider utfProvider
-     */
+     #[dataProvider('utfProvider')]
     public function testSeems_utf8($string, $utf)
     {
-        $this->assertSame($utf, \Toolbox::seems_utf8($string));
+        $this->assertSame($utf, @\Toolbox::seems_utf8($string));
     }
 
     public function testSaveAndDeletePicture()
     {
         // Save an image twice
-        $test_file = __DIR__ . '/../files/test.png';
+        $test_file = __DIR__ . '/../../tests/files/test.png';
         copy(__DIR__ . '/../../pics/add_dropdown.png', $test_file); // saved image will be removed from FS
         $first_pict = \Toolbox::savePicture($test_file);
         $this->assertMatchesRegularExpression('#[^/]+/.+\.png#', $first_pict); // generated random name inside subdir
@@ -505,7 +467,7 @@ class ToolboxTest extends DbTestCase
         $this->assertTrue(\Toolbox::deletePicture($second_pict));
 
         // Save not an image
-        $this->assertFalse(\Toolbox::savePicture(__DIR__ . '/../notanimage.jpg'));
+        $this->assertFalse(\Toolbox::savePicture(__DIR__ . '/../../tests/notanimage.jpg'));
 
         // Save and delete nonexistent files
         $this->assertFalse(\Toolbox::savePicture('notafile.jpg'));
@@ -527,14 +489,12 @@ class ToolboxTest extends DbTestCase
             ],
             [
                 'path' => 'xss\' onclick="alert(\'PWNED\')".jpg',
-                'url'  => $CFG_GLPI['root_doc'] . '/front/document.send.php?file=_pictures/xss&apos; onclick=&quot;alert(&apos;PWNED&apos;)&quot;.jpg',
+                'url'  => $CFG_GLPI['root_doc'] . '/front/document.send.php?file=_pictures/xss&#039; onclick=&quot;alert(&#039;PWNED&#039;)&quot;.jpg',
             ],
         ];
     }
 
-    /**
-     * @dataProvider getPictureUrlProvider
-     */
+    #[dataProvider('getPictureUrlProvider')]
     public function testGetPictureUrl($path, $url)
     {
         $this->assertSame($url, \Toolbox::getPictureUrl($path));
@@ -592,9 +552,8 @@ class ToolboxTest extends DbTestCase
 
     /**
      * Check conversion of tags to images.
-     *
-     * @dataProvider convertTagToImageProvider
      */
+    #[dataProvider('convertTagToImageProvider')]
     public function testConvertTagToImage($item, $expected_url)
     {
 
@@ -614,19 +573,7 @@ class ToolboxTest extends DbTestCase
         $expected_url   = str_replace('{docid}', $doc_id, $expected_url);
         $expected_result = '<a href="' . $expected_url . '" target="_blank" ><img alt="' . $img_tag . '" width="10" src="' . $expected_url . '" /></a>';
 
-        // Processed data is expected to be sanitized, and expected result should remain sanitized
-        $this->assertEquals(
-            Sanitizer::sanitize($expected_result),
-            \Toolbox::convertTagToImage(Sanitizer::sanitize($content_text), $item, [$doc_id => ['tag' => $img_tag]])
-        );
 
-        // Processed data may also be escaped using Toolbox::addslashes_deep(), and expected result should be escaped too
-        $this->assertEquals(
-            \Toolbox::addslashes_deep($expected_result),
-            \Toolbox::convertTagToImage(\Toolbox::addslashes_deep($content_text), $item, [$doc_id => ['tag' => $img_tag]])
-        );
-
-        // Processed data may also be not sanitized, and expected result should not be sanitized
         $this->assertEquals(
             $expected_result,
             \Toolbox::convertTagToImage($content_text, $item, [$doc_id => ['tag' => $img_tag]])
@@ -661,9 +608,8 @@ class ToolboxTest extends DbTestCase
 
     /**
      * Check base url handling in conversion of tags to images.
-     *
-     * @dataProvider convertTagToImageBaseUrlProvider
      */
+    #[dataProvider('convertTagToImageBaseUrlProvider')]
     public function testBaseUrlInConvertTagToImage($url_base, $item, $expected_url)
     {
 
@@ -755,19 +701,6 @@ class ToolboxTest extends DbTestCase
             $expected_result .= '<a href="' . $expected_url . '" target="_blank" ><img alt="' . $doc['tag'] . '" width="10" src="' . $expected_url . '" /></a>';
         }
 
-        // Processed data is expected to be sanitized, and expected result should remain sanitized
-        $this->assertEquals(
-            Sanitizer::sanitize($expected_result),
-            \Toolbox::convertTagToImage(Sanitizer::sanitize($content_text), $item, $doc_data)
-        );
-
-        // Processed data may also be escaped using Toolbox::addslashes_deep(), and expected result should be escaped too
-        $this->assertEquals(
-            \Toolbox::addslashes_deep($expected_result),
-            \Toolbox::convertTagToImage(\Toolbox::addslashes_deep($content_text), $item, $doc_data)
-        );
-
-        // Processed data may also be not sanitized, and expected result should not be sanitized
         $this->assertEquals(
             $expected_result,
             \Toolbox::convertTagToImage($content_text, $item, $doc_data)
@@ -814,28 +747,6 @@ class ToolboxTest extends DbTestCase
         $expected_url_2     .= '&items_id=' . $item->fields['id'];
         $expected_result_2 = '<a href="' . $expected_url_2 . '" target="_blank" ><img alt="' . $img_tag . '" width="10" src="' . $expected_url_2 . '" /></a>';
 
-
-        // Processed data is expected to be sanitized, and expected result should remain sanitized
-        $this->assertEquals(
-            Sanitizer::sanitize($expected_result_1),
-            \Toolbox::convertTagToImage(Sanitizer::sanitize($content_text), $item, [$doc_id_1 => ['tag' => $img_tag]])
-        );
-        $this->assertEquals(
-            Sanitizer::sanitize($expected_result_2),
-            \Toolbox::convertTagToImage(Sanitizer::sanitize($content_text), $item, [$doc_id_2 => ['tag' => $img_tag]])
-        );
-
-        // Processed data may also be escaped using Toolbox::addslashes_deep(), and expected result should be escaped too
-        $this->assertEquals(
-            \Toolbox::addslashes_deep($expected_result_1),
-            \Toolbox::convertTagToImage(\Toolbox::addslashes_deep($content_text), $item, [$doc_id_1 => ['tag' => $img_tag]])
-        );
-        $this->assertEquals(
-            \Toolbox::addslashes_deep($expected_result_2),
-            \Toolbox::convertTagToImage(\Toolbox::addslashes_deep($content_text), $item, [$doc_id_2 => ['tag' => $img_tag]])
-        );
-
-        // Processed data may also be not sanitized, and expected result should not be sanitized
         $this->assertEquals(
             $expected_result_1,
             \Toolbox::convertTagToImage($content_text, $item, [$doc_id_1 => ['tag' => $img_tag]])
@@ -875,19 +786,6 @@ class ToolboxTest extends DbTestCase
         $expected_result  = '<a href="' . $expected_url . '" target="_blank" ><img alt="' . $img_tag . '" width="10" src="' . $expected_url . '" /></a>';
         $expected_result .= $expected_result;
 
-        // Processed data is expected to be sanitized, and expected result should remain sanitized
-        $this->assertEquals(
-            Sanitizer::sanitize($expected_result),
-            \Toolbox::convertTagToImage(Sanitizer::sanitize($content_text), $item, [$doc_id => ['tag' => $img_tag]])
-        );
-
-        // Processed data may also be escaped using Toolbox::addslashes_deep(), and expected result should be escaped too
-        $this->assertEquals(
-            \Toolbox::addslashes_deep($expected_result),
-            \Toolbox::convertTagToImage(\Toolbox::addslashes_deep($content_text), $item, [$doc_id => ['tag' => $img_tag]])
-        );
-
-        // Processed data may also be not sanitized, and expected result should not be sanitized
         $this->assertEquals(
             $expected_result,
             \Toolbox::convertTagToImage($content_text, $item, [$doc_id => ['tag' => $img_tag]])
@@ -933,9 +831,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider shortenNumbers
-     */
+    #[dataProvider('shortenNumbers')]
     public function testShortenNumber($number, int $precision, string $expected)
     {
         $this->assertEquals(
@@ -967,9 +863,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider colors
-     */
+    #[dataProvider('colors')]
     public function testGetFgColor(string $bg_color, int $offset, string $fg_color)
     {
         $this->assertEquals(
@@ -1000,9 +894,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider testIsCommonDBTMProvider
-     */
+    #[dataProvider('testIsCommonDBTMProvider')]
     public function testIsCommonDBTM(string $class, bool $is_commondbtm)
     {
         $this->assertSame(
@@ -1033,9 +925,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider testIsAPIDeprecatedProvider
-     */
+    #[dataProvider('testIsAPIDeprecatedProvider')]
     public function testIsAPIDeprecated(string $class, bool $is_deprecated)
     {
         $this->assertSame(
@@ -1087,14 +977,10 @@ class ToolboxTest extends DbTestCase
             ['https://localhost?test=true', true],
             ['https://localhost?test=true&othertest=false', true],
             ['https://localhost/front/computer.php?is_deleted=0&as_map=0&criteria[0][link]=AND&criteria[0][field]=80&criteria[0][searchtype]=equals&criteria[0][value]=254&search=Search&itemtype=Computer', true],
-            ['https://localhost?test=true&#38;othertest=false', true], /* sanitized URL, &#38; is & */
-            ['https://localhost?test=true&#39;othertest=false', false], /* any entity */
         ];
     }
 
-    /**
-     * @dataProvider urlProvider
-     */
+    #[dataProvider('urlProvider')]
     public function testIsValidWebUrl(string $url, bool $result)
     {
         $this->assertSame(
@@ -1109,7 +995,7 @@ class ToolboxTest extends DbTestCase
         \Toolbox::deprecated('Calling this function is deprecated');
         $this->hasPhpLogRecordThatContains(
             'Calling this function is deprecated',
-            LogLevel::NOTICE
+            LogLevel::INFO
         );
     }
 
@@ -1119,7 +1005,7 @@ class ToolboxTest extends DbTestCase
         \Toolbox::deprecated('Calling this function is deprecated', true, '10.0');
         $this->hasPhpLogRecordThatContains(
             'Calling this function is deprecated',
-            LogLevel::NOTICE
+            LogLevel::INFO
         );
     }
 
@@ -1129,7 +1015,7 @@ class ToolboxTest extends DbTestCase
         \Toolbox::deprecated('Calling this function is deprecated', true, GLPI_VERSION);
         $this->hasPhpLogRecordThatContains(
             'Calling this function is deprecated',
-            LogLevel::NOTICE
+            LogLevel::INFO
         );
     }
 
@@ -1158,9 +1044,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider hasTraitProvider
-     */
+    #[dataProvider('hasTraitProvider')]
     public function testHasTrait(string $class, string $trait, bool $result)
     {
         $this->assertSame($result, \Toolbox::hasTrait($class, $trait));
@@ -1245,9 +1129,7 @@ class ToolboxTest extends DbTestCase
         ];
     }
 
-    /**
-     * @dataProvider appendParametersProvider
-     */
+    #[dataProvider('appendParametersProvider')]
     public function testAppendParameters(array $params, string $separator, string $expected)
     {
         $this->assertEquals($expected, \Toolbox::append_params($params, $separator));
@@ -1258,7 +1140,7 @@ class ToolboxTest extends DbTestCase
      *
      * @return Generator
      */
-    public static function testIsFloatProvider(): Generator
+    public static function isFloatProvider(): Generator
     {
         yield [
             'value'    => null,
@@ -1322,14 +1204,13 @@ class ToolboxTest extends DbTestCase
     /**
      * Tests for Toolbox::IsFloat()
      *
-     * @dataProvider testIsFloatProvider
-     *
      * @param mixed $value
      * @param bool $expected
      * @param string|null $warning
      *
      * @return void
      */
+    #[dataProvider('isFloatProvider')]
     public function testIsFloat($value, bool $expected, ?string $warning = null): void
     {
         $result = \Toolbox::isFloat($value);
@@ -1347,7 +1228,7 @@ class ToolboxTest extends DbTestCase
      *
      * @return Generator
      */
-    public static function testgetDecimalNumbersProvider(): Generator
+    public static function getDecimalNumbersProvider(): Generator
     {
         yield [
             'value' => "1",
@@ -1406,14 +1287,13 @@ class ToolboxTest extends DbTestCase
     /**
      * Tests for Toolbox::getDecimalNumbers()
      *
-     * @dataProvider testgetDecimalNumbersProvider
-     *
      * @param mixed $value
      * @param int $decimals
      * @param string|null $warning
      *
      * @return void
      */
+    #[dataProvider('getDecimalNumbersProvider')]
     public function testGetDecimalNumbers($value, int $decimals, ?string $warning = null): void
     {
         $result = \Toolbox::getDecimalNumbers($value);
@@ -1431,7 +1311,7 @@ class ToolboxTest extends DbTestCase
      *
      * @return Generator
      */
-    public static function testGetMioSizeFromStringProvider(): Generator
+    public static function getMioSizeFromStringProvider(): Generator
     {
         yield [
             'size'     => "1024",
@@ -1492,13 +1372,12 @@ class ToolboxTest extends DbTestCase
     /**
      * Tests for Toolbox::getMioSizeFromString()
      *
-     * @dataProvider testGetMioSizeFromStringProvider
-     *
-     * @param string $value
-     * @param mixed $expected
+     * @param string $size
+     * @param mixed  $expected
      *
      * @return void
      */
+    #[dataProvider('getMioSizeFromStringProvider')]
     public function testGetMioSizeFromString(string $size, $expected): void
     {
         $result = \Toolbox::getMioSizeFromString($size);
@@ -1578,9 +1457,7 @@ class ToolboxTest extends DbTestCase
     }
 
 
-    /**
-     * @dataProvider safeUrlProvider
-     */
+    #[dataProvider('safeUrlProvider')]
     public function testIsUrlSafe(string $url, bool $expected, ?array $allowlist = null): void
     {
         $params = [$url];

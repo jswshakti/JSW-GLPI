@@ -33,13 +33,11 @@
  * ---------------------------------------------------------------------
  */
 
-$AJAX_INCLUDE = 1;
-include('../inc/includes.php');
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
 header("Content-Type: text/html; charset=UTF-8");
 Html::header_nocache();
 
 Session::checkRight("ticket", UPDATE);
-Item_Ticket::dropdownMyDevices($_POST["userID"], Session::getMatchingActiveEntities($_POST['entity_restrict']));
-
-Html::ajaxFooter();
+CommonItilObject_Item::dropdownMyDevices($_POST["userID"], Session::getMatchingActiveEntities($_POST['entity_restrict']));

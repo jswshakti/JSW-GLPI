@@ -41,24 +41,14 @@ use Glpi\System\Requirement\DbTimezones;
 use Glpi\System\RequirementsManager;
 use Glpi\Toolbox\Filesystem;
 
-define('GLPI_ROOT', realpath('..'));
-
-include_once(GLPI_ROOT . "/inc/based_config.php");
-include_once(GLPI_ROOT . "/inc/db.function.php");
-
 /**
- * @var \GLPI $GLPI
  * @var \Psr\SimpleCache\CacheInterface $GLPI_CACHE
  */
-global $GLPI, $GLPI_CACHE;
-
-$GLPI = new GLPI();
-$GLPI->initLogger();
-$GLPI->initErrorHandler();
-
-Config::detectRootDoc();
+global $GLPI_CACHE;
 
 $GLPI_CACHE = (new CacheManager())->getInstallerCacheInstance();
+
+Session::checkCookieSecureConfig();
 
 //Print a correct  Html header for application
 function header_html($etape)
@@ -67,7 +57,7 @@ function header_html($etape)
     header("Content-Type: text/html; charset=UTF-8");
 
     echo "<!DOCTYPE html'>";
-    echo "<html lang='fr'>";
+    echo "<html lang='en_GB'>";
     echo "<head>";
     echo "<meta charset='utf-8'>";
     echo "<title>Setup GLPI</title>";
@@ -82,6 +72,7 @@ function header_html($etape)
     echo Html::script("js/glpi_dialog.js");
 
     // CSS
+    echo Html::css('public/lib/tabler.css');
     echo Html::css('public/lib/base.css');
     echo Html::scss("css/install", [], true);
     echo "</head>";
@@ -318,6 +309,7 @@ function step4($databasename, $newdatabasename)
                 false
             );
             if ($success) {
+                echo "<p>" . __('Initializing database tables and default data...') . "</p>";
                 Toolbox::createSchema($_SESSION["glpilanguage"]);
                 echo "<p>" . __('OK - database was initialized') . "</p>";
 
@@ -345,9 +337,10 @@ function step4($databasename, $newdatabasename)
                 false
             );
             if ($success) {
-                 Toolbox::createSchema($_SESSION["glpilanguage"]);
-                 echo "<p>" . __('OK - database was initialized') . "</p>";
-                 $next_form();
+                echo "<p>" . __('Initializing database tables and default data...') . "</p>";
+                Toolbox::createSchema($_SESSION["glpilanguage"]);
+                echo "<p>" . __('OK - database was initialized') . "</p>";
+                $next_form();
             } else { // can't create config_db file
                 echo "<p>" . __('Impossible to write the database setup file') . "</p>";
                 $prev_form($host, $user, $password);
@@ -374,6 +367,7 @@ function step4($databasename, $newdatabasename)
                 }
 
                 if ($success) {
+                    echo "<p>" . __('Initializing database tables and default data...') . "</p>";
                     Toolbox::createSchema($_SESSION["glpilanguage"]);
                     echo "<p>" . __('OK - database was initialized') . "</p>";
                     $next_form();
@@ -401,7 +395,6 @@ function step6()
     /** @var \DBmysql $DB */
     global $DB;
 
-    include_once(GLPI_ROOT . "/inc/dbmysql.class.php");
     include_once(GLPI_CONFIG_DIR . "/config_db.php");
     $DB = new DB();
 
@@ -424,7 +417,6 @@ function step7()
 // finish installation
 function step8()
 {
-    include_once(GLPI_ROOT . "/inc/dbmysql.class.php");
     include_once(GLPI_CONFIG_DIR . "/config_db.php");
     $DB = new DB();
 
@@ -440,7 +432,7 @@ function step8()
     $url_base = str_replace("/install/install.php", "", $_SERVER['HTTP_REFERER']);
     $DB->update(
         'glpi_configs',
-        ['value' => $DB->escape($url_base)],
+        ['value' => $url_base],
         [
             'context'   => 'core',
             'name'      => 'url_base'
@@ -450,7 +442,7 @@ function step8()
     $url_base_api = "$url_base/apirest.php/";
     $DB->update(
         'glpi_configs',
-        ['value' => $DB->escape($url_base_api)],
+        ['value' => $url_base_api],
         [
             'context'   => 'core',
             'name'      => 'url_base_api'
@@ -562,14 +554,9 @@ if (!isset($_SESSION['can_process_install']) || !isset($_POST["install"])) {
     header_html(__("Select your language"));
     choose_language();
 } else {
-   // Check CSRF: ensure nobody strap first page that checks if config file exists ...
-    Session::checkCSRF($_POST);
-
    // DB clean
     if (isset($_POST["db_pass"])) {
-        $_POST["db_pass"] = stripslashes($_POST["db_pass"]);
         $_POST["db_pass"] = rawurldecode($_POST["db_pass"]);
-        $_POST["db_pass"] = stripslashes($_POST["db_pass"]);
     }
 
     switch ($_POST["install"]) {

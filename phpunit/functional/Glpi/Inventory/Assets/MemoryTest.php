@@ -35,6 +35,8 @@
 
 namespace tests\units\Glpi\Inventory\Asset;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 include_once __DIR__ . '/../../../../abstracts/AbstractInventoryAsset.php';
 
 /* Test for inc/inventory/asset/memory.class.php */
@@ -53,6 +55,7 @@ class MemoryTest extends AbstractInventoryAsset
       <CAPTION>System Board Memory</CAPTION>
       <DESCRIPTION>Chip</DESCRIPTION>
       <MANUFACTURER>Elpida</MANUFACTURER>
+      <MODEL>EBJ81UG8BBU5GNF</MODEL>
       <MEMORYCORRECTION>None</MEMORYCORRECTION>
       <NUMSLOTS>1</NUMSLOTS>
       <SERIALNUMBER>12161217</SERIALNUMBER>
@@ -64,14 +67,12 @@ class MemoryTest extends AbstractInventoryAsset
   <DEVICEID>glpixps.teclib.infra-2018-10-03-08-42-36</DEVICEID>
   <QUERY>INVENTORY</QUERY>
   </REQUEST>",
-                'expected'  => '{"capacity": 4096, "caption": "System Board Memory", "description": "Chip", "manufacturer": "Elpida", "memorycorrection": "None", "numslots": 1, "serialnumber": "12161217", "speed": "1867", "type": "LPDDR3", "size": 4096, "frequence": "1867", "manufacturers_id": "Elpida", "devicememorytypes_id": "LPDDR3", "serial": "12161217", "busID": 1, "designation": "LPDDR3 - Chip", "is_dynamic": 1}'
+                'expected'  => '{"capacity": 4096, "caption": "System Board Memory", "description": "Chip", "manufacturer": "Elpida", "model": "EBJ81UG8BBU5GNF", "memorycorrection": "None", "numslots": 1, "serialnumber": "12161217", "speed": "1867", "type": "LPDDR3", "size": 4096, "frequence": "1867", "manufacturers_id": "Elpida", "devicememorymodels_id": "EBJ81UG8BBU5GNF", "devicememorytypes_id": "LPDDR3", "serial": "12161217", "busID": 1, "designation": "LPDDR3 - 1867 - Chip", "is_dynamic": 1}'
             ]
         ];
     }
 
-    /**
-     * @dataProvider assetProvider
-     */
+    #[dataProvider('assetProvider')]
     public function testPrepare($xml, $expected)
     {
         $converter = new \Glpi\Inventory\Converter();
@@ -123,6 +124,7 @@ class MemoryTest extends AbstractInventoryAsset
         $computer = new \Computer();
         $device_mem = new \DeviceMemory();
         $item_mem = new \Item_DeviceMemory();
+        $mem_model = new \DeviceMemoryModel();
 
         $xml_source = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 <REQUEST>
@@ -132,6 +134,7 @@ class MemoryTest extends AbstractInventoryAsset
       <CAPTION>Bottom-Slot 1(left)</CAPTION>
       <DESCRIPTION>SODIMM</DESCRIPTION>
       <MANUFACTURER>Samsung</MANUFACTURER>
+      <MODEL>MODEL-A</MODEL>
       <MEMORYCORRECTION>None</MEMORYCORRECTION>
       <NUMSLOTS>1</NUMSLOTS>
       <SERIALNUMBER>97842456</SERIALNUMBER>
@@ -143,6 +146,7 @@ class MemoryTest extends AbstractInventoryAsset
       <CAPTION>Bottom-Slot 2(right)</CAPTION>
       <DESCRIPTION>SODIMM</DESCRIPTION>
       <MANUFACTURER>Samsung</MANUFACTURER>
+      <MODEL>MODEL-A</MODEL>
       <MEMORYCORRECTION>None</MEMORYCORRECTION>
       <NUMSLOTS>1</NUMSLOTS>
       <SERIALNUMBER>97842457</SERIALNUMBER>
@@ -175,6 +179,11 @@ class MemoryTest extends AbstractInventoryAsset
         ]);
         $this->assertGreaterThan(0, $manufacturers_id);
 
+        $mem_model_id = $mem_model->add([
+            'name' => 'MODEL-A'
+        ]);
+        $this->assertGreaterThan(0, $mem_model_id);
+
         $type = new \DeviceMemoryType();
         $types_id = $type->add([
             'name' => 'DDR4'
@@ -182,8 +191,9 @@ class MemoryTest extends AbstractInventoryAsset
         $this->assertGreaterThan(0, $types_id);
 
         $mem_1_id = $device_mem->add([
-            'designation' => 'DDR4 - SODIMM',
+            'designation' => 'DDR4 - 2133 - SODIMM',
             'manufacturers_id' => $manufacturers_id,
+            'devicememorymodels_id' => $mem_model_id,
             'devicememorytypes_id' => $types_id,
             'frequence' => '2133',
             'entities_id'  => 0
@@ -209,7 +219,7 @@ class MemoryTest extends AbstractInventoryAsset
         $this->assertGreaterThan(0, $item_mem_2_id);
 
         $mem_3_id = $device_mem->add([
-            'designation' => 'DDR3 - SODIMM',
+            'designation' => 'DDR3 - 2133 - SODIMM',
             'manufacturers_id' => $manufacturers_id,
             'devicememorytypes_id' => $types_id,
             'frequence' => '2133',
@@ -237,6 +247,12 @@ class MemoryTest extends AbstractInventoryAsset
         $memories = $device_mem->find();
         $this->assertCount(2, $memories);
 
+       //and one memory model
+        $this->assertSame(
+            1,
+            countElementsInTable($mem_model->getTable())
+        );
+
        //we still have 3 memories items linked to the computer
         $memories = $item_mem->find(['itemtype' => 'Computer', 'items_id' => $computers_id]);
         $this->assertCount(3, $memories);
@@ -250,6 +266,7 @@ class MemoryTest extends AbstractInventoryAsset
         $this->assertCount(1, $memories);
 
        //Redo inventory, but with removed "Bottom-Slot 2(right)" memory
+       //and a different memory model in Slot 1
         $xml_source = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 <REQUEST>
   <CONTENT>
@@ -278,9 +295,11 @@ class MemoryTest extends AbstractInventoryAsset
 
         $this->doInventory($xml_source, true);
 
-       //we now have only 2 memories
-        $memories = $device_mem->find();
-        $this->assertCount(2, $memories);
+        //we now have 3 memories
+        // 'DDR4 - 2133 - SODIMM' and 'DDR3 - 2133 - SODIMM'
+        $this->assertCount(2, $device_mem->find(['devicememorymodels_id' => null]));
+        // 'DDR4 - 2133 - SODIMM' (MODEL-A)
+        $this->assertCount(1, $device_mem->find(['devicememorymodels_id' => $mem_model_id]));
 
        //we now have 2 memories linked to computer only
         $memories = $item_mem->find(['itemtype' => 'Computer', 'items_id' => $computers_id]);

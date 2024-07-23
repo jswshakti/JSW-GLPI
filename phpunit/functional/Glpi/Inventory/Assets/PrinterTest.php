@@ -35,6 +35,9 @@
 
 namespace tests\units\Glpi\Inventory\Asset;
 
+use Glpi\Asset\Asset_PeripheralAsset;
+use PHPUnit\Framework\Attributes\DataProvider;
+
 include_once __DIR__ . '/../../../../abstracts/AbstractInventoryAsset.php';
 
 /* Test for inc/inventory/asset/printer.class.php */
@@ -71,9 +74,7 @@ class PrinterTest extends AbstractInventoryAsset
         ];
     }
 
-    /**
-     * @dataProvider assetProvider
-     */
+    #[dataProvider('assetProvider')]
     public function testPrepare($xml, $expected)
     {
         $date_now = date('Y-m-d H:i:s');
@@ -139,7 +140,7 @@ class PrinterTest extends AbstractInventoryAsset
             (array)$result[0]
         );
 
-       //no management port (network_device->ips same as network_port->ips)
+        //no management port (network_device->ips same as network_port->ips)
         $this->assertSame([], $main->getNetworkPorts());
         $this->assertCount(0, $main->getManagementPorts());
 
@@ -270,8 +271,8 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertTrue($printer->getFromDbByCrit(['name' => 'MX5970', 'serial' => 'SDFSDF9874']));
 
         $np = new \NetworkPort();
-        $this->assertTrue($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortAggregate']));
-        $this->assertTrue($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortEthernet']));
+        $this->assertTrue($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortAggregate']));
+        $this->assertTrue($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortEthernet']));
 
         //remove printer for other test
         $printer->delete($printer->fields);
@@ -346,12 +347,12 @@ class PrinterTest extends AbstractInventoryAsset
             2,
             countElementsInTable(
                 $np::getTable(),
-                [['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortEthernet']]
+                [['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortEthernet']]
             )
         );
 
         //0 NetworkPortAggregate
-        $this->assertFalse($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortAggregate']));
+        $this->assertFalse($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortAggregate']));
 
         //remove printer for other test
         $printer->delete($printer->fields);
@@ -362,7 +363,7 @@ class PrinterTest extends AbstractInventoryAsset
         global $DB;
 
         $printer = new \Printer();
-        $item_printer = new \Computer_Item();
+        $item_printer = new Asset_PeripheralAsset();
 
         $xml_source = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 <REQUEST>
@@ -414,11 +415,20 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //we have 1 printer items linked to the computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //printer present in the inventory source is dynamic
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id, 'is_dynamic' => 1]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer',
+            'is_dynamic' => 1
+        ]);
         $this->assertCount(1, $printers);
 
         //same inventory again
@@ -444,7 +454,11 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //we still have only 1 printer items linked to the computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //same printer, but on another computer
@@ -498,15 +512,28 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //no longer linked on first computer inventoried
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(0, $printers);
 
         //but now linked on last inventoried computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_2_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //printer is still dynamic
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_2_id, 'is_dynamic' => 1]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer',
+            'is_dynamic' => 1
+        ]);
         $this->assertCount(1, $printers);
 
         //replay first computer inventory, printer is back \o/
@@ -529,15 +556,28 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //linked again on first computer inventoried
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //no longer linked on last inventoried computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_2_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(0, $printers);
 
         //printer is still dynamic
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id, 'is_dynamic' => 1]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer',
+            'is_dynamic' => 1
+        ]);
         $this->assertCount(1, $printers);
     }
 
@@ -546,7 +586,7 @@ class PrinterTest extends AbstractInventoryAsset
         global $DB;
 
         $printer = new \Printer();
-        $item_printer = new \Computer_Item();
+        $item_printer = new Asset_PeripheralAsset();
 
         $xml_source = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 <REQUEST>
@@ -594,11 +634,15 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertGreaterThan(0, $computers_id);
 
         //we have 1 printer items linked to the computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //set to global management
-        $this->assertTrue($printer->getFromDB(current($printers)['items_id']));
+        $this->assertTrue($printer->getFromDB(current($printers)['items_id_peripheral']));
         $this->assertTrue($printer->update(['id' => $printer->fields['id'], 'is_global' => \Config::GLOBAL_MANAGEMENT]));
 
         //same printer, but on another computer
@@ -652,11 +696,19 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //still linked on first computer inventoried
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //also linked on last inventoried computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_2_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
     }
 
@@ -665,7 +717,7 @@ class PrinterTest extends AbstractInventoryAsset
         global $DB;
 
         $printer = new \Printer();
-        $item_printer = new \Computer_Item();
+        $item_printer = new Asset_PeripheralAsset();
 
         $xml_source = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 <REQUEST>
@@ -723,10 +775,14 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertGreaterThan(0, $computers_id);
 
         //we have 1 printer items linked to the computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
-        $this->assertTrue($printer->getFromDB(current($printers)['items_id']));
+        $this->assertTrue($printer->getFromDB(current($printers)['items_id_peripheral']));
         $this->assertTrue($printer->update(['id' => $printer->fields['id'], 'is_global' => 1]));
 
         //same printer, but on another computer
@@ -790,11 +846,19 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //still linked on first computer inventoried
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //also linked on last inventoried computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_2_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
     }
 
@@ -803,7 +867,7 @@ class PrinterTest extends AbstractInventoryAsset
         global $DB;
 
         $printer = new \Printer();
-        $item_printer = new \Computer_Item();
+        $item_printer = new Asset_PeripheralAsset();
 
         $xml_source = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 <REQUEST>
@@ -865,11 +929,20 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //we have 1 printer items linked to the computer
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //printer present in the inventory source is dynamic
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_id, 'is_dynamic' => 1]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer',
+            'is_dynamic' => 1
+        ]);
         $this->assertCount(1, $printers);
 
         //same inventory again
@@ -895,11 +968,15 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //we still have only 1 printer items linked to the computer
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //set to global management
-        $this->assertTrue($printer->getFromDB(current($printers)['items_id']));
+        $this->assertTrue($printer->getFromDB(current($printers)['items_id_peripheral']));
         $this->assertTrue($printer->update(['id' => $printer->fields['id'], 'is_global' => \Config::GLOBAL_MANAGEMENT]));
 
         //same printer, but on another computer
@@ -963,15 +1040,28 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //no longer linked on first computer inventoried
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(0, $printers);
 
         //but now linked on last inventoried computer
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_2_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //printer is still dynamic
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_2_id, 'is_dynamic' => 1]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer',
+            'is_dynamic' => 1
+        ]);
         $this->assertCount(1, $printers);
 
         //change default configuration to unit management
@@ -1004,15 +1094,28 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //linked again on first computer inventoried
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //no longer linked on last inventoried computer
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_2_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_2_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(0, $printers);
 
         //printer is still dynamic
-        $printers = $item_printer->find(['itemtype' => 'Printer', 'computers_id' => $computers_id, 'is_dynamic' => 1]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer',
+            'is_dynamic' => 1
+        ]);
         $this->assertCount(1, $printers);
     }
 
@@ -1021,7 +1124,7 @@ class PrinterTest extends AbstractInventoryAsset
         global $DB;
         $printer = new \Printer();
 
-       // Add dictionary rule for ignore import for printer "HP Deskjet 2540"
+        // Add dictionary rule for ignore import for printer "HP Deskjet 2540"
         $rulecollection = new \RuleDictionnaryPrinterCollection();
         $rule = $rulecollection->getRuleClass();
         $rule_id = $rule->add([
@@ -1033,7 +1136,7 @@ class PrinterTest extends AbstractInventoryAsset
         ]);
         $this->assertGreaterThan(0, $rule_id);
 
-       // Add criteria
+        // Add criteria
         $rulecriteria = new \RuleCriteria(get_class($rule));
         $this->assertGreaterThan(
             0,
@@ -1045,7 +1148,7 @@ class PrinterTest extends AbstractInventoryAsset
             ])
         );
 
-       // Add action
+        // Add action
         $ruleaction = new \RuleAction(get_class($rule));
         $this->assertGreaterThan(
             0,
@@ -1089,7 +1192,7 @@ class PrinterTest extends AbstractInventoryAsset
   <QUERY>INVENTORY</QUERY>
 </REQUEST>";
 
-       //computer inventory with two printers, "HP Deskjet 2540" ignored by rules
+        //computer inventory with two printers, "HP Deskjet 2540" ignored by rules
         $inventory = $this->doInventory($xml_source, true);
 
         //check for expected logs
@@ -1104,11 +1207,15 @@ class PrinterTest extends AbstractInventoryAsset
         ]);
         $this->assertCount(0, $logs);
 
-        $item_printer = new \Computer_Item();
-        $printers = $item_printer->find(['computers_id' => $inventory->getItem()->fields['id'], 'itemtype' => 'Printer']);
+        $item_printer = new Asset_PeripheralAsset();
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $inventory->getItem()->fields['id'],
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
-        $this->assertTrue($printer->getFromDB(current($printers)['items_id']));
+        $this->assertTrue($printer->getFromDB(current($printers)['items_id_peripheral']));
         $this->assertSame('HP Color LaserJet Pro MFP M476 PCL 6', $printer->fields['name']);
     }
 
@@ -1234,18 +1341,22 @@ class PrinterTest extends AbstractInventoryAsset
 
         $computer->getFromDBByCrit(['serial' => 'ggheb7ne7']);
 
-        $item_printer = new \Computer_Item();
-        $printers = $item_printer->find(['computers_id' => $inventory->getItem()->fields['id'], 'itemtype' => 'Printer']);
+        $item_printer = new Asset_PeripheralAsset();
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $inventory->getItem()->fields['id'],
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(2, $printers);
 
         $printer1 = array_pop($printers);
-        $this->assertTrue($printer->getFromDB($printer1['items_id']));
+        $this->assertTrue($printer->getFromDB($printer1['items_id_peripheral']));
         $this->assertSame('HP Deskjet 2540 - renamed', $printer->fields['name']);
         $this->assertSame($manufacturer->fields['id'], $printer->fields['manufacturers_id']);
         $this->assertSame(0, $printer->fields['is_global']);
 
         $printer2 = array_pop($printers);
-        $this->assertTrue($printer->getFromDB($printer2['items_id']));
+        $this->assertTrue($printer->getFromDB($printer2['items_id_peripheral']));
         $this->assertSame('HP Color LaserJet Pro MFP M476 PCL 6', $printer->fields['name']);
     }
 
@@ -1254,7 +1365,7 @@ class PrinterTest extends AbstractInventoryAsset
         global $DB;
 
         $printer = new \Printer();
-        $item_printer = new \Computer_Item();
+        $item_printer = new Asset_PeripheralAsset();
 
         $xml_source = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 <REQUEST>
@@ -1344,11 +1455,20 @@ class PrinterTest extends AbstractInventoryAsset
         $this->assertCount(1, $printers);
 
         //we have 1 printer items linked to the computer
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer'
+        ]);
         $this->assertCount(1, $printers);
 
         //printer present in the inventory source is dynamic
-        $printers = $item_printer->find(['itemtype' => 'printer', 'computers_id' => $computers_id, 'is_dynamic' => 1]);
+        $printers = $item_printer->find([
+            'itemtype_asset' => 'Computer',
+            'items_id_asset' => $computers_id,
+            'itemtype_peripheral' => 'Printer',
+            'is_dynamic' => 1
+        ]);
         $this->assertCount(1, $printers);
     }
 
@@ -1628,12 +1748,12 @@ class PrinterTest extends AbstractInventoryAsset
             1,
             countElementsInTable(
                 $np::getTable(),
-                [['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortEthernet']]
+                [['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortEthernet']]
             )
         );
 
         //1 NetworkPortAggregate
-        $this->assertTrue($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortAggregate']));
+        $this->assertTrue($np->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortAggregate']));
 
         //1 NetworkName form NetworkPortAggregate
         $nm = new \NetworkName();
@@ -1708,7 +1828,7 @@ class PrinterTest extends AbstractInventoryAsset
 
         //1 NetworkPortAggregate
         $np_aggregate = new \NetworkPort();
-        $this->assertTrue($np_aggregate->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortAggregate']));
+        $this->assertTrue($np_aggregate->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortAggregate']));
 
 
         //redo a discovery
@@ -1720,7 +1840,7 @@ class PrinterTest extends AbstractInventoryAsset
 
         //1 NetworkPortAggregate
         $np_aggregate_after_reimport = new \NetworkPort();
-        $this->assertTrue($np_aggregate_after_reimport->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortAggregate']));
+        $this->assertTrue($np_aggregate_after_reimport->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortAggregate']));
 
 
         $this->assertSame($np_aggregate_after_reimport->fields['id'], $np_aggregate->fields['id']);
@@ -1837,7 +1957,7 @@ class PrinterTest extends AbstractInventoryAsset
 
         //1 NetworkPortAggregate
         $np_aggregate_after_networkinventory = new \NetworkPort();
-        $this->assertTrue($np_aggregate_after_networkinventory->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortAggregate']));
+        $this->assertTrue($np_aggregate_after_networkinventory->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortAggregate']));
 
 
         $this->assertSame($np_aggregate_after_networkinventory->fields['id'], $np_aggregate_after_reimport->fields['id']);
@@ -1851,7 +1971,7 @@ class PrinterTest extends AbstractInventoryAsset
 
         //1 NetworkPortAggregate
         $np_aggregate_after_reimport = new \NetworkPort();
-        $this->assertTrue($np_aggregate_after_reimport->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortAggregate']));
+        $this->assertTrue($np_aggregate_after_reimport->getFromDbByCrit(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortAggregate']));
 
 
         $this->assertSame($np_aggregate_after_reimport->fields['id'], $np_aggregate_after_reimport->fields['id']);
@@ -1945,7 +2065,7 @@ class PrinterTest extends AbstractInventoryAsset
 
         //1 NetworkPortEthernet
         $np_ethernet = new \NetworkPort();
-        $np_ethernets = $np_ethernet->find(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortEthernet']);
+        $np_ethernets = $np_ethernet->find(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortEthernet']);
         $this->assertCount(1, $np_ethernets);
         $first_np_versions = array_pop($np_ethernets);
 
@@ -1959,7 +2079,7 @@ class PrinterTest extends AbstractInventoryAsset
 
         //1 NetworkPortEthernet
         $np_ethernet = new \NetworkPort();
-        $np_ethernets = $np_ethernet->find(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'] , 'instantiation_type' => 'NetworkPortEthernet']);
+        $np_ethernets = $np_ethernet->find(['itemtype' => 'Printer', 'items_id' => $printer->fields['id'], 'instantiation_type' => 'NetworkPortEthernet']);
         $this->assertCount(1, $np_ethernets);
         $second_np_versions = array_pop($np_ethernets);
 

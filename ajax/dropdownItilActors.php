@@ -36,8 +36,6 @@
 /** @var array $CFG_GLPI */
 global $CFG_GLPI;
 
-include('../inc/includes.php');
-
 header("Content-Type: text/html; charset=UTF-8");
 Html::header_nocache();
 
@@ -122,12 +120,12 @@ if (
                 if ($CFG_GLPI["notifications_mailing"]) {
                     echo "<br><span id='notif_user_$rand'>";
                     if ($withemail) {
-                        echo __('Email followup') . '&nbsp;';
+                        echo __s('Email followup') . '&nbsp;';
                         $rand = Dropdown::showYesNo('_itil_' . $_POST["actortype"] . '[use_notification]', $_POST["use_notif"]);
                         echo '<br>';
                         printf(
                             __('%1$s: %2$s'),
-                            _n('Email', 'Emails', 1),
+                            _sn('Email', 'Emails', 1),
                             "<input type='text' size='25' name='_itil_" . $_POST["actortype"] .
                             "[alternative_email]'>"
                         );
@@ -224,7 +222,7 @@ if (
                 if ($CFG_GLPI["notifications_mailing"]) {
                     echo "<br><span id='notif_supplier_$rand'>";
                     if ($withemail) {
-                        echo __('Email followup') . '&nbsp;';
+                        echo __s('Email followup') . '&nbsp;';
                         $rand = Dropdown::showYesNo('_itil_' . $_POST["actortype"] . '[use_notification]', $_POST['use_notif']);
                         echo '<br>';
                         printf(

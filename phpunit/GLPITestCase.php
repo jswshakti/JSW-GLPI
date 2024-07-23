@@ -34,6 +34,7 @@
  */
 
 use Glpi\Tests\Log\TestHandler;
+use Monolog\Level;
 use Monolog\Logger;
 use org\bovigo\vfs\vfsStreamWrapper;
 use PHPUnit\Framework\TestCase;
@@ -46,6 +47,7 @@ class GLPITestCase extends TestCase
     private $int;
     private $str;
     protected $has_failed = false;
+    private ?array $config_copy = null;
 
     /**
      * @var TestHandler
@@ -59,16 +61,21 @@ class GLPITestCase extends TestCase
 
     public function setUp(): void
     {
-       // By default, no session, not connected
+        $this->storeGlobals();
+
+        // By default, no session, not connected
         $this->resetSession();
 
-       // Ensure cache is clear
+        // By default, there shouldn't be any pictures in the test files
+        $this->resetPictures();
+
+        // Ensure cache is clear
         global $GLPI_CACHE;
         $GLPI_CACHE->clear();
 
         // Init log handlers
         global $PHPLOGGER, $SQLLOGGER;
-        /** @var Monolog\Logger $PHPLOGGER */
+        /** @var \Monolog\Logger $PHPLOGGER */
         $this->php_log_handler = new TestHandler(LogLevel::DEBUG);
         $PHPLOGGER->setHandlers([$this->php_log_handler]);
         $this->sql_log_handler = new TestHandler(LogLevel::DEBUG);
@@ -79,6 +86,8 @@ class GLPITestCase extends TestCase
 
     public function tearDown(): void
     {
+        $this->resetGlobalsAndStaticValues();
+
         vfsStreamWrapper::unregister();
 
         if (isset($_SESSION['MESSAGE_AFTER_REDIRECT']) && !$this->has_failed) {
@@ -97,16 +106,53 @@ class GLPITestCase extends TestCase
 
         if (!$this->has_failed) {
             foreach ([$this->php_log_handler, $this->sql_log_handler] as $log_handler) {
+                $this->assertIsArray($log_handler->getRecords());
+                $clean_logs = array_map(
+                    static function (\Monolog\LogRecord $entry): array {
+                        return [
+                            'channel' => $entry->channel,
+                            'level'   => $entry->level->name,
+                            'message' => $entry->message,
+                        ];
+                    },
+                    $log_handler->getRecords()
+                );
                 $this->assertEmpty(
-                    $log_handler->getRecords(),
+                    $clean_logs,
                     sprintf(
                         "Unexpected entries in log in %s::%s:\n%s",
                         static::class,
                         __METHOD__/*$method*/,
-                        print_r(array_column($log_handler->getRecords(), 'message'), true)
+                        print_r($clean_logs, true)
                     )
                 );
             }
+        }
+    }
+
+    protected function resetPictures()
+    {
+        // Delete contents of test files/_pictures
+        $dir = GLPI_PICTURE_DIR;
+        if (!str_contains($dir, '/tests/files/_pictures')) {
+            throw new \RuntimeException('Invalid picture dir: ' . $dir);
+        }
+        // Delete nested folders and files in dir
+        $fn_delete = function ($dir, $parent) use (&$fn_delete) {
+            $files = glob($dir . '/*') ?? [];
+            foreach ($files as $file) {
+                if (is_dir($file)) {
+                    $fn_delete($file, $parent);
+                } else {
+                    unlink($file);
+                }
+            }
+            if ($dir !== $parent) {
+                rmdir($dir);
+            }
+        };
+        if (file_exists($dir) && is_dir($dir)) {
+            $fn_delete($dir, $dir);
         }
     }
 
@@ -125,6 +171,26 @@ class GLPITestCase extends TestCase
         $method->setAccessible(true);
 
         return $method->invoke($instance, ...$args);
+    }
+
+    /**
+     * Call a private constructor, and get the created instance.
+     *
+     * @param string    $classname  Class to instanciate
+     * @param mixed     $arg        Constructor arguments
+     *
+     * @return mixed
+     */
+    protected function callPrivateConstructor($classname, $args)
+    {
+        $class = new ReflectionClass($classname);
+        $instance = $class->newInstanceWithoutConstructor();
+
+        $constructor = $class->getConstructor();
+        $constructor->setAccessible(true);
+        $constructor->invokeArgs($instance, $args);
+
+        return $instance;
     }
 
     protected function resetSession()
@@ -231,7 +297,10 @@ class GLPITestCase extends TestCase
 
         $matching = null;
         foreach ($records as $record) {
-            if ($record['level'] === Logger::toMonologLevel($level) && strpos($record['message'], $message) !== false) {
+            if (
+                Level::fromValue($record['level']) === Level::fromName($level)
+                && strpos($record['message'], $message) !== false
+            ) {
                 $matching = $record;
                 break;
             }
@@ -286,7 +355,10 @@ class GLPITestCase extends TestCase
 
         $matching = null;
         foreach ($handler->getRecords() as $record) {
-            if ($record['level'] === Logger::toMonologLevel($level) && preg_match($pattern, $record['message']) === 1) {
+            if (
+                Level::fromValue($record['level']) === Level::fromName($level)
+                && preg_match($pattern, $record['message']) === 1
+            ) {
                 $matching = $record;
                 break;
             }
@@ -305,10 +377,13 @@ class GLPITestCase extends TestCase
      */
     protected function getUniqueString()
     {
-        if (is_null($this->str)) {
-            return $this->str = uniqid('str');
-        }
-        return $this->str .= 'x';
+        return substr(
+            str_shuffle(
+                str_repeat("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 5)
+            ),
+            0,
+            16
+        );
     }
 
     /**
@@ -332,5 +407,24 @@ class GLPITestCase extends TestCase
     protected function getTestRootEntity(bool $only_id = false)
     {
         return getItemByTypeName('Entity', '_test_root_entity', $only_id);
+    }
+
+    private function storeGlobals(): void
+    {
+        global $CFG_GLPI;
+
+        if ($this->config_copy === null) {
+            $this->config_copy = $CFG_GLPI;
+        }
+    }
+
+    private function resetGlobalsAndStaticValues(): void
+    {
+        // Globals
+        global $CFG_GLPI;
+        $CFG_GLPI = $this->config_copy;
+
+        // Statics values
+        Log::$use_queue = false;
     }
 }

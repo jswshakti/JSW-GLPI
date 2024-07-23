@@ -39,8 +39,6 @@
 
 use Glpi\Event;
 
-include('../inc/includes.php');
-
 Session::checkCentralAccess();
 $contractsupplier = new Contract_Supplier();
 if (isset($_POST["add"])) {
@@ -49,7 +47,7 @@ if (isset($_POST["add"])) {
             __('Mandatory fields are not filled. Please correct: %s'),
             _n('Contract', 'Contracts', 1)
         );
-        Session::addMessageAfterRedirect($message, false, ERROR);
+        Session::addMessageAfterRedirect(htmlspecialchars($message), false, ERROR);
         Html::back();
     }
     $contractsupplier->check(-1, CREATE, $_POST);

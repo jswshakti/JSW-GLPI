@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const { globSync } = require('glob');
 const path = require('path');
@@ -15,13 +16,19 @@ const scssOutputPath = 'css/lib';
  */
 let config = {
     entry: function () {
-        // Create an entry per *.js file in lib/bundle directory.
+        // Create an entry per file in lib/bundle directory.
         // Entry name will be name of the file (without ext).
         let entries = {};
 
-        const files = globSync(path.resolve(__dirname, 'lib/bundles') + '/!(*.min).js');
-        for (const file of files) {
-            entries[path.basename(file, '.js')] = file;
+        for (const ext of ['.js', '.scss']) {
+            const files = globSync(path.resolve(__dirname, 'lib/bundles') + '/!(*.min)' + ext);
+            for (const file of files) {
+                const entry_name = path.basename(file, ext);
+                if (entry_name in entries) {
+                    throw new Error(`Duplicate bundle entry: '${entry_name}'.`);
+                }
+                entries[entry_name] = file;
+            }
         }
 
         return entries;
@@ -40,11 +47,9 @@ let config = {
                 test: /\.js$/,
                 include: [
                     path.resolve(__dirname, 'node_modules/@fullcalendar'),
-                    path.resolve(__dirname, 'node_modules/codemirror'),
                     path.resolve(__dirname, 'node_modules/cystoscape'),
                     path.resolve(__dirname, 'node_modules/cytoscape-context-menus'),
                     path.resolve(__dirname, 'node_modules/jquery-migrate'),
-                    path.resolve(__dirname, 'node_modules/photoswipe'),
                     path.resolve(__dirname, 'node_modules/rrule'),
                     path.resolve(__dirname, 'lib/blueimp/jquery-file-upload'),
                 ],
@@ -84,9 +89,17 @@ let config = {
                     },
                 },
             },
+            {
+                // Build SCSS files
+                test: /\.scss$/,
+                use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+            },
         ],
     },
     plugins: [
+        new webpack.optimize.LimitChunkCountPlugin({
+            maxChunks: 1,
+        }),
         new webpack.ProvidePlugin(
             {
                 process: 'process/browser', // required by some libs (including `popper.js`)
@@ -101,8 +114,15 @@ let config = {
             }
         ), // Clean lib dir content
         new MiniCssExtractPlugin(), // Extract styles into CSS files
+        new MonacoWebpackPlugin({
+            'languages': ['html', 'javascript', 'typescript', 'json', 'markdown', 'twig', 'css', 'scss', 'shell'],
+            'publicPath': '/public/lib/'
+        }),
     ],
     resolve: {
+        fallback: {
+            "path": require.resolve("path-browserify"),
+        },
         // Use only main file in requirement resolution as we do not yet handle modules correctly
         mainFields: [
             'main',
@@ -154,23 +174,8 @@ var filesToCopy = [
     },
     // SCSS files
     {
-        package: '@fontsource/inter',
-        from: '{scss/mixins.scss,files/*all-[0-9]00*.woff,files/*[0-9]00*.woff2}',
-        to: scssOutputPath,
-    },
-    {
-        package: '@tabler/core',
-        from: 'src/scss/**/*.scss',
-        to: scssOutputPath,
-    },
-    {
-        package: '@tabler/icons-webfont',
-        from: '{fonts/*,tabler-icons.scss}',
-        to: scssOutputPath,
-    },
-    {
         package: 'bootstrap',
-        from: 'scss/**/*.scss',
+        from: 'scss/vendor/_rfs.scss',
         to: scssOutputPath,
     },
     {
@@ -178,6 +183,15 @@ var filesToCopy = [
         from: 'src/scss/**/*.scss',
         to: scssOutputPath,
     },
+    {
+        package: 'tinymce',
+        from: 'skins/ui/oxide*/skin.css',
+        to: scssOutputPath,
+    },
+    {
+        package: 'swagger-ui-dist',
+        from: 'oauth2-redirect.html'
+    }
 ];
 
 let copyPatterns = [];

@@ -35,7 +35,6 @@
 
 use Glpi\Event;
 
-include '../inc/includes.php';
 Session::checkRight('itiltemplate', UPDATE);
 
 /**
@@ -76,6 +75,9 @@ if (isset($_POST["add"]) || isset($_POST['massiveaction'])) {
                 break;
             case 'Predefined':
                 $fieldtype_name = __('predefined');
+                break;
+            case 'Readonly':
+                $fieldtype_name = __('readonly');
                 break;
         }
 

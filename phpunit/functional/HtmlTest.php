@@ -36,6 +36,7 @@
 namespace tests\units;
 
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LogLevel;
 use Glpi\Toolbox\FrontEnd;
 
@@ -103,8 +104,8 @@ class HtmlTest extends \GLPITestCase
     public function testCleanInputText()
     {
         $origin = 'This is a \'string\' with some "replacements" needed, but not « others »!';
-        $expected = 'This is a &apos;string&apos; with some &quot;replacements&quot; needed, but not « others »!';
-        $this->assertSame($expected, \Html::cleanInputText($origin));
+        $expected = 'This is a &#039;string&#039; with some &quot;replacements&quot; needed, but not « others »!';
+        $this->assertSame($expected, @\Html::cleanInputText($origin));
     }
 
     public function cleanParametersURL()
@@ -127,23 +128,6 @@ class HtmlTest extends \GLPITestCase
         $origin = 'A string that is longer than 10 characters.';
         $expected = 'A string t&nbsp;(...)';
         $this->assertSame($expected, \Html::resume_text($origin, 10));
-    }
-
-    public function testCleanPostForTextArea()
-    {
-        $origin = "A text that \\\"would\\\" be entered in a \\'textarea\\'\\nWith breakline\\r\\nand breaklines.";
-        $expected = "A text that \"would\" be entered in a 'textarea'\nWith breakline\nand breaklines.";
-        $this->assertSame($expected, \Html::cleanPostForTextArea($origin));
-
-        $aorigin = [
-            $origin,
-            "Another\\none!"
-        ];
-        $aexpected = [
-            $expected,
-            "Another\none!"
-        ];
-        $this->assertSame($aexpected, \Html::cleanPostForTextArea($aorigin));
     }
 
     public function testFormatNumber()
@@ -325,7 +309,6 @@ class HtmlTest extends \GLPITestCase
             'KnowbaseItem',
             'ReservationItem',
             'Report',
-            'MigrationCleaner',
             'SavedSearch',
             'Impact'
         ];
@@ -343,21 +326,25 @@ class HtmlTest extends \GLPITestCase
             'Rule',
             'Profile',
             'QueuedNotification',
-            'Glpi\\Event',
-            'Glpi\Inventory\Inventory'
+            'Glpi\System\Log\LogViewer',
+            'Glpi\Inventory\Inventory',
+            'Glpi\Form\Form',
         ];
         $this->assertSame('Administration', $menu['admin']['title']);
         $this->assertSame($expected, $menu['admin']['types']);
 
         $expected = [
+            'Glpi\Asset\AssetDefinition',
             'CommonDropdown',
             'CommonDevice',
             'Notification',
+            'Webhook',
             'SLM',
             'Config',
             'FieldUnicity',
             'CronTask',
             'Auth',
+            'OAuthClient',
             'MailCollector',
             'Link',
             'Plugin'
@@ -655,17 +642,11 @@ class HtmlTest extends \GLPITestCase
         // init menu
         \Html::generateMenuSession(true);
 
-        // test modal
-        $modal = \Html::FuzzySearch('getHtml');
-        $this->assertStringContainsString('id="fuzzysearch"', $modal);
-        $this->assertMatchesRegularExpression('/class="results[^"]*"/', $modal);
+        // test retrieving entries
+        $entries = \Html::getMenuFuzzySearchList();
+        $this->assertGreaterThan(5, count($entries));
 
-       // test retrieving entries
-        $default = json_decode(\Html::FuzzySearch(), true);
-        $entries = json_decode(\Html::FuzzySearch('getList'), true);
-        $this->assertSame($default, $entries);
-
-        foreach ($default as $entry) {
+        foreach ($entries as $entry) {
             $this->assertArrayHasKey('title', $entry);
             $this->assertArrayHasKey('url', $entry);
         }
@@ -675,10 +656,10 @@ class HtmlTest extends \GLPITestCase
     {
         $value = 'Should be \' "escaped" éè!';
         $expected = 'Should be &#039; &quot;escaped&quot; &eacute;&egrave;!';
-        $result = \Html::entities_deep($value);
+        $result = @\Html::entities_deep($value);
         $this->assertSame($expected, $result);
 
-        $result = \Html::entities_deep([$value, $value, $value]);
+        $result = @\Html::entities_deep([$value, $value, $value]);
         $this->assertSame([$expected, $expected, $expected], $result);
     }
 
@@ -726,29 +707,27 @@ class HtmlTest extends \GLPITestCase
         ob_start();
         \Html::displayBackLink();
         $output = ob_get_clean();
-        $this->assertSame("<a href='originalpage.html'>Back</a>", $output);
+        $this->assertSame('<a href="originalpage.html">Back</a>', $output);
         $_SERVER['HTTP_REFERER'] = ''; // reset referer to prevent having this var in test loop mode
     }
 
     public function testAddConfirmationOnAction()
     {
         $string = 'Are U\' OK?';
-        $expected = 'onclick="if (window.confirm(\'Are U\\\' OK?\')){ ;return true;} else { return false;}"';
+        $expected = 'onclick="if (window.confirm(&quot;Are U&#039; OK?&quot;)){ ;return true;} else { return false;}"';
         $this->assertSame($expected, \Html::addConfirmationOnAction($string));
 
         $strings = ['Are you', 'OK?'];
-        $expected = 'onclick="if (window.confirm(\'Are you\nOK?\')){ ;return true;} else { return false;}"';
+        $expected = 'onclick="if (window.confirm(&quot;Are you\nOK?&quot;)){ ;return true;} else { return false;}"';
         $this->assertSame($expected, \Html::addConfirmationOnAction($strings));
 
         $actions = '$("#mydiv").focus();';
-        $expected = 'onclick="if (window.confirm(\'Are U\\\' OK?\')){ $("#mydiv").focus();return true;} else { return false;}"';
+        $expected = 'onclick="if (window.confirm(&quot;Are U&#039; OK?&quot;)){ $(&quot;#mydiv&quot;).focus();return true;} else { return false;}"';
         $this->assertSame($expected, \Html::addConfirmationOnAction($string, $actions));
     }
 
     public function testJsFunctions()
     {
-        $this->assertSame("$('#myid').hide();\n", \Html::jsHide('myid'));
-        $this->assertSame("$('#myid').show();\n", \Html::jsShow('myid'));
         $this->assertSame("$('#myid')", \Html::jsGetElementbyID('myid'));
         $this->assertSame("$('#myid').trigger('setValue', 'myval');", \Html::jsSetDropdownValue('myid', 'myval'));
         $this->assertSame("$('#myid').val()", \Html::jsGetDropdownValue('myid'));
@@ -793,11 +772,11 @@ class HtmlTest extends \GLPITestCase
         $options = [
             'confirm'   => 'U sure?'
         ];
-        $expected = '<a href="mylink.php" onclick="if (window.confirm(&apos;U sure?&apos;)){ ;return true;} else { return false;}">My link</a>';
+        $expected = '<a href="mylink.php" onclick="if (window.confirm(&quot;U sure?&quot;)){ ;return true;} else { return false;}">My link</a>';
         $this->assertSame($expected, \Html::link($text, $url, $options));
 
         $options['confirmaction'] = 'window.close();';
-        $expected = '<a href="mylink.php" onclick="if (window.confirm(&apos;U sure?&apos;)){ window.close();return true;} else { return false;}">My link</a>';
+        $expected = '<a href="mylink.php" onclick="if (window.confirm(&quot;U sure?&quot;)){ window.close();return true;} else { return false;}">My link</a>';
         $this->assertSame($expected, \Html::link($text, $url, $options));
     }
 
@@ -879,9 +858,7 @@ class HtmlTest extends \GLPITestCase
         ];
     }
 
-    /**
-     * @dataProvider providerGetBackUrl
-     */
+    #[dataProvider('providerGetBackUrl')]
     public function testGetBackUrl($url_in, $url_out)
     {
         $this->assertSame($url_out, \Html::getBackUrl($url_in));
@@ -1026,9 +1003,7 @@ SCSS
         ];
     }
 
-    /**
-     * @dataProvider testGetGenericDateTimeSearchItemsProvider
-     */
+    #[dataProvider('testGetGenericDateTimeSearchItemsProvider')]
     public function testGetGenericDateTimeSearchItems(
         array $options,
         array $check_values,

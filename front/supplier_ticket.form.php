@@ -39,10 +39,6 @@
 
 use Glpi\Event;
 
-if (!defined('GLPI_ROOT')) {
-    include('../inc/includes.php');
-}
-
 $link = new Supplier_Ticket();
 
 Session::checkLoginUser();
@@ -67,8 +63,6 @@ if (isset($_POST["update"])) {
         sprintf(__('%s deletes an actor'), $_SESSION["glpiname"])
     );
     Html::redirect(Ticket::getFormURLWithID($link->fields['tickets_id']));
-} else if (isset($_GET["id"])) {
-    $link->showSupplierNotificationForm($_GET["id"]);
 } else {
     Html::displayErrorAndDie('Lost');
 }

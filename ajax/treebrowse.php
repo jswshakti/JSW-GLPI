@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-include('../inc/includes.php');
 header("Content-Type: text/html; charset=UTF-8");
 Html::header_nocache();
 
@@ -46,6 +45,7 @@ switch ($_REQUEST['action']) {
             'as_map'             => 0,
             'showmassiveactions' => true,
             'criteria'           => $_REQUEST['criteria'],
+            'unpublished'        => $_REQUEST['unpublished'],
         ];
 
         $itemtype = $_REQUEST['itemtype'];

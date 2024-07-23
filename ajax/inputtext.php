@@ -33,11 +33,8 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Toolbox\Sanitizer;
-
-$AJAX_INCLUDE = 1;
-
-include('../inc/includes.php');
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
 header("Content-Type: text/html; charset=UTF-8");
 Html::header_nocache();
@@ -45,9 +42,9 @@ Html::header_nocache();
 Session::checkLoginUser();
 
 if (isset($_POST['name'])) {
-    echo "<input type='text' " . (isset($_POST["size"]) ? " size='" . $_POST["size"] . "' " : "") . " " .
-         (isset($_POST["maxlength"]) ? "maxlength='" . $_POST["maxlength"] . "' " : "") . " name='" .
-         $_POST['name'] . "' value=\"" .
-         Html::cleanInputText(Sanitizer::encodeHtmlSpecialChars(rawurldecode(stripslashes($_POST["data"])))) .
+    echo "<input type='text' " . (isset($_POST["size"]) ? " size='" . (int) $_POST["size"] . "' " : "") . " " .
+         (isset($_POST["maxlength"]) ? "maxlength='" . (int) $_POST["maxlength"] . "' " : "") . " name='" .
+         htmlspecialchars($_POST['name']) . "' value=\"" .
+         htmlspecialchars(rawurldecode($_POST["data"])) .
         "\">";
 }

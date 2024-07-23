@@ -38,10 +38,6 @@ use Glpi\Event;
 /** @var array $CFG_GLPI */
 global $CFG_GLPI;
 
-if (!defined('GLPI_ROOT')) {
-    include('../inc/includes.php');
-}
-
 $link = new Ticket_User();
 $item = new Ticket();
 
@@ -74,14 +70,12 @@ if (isset($_POST["update"])) {
         Html::redirect(Ticket::getFormURLWithID($link->fields['tickets_id']));
     }
     Session::addMessageAfterRedirect(
-        __('You have been redirected because you no longer have access to this item'),
+        __s('You have been redirected because you no longer have access to this item'),
         true,
         ERROR
     );
 
     Html::redirect($CFG_GLPI["root_doc"] . "/front/ticket.php");
-} else if (isset($_GET["id"])) {
-    $link->showUserNotificationForm($_GET["id"]);
 } else {
     Html::displayErrorAndDie('Lost');
 }

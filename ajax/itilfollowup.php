@@ -39,9 +39,9 @@
 
 use Glpi\Http\Response;
 
-$AJAX_INCLUDE = 1;
+/** @var $this \Glpi\Controller\LegacyFileLoadController */
+$this->setAjax();
 
-include('../inc/includes.php');
 header("Content-Type: application/json; charset=UTF-8");
 Html::header_nocache();
 
@@ -105,6 +105,17 @@ if ($template->fields['requesttypes_id']) {
             //default value like "(id)" is the default behavior of GLPI when field 'name' is empty
             "(" . $template->fields['requesttypes_id'] . ")"
         );
+    }
+}
+
+if ($template->fields['pendingreasons_id'] ?? 0 > 0) {
+    $pendingReason = new PendingReason();
+    if ($pendingReason->getFromDB($template->fields['pendingreasons_id'])) {
+        $template->fields = array_merge($template->fields, [
+            'pendingreasons_name'         => $pendingReason->fields['name'],
+            'followup_frequency'          => $pendingReason->fields['followup_frequency'],
+            'followups_before_resolution' => $pendingReason->fields['followups_before_resolution'],
+        ]);
     }
 }
 

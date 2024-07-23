@@ -41,19 +41,14 @@
 /** @var \DBmysql $DB */
 global $DB;
 
-include('../inc/includes.php');
-
 // Send UTF8 Headers
 header("Content-Type: text/html; charset=UTF-8");
 Html::header_nocache();
 
 Session::checkLoginUser();
 
-if (
-    isset($_POST["table"])
-    && isset($_POST["value"])
-) {
-   // Security
+if (isset($_POST["table"], $_POST["value"])) {
+    // Security
     if (!$DB->tableExists($_POST['table'])) {
         exit();
     }
@@ -69,7 +64,7 @@ if (
             exit();
         }
         $item = new $itemtype();
-        $item->getFromDB(intval($_POST["value"]));
+        $item->getFromDB((int)$_POST["value"]);
         echo '&nbsp;' . $item->getLinks();
     }
 }
