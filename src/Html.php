@@ -40,6 +40,7 @@ use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\AssetDefinition;
 use Glpi\Asset\AssetDefinitionManager;
 use Glpi\Console\Application;
+use Glpi\Dropdown\DropdownDefinition;
 use Glpi\Plugin\Hooks;
 use Glpi\Toolbox\FrontEnd;
 use Glpi\Toolbox\URL;
@@ -1293,7 +1294,7 @@ HTML;
                         'CartridgeItem', 'ConsumableItem', 'Phone',
                         'Rack', 'Enclosure', 'PDU', 'PassiveDCEquipment', 'Unmanaged', 'Cable',
                     ],
-                    AssetDefinitionManager::getInstance()->getAssetClassesNames(),
+                    AssetDefinitionManager::getInstance()->getCustomObjectClassNames(),
                     $CFG_GLPI['devices_in_menu']
                 ),
                 'icon'    => 'ti ti-package'
@@ -1356,6 +1357,7 @@ HTML;
                 'title' => __('Setup'),
                 'types' => [
                     AssetDefinition::class,
+                    DropdownDefinition::class,
                     'CommonDropdown', 'CommonDevice', 'Notification', 'Webhook',
                     'SLM', 'Config', 'FieldUnicity', 'CronTask', 'Auth',
                     'OAuthClient', 'MailCollector', 'Link', 'Plugin',

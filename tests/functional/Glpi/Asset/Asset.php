@@ -43,10 +43,10 @@ class Asset extends DbTestCase
     protected function getByIdProvider(): iterable
     {
         $foo_definition = $this->initAssetDefinition();
-        $foo_classname = $foo_definition->getAssetClassName();
+        $foo_classname = $foo_definition->getCustomObjectClassName();
 
         $bar_definition = $this->initAssetDefinition();
-        $bar_classname = $bar_definition->getAssetClassName();
+        $bar_classname = $bar_definition->getCustomObjectClassName();
 
         // Loop to ensure that switching between definition does not cause any issue
         for ($i = 0; $i < 2; $i++) {
@@ -90,7 +90,7 @@ class Asset extends DbTestCase
     public function testPrepareInputDefinition(): void
     {
         $definition = $this->initAssetDefinition();
-        $classname = $definition->getAssetClassName();
+        $classname = $definition->getCustomObjectClassName();
         $asset = new $classname();
 
         foreach (['prepareInputForAdd','prepareInputForUpdate'] as $method) {
@@ -110,9 +110,9 @@ class Asset extends DbTestCase
     public function testUpdateWithWrongDefinition(): void
     {
         $definition_1 = $this->initAssetDefinition();
-        $classname_1  = $definition_1->getAssetClassName();
+        $classname_1  = $definition_1->getCustomObjectClassName();
         $definition_2 = $this->initAssetDefinition();
-        $classname_2  = $definition_2->getAssetClassName();
+        $classname_2  = $definition_2->getCustomObjectClassName();
 
         $asset = $this->createItem($classname_1, ['name' => 'new asset']);
 
@@ -131,7 +131,7 @@ class Asset extends DbTestCase
             capacities: array_keys($capacities)
         );
 
-        $asset = $this->createItem($definition->getAssetClassName(), ['name' => 'test asset']);
+        $asset = $this->createItem($definition->getCustomObjectClassName(), ['name' => 'test asset']);
 
         $this->when(
             function () use ($asset) {

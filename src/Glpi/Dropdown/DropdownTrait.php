@@ -1,5 +1,4 @@
 <?php
-
 /**
  * ---------------------------------------------------------------------
  *
@@ -8,7 +7,6 @@
  * http://glpi-project.org
  *
  * @copyright 2015-2024 Teclib' and contributors.
- * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
  * ---------------------------------------------------------------------
@@ -33,39 +31,16 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Glpi\Asset;
+namespace Glpi\Dropdown;
 
-use CommonType;
+use Glpi\Application\View\TemplateRenderer;
 use Toolbox;
 
-abstract class AssetType extends CommonType
+trait DropdownTrait
 {
-    /**
-     * Asset definition.
-     *
-     * Must be defined here to make PHPStan happy (see https://github.com/phpstan/phpstan/issues/8808).
-     * Must be defined by child class too to ensure that assigning a value to this property will affect
-     * each child classe independently.
-     */
-    protected static AssetDefinition $definition;
-
-    /**
-     * Get the asset definition related to concrete class.
-     *
-     * @return AssetDefinition
-     */
-    public static function getDefinition(): AssetDefinition
-    {
-        if (!(static::$definition instanceof AssetDefinition)) {
-            throw new \RuntimeException('Asset definition is expected to be defined in concrete class.');
-        }
-
-        return static::$definition;
-    }
-
     public static function getTypeName($nb = 0)
     {
-        return sprintf(_n('%s type', '%s types', $nb), static::getDefinition()->getTranslatedName());
+        return static::getDefinition()->getTranslatedName($nb);
     }
 
     public static function getIcon()
@@ -76,19 +51,21 @@ abstract class AssetType extends CommonType
     public static function getTable($classname = null)
     {
         if (is_a($classname ?? static::class, self::class, true)) {
-            return parent::getTable(self::class);
+            return parent::getTable(Dropdown::class);
         }
         return parent::getTable($classname);
     }
 
     public static function getSearchURL($full = true)
     {
-        return Toolbox::getItemTypeSearchURL(self::class, $full) . '?class=' . static::getDefinition()->getCustomObjectClassName(false);
+        return Toolbox::getItemTypeSearchURL(Dropdown::class, $full)
+            . '?class=' . static::getDefinition()->getCustomObjectClassName(false);
     }
 
     public static function getFormURL($full = true)
     {
-        return Toolbox::getItemTypeFormURL(self::class, $full) . '?class=' . static::getDefinition()->getCustomObjectClassName(false);
+        return Toolbox::getItemTypeFormURL(Dropdown::class, $full)
+            . '?class=' . static::getDefinition()->getCustomObjectClassName(false);
     }
 
     public static function getById(?int $id)
@@ -97,33 +74,33 @@ abstract class AssetType extends CommonType
             return false;
         }
 
-        // Load the asset definition corresponding to given asset type ID
+        // Load the asset definition corresponding to given asset ID
         $definition_request = [
             'INNER JOIN' => [
-                self::getTable()  => [
+                Dropdown::getTable()  => [
                     'ON'  => [
-                        self::getTable()            => AssetDefinition::getForeignKeyField(),
-                        AssetDefinition::getTable() => AssetDefinition::getIndexName(),
+                        Dropdown::getTable()            => DropdownDefinition::getForeignKeyField(),
+                        DropdownDefinition::getTable() => DropdownDefinition::getIndexName(),
                     ]
                 ],
             ],
             'WHERE' => [
-                self::getTableField(self::getIndexName()) => $id,
+                Dropdown::getTableField(Dropdown::getIndexName()) => $id,
             ],
         ];
-        $definition = new AssetDefinition();
+        $definition = new DropdownDefinition();
         if (!$definition->getFromDBByRequest($definition_request)) {
             return false;
         }
 
         // Instanciate concrete class
-        $asset_type_class = $definition->getAssetTypeClassName(true);
-        $asset_type = new $asset_type_class();
-        if (!$asset_type->getFromDB($id)) {
+        $dropdown_class = $definition->getCustomObjectClassName();
+        $dropdown = new $dropdown_class();
+        if (!$dropdown->getFromDB($id)) {
             return false;
         }
 
-        return $asset_type;
+        return $dropdown;
     }
 
     public static function getSystemSQLCriteria(?string $tablename = null): array
@@ -134,7 +111,7 @@ abstract class AssetType extends CommonType
 
         // Keep only items from current definition must be shown.
         $criteria = [
-            $table_prefix . AssetDefinition::getForeignKeyField() => static::getDefinition()->getID(),
+            $table_prefix . DropdownDefinition::getForeignKeyField() => static::getDefinition()->getID(),
         ];
 
         // Add another layer to the array to prevent losing duplicates keys if the
@@ -144,13 +121,48 @@ abstract class AssetType extends CommonType
         return $criteria;
     }
 
+    public function showForm($ID, array $options = [])
+    {
+        $this->initForm($ID, $options);
+        TemplateRenderer::getInstance()->display(
+            'pages/setup/custom_dropdown.html.twig',
+            [
+                'item'   => $this,
+                'params' => $options,
+                'additional_fields' => $this->getAdditionalFields()
+            ]
+        );
+        return true;
+    }
+
+    private function handleTreeFields(array $input): array
+    {
+        if (!static::getDefinition()->fields['is_tree']) {
+            // Ensure `completename` is set when not a tree dropdown so it works properly if the definition is changed to be a tree dropdown later.
+            $input['completename'] = $this->isNewItem() ? $input['name'] : ($input['name'] ?? $this->fields['name']);
+            // Block setting the other tree fields
+            unset($input['level'], $input['ancestors_cache'], $input['sons_cache']);
+        }
+        return $input;
+    }
+
     public function prepareInputForAdd($input)
     {
+        $this->handleTreeFields($input);
+        $input = parent::prepareInputForAdd($input);
+        if ($input === false) {
+            return false;
+        }
         return $this->prepareDefinitionInput($input);
     }
 
     public function prepareInputForUpdate($input)
     {
+        $this->handleTreeFields($input);
+        $input = parent::prepareInputForUpdate($input);
+        if ($input === false) {
+            return false;
+        }
         return $this->prepareDefinitionInput($input);
     }
 
@@ -162,25 +174,45 @@ abstract class AssetType extends CommonType
      */
     private function prepareDefinitionInput(array $input): array
     {
-        $definition_fkey = AssetDefinition::getForeignKeyField();
+        $definition_fkey = DropdownDefinition::getForeignKeyField();
         $definition_id   = static::getDefinition()->getID();
 
         if (
             array_key_exists($definition_fkey, $input)
             && (int)$input[$definition_fkey] !== $definition_id
         ) {
-            throw new \RuntimeException('Asset definition does not match the current concrete class.');
+            throw new \RuntimeException('Dropdown definition does not match the current concrete class.');
         }
 
         if (
             !$this->isNewItem()
             && (int)$this->fields[$definition_fkey] !== $definition_id
         ) {
-            throw new \RuntimeException('Asset definition cannot be changed.');
+            throw new \RuntimeException('Dropdown definition cannot be changed.');
         }
 
         $input[$definition_fkey] = $definition_id;
 
         return $input;
+    }
+
+    public function rawSearchOptions()
+    {
+        $opts = parent::rawSearchOptions();
+
+        // Ensure the search engine can handle search options when multiple classes map to the same table
+        foreach ($opts as &$search_option) {
+            if (
+                is_array($search_option)
+                && array_key_exists('table', $search_option)
+                && $search_option['table'] === static::getTable()
+            ) {
+                // Search class could not be able to retrieve the concrete class when using `getItemTypeForTable()`,
+                // so we have to define an `itemtype` here.
+                $search_option['itemtype'] = static::class;
+            }
+        }
+
+        return $opts;
     }
 }

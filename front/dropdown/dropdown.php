@@ -33,11 +33,11 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Asset\AssetDefinition;
+use Glpi\Dropdown\DropdownDefinition;
 use Glpi\Http\Response;
 use Glpi\Search\SearchEngine;
 
-$definition = new AssetDefinition();
+$definition = new DropdownDefinition();
 $classname  = array_key_exists('class', $_GET) && $definition->getFromDBBySystemName((string)$_GET['class'])
     ? $definition->getCustomObjectClassName()
     : null;
@@ -46,9 +46,9 @@ if ($classname === null || !class_exists($classname)) {
     Response::sendError(400, 'Bad request', Response::CONTENT_TYPE_TEXT_HTML);
 }
 
-Session::checkRightsOr($classname::$rightname, [READ, READ_ASSIGNED, READ_OWNED]);
+Session::checkRight($classname::$rightname, READ);
 
-Html::header($classname::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], 'assets', $classname);
+$classname::displayCentralHeader();
 
 SearchEngine::show($classname);
 

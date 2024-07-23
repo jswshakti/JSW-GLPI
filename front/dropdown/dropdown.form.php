@@ -37,51 +37,51 @@
  * @var array $CFG_GLPI
  */
 
-use Glpi\Asset\Asset;
-use Glpi\Asset\AssetDefinition;
+use Glpi\Dropdown\Dropdown;
+use Glpi\Dropdown\DropdownDefinition;
 use Glpi\Event;
 use Glpi\Http\Response;
 
-if (array_key_exists('id', $_REQUEST) && !Asset::isNewId($_REQUEST['id'])) {
-    $asset = Asset::getById($_REQUEST['id']);
+if (array_key_exists('id', $_REQUEST) && !Dropdown::isNewId($_REQUEST['id'])) {
+    $dropdown = Dropdown::getById($_REQUEST['id']);
 } else {
-    $definition = new AssetDefinition();
+    $definition = new DropdownDefinition();
     $classname  = array_key_exists('class', $_GET) && $definition->getFromDBBySystemName((string)$_GET['class'])
         ? $definition->getCustomObjectClassName()
         : null;
-    $asset      = $classname !== null && class_exists($classname)
+    $dropdown      = $classname !== null && class_exists($classname)
         ? new $classname()
         : null;
 }
 
-if ($asset === null) {
+if ($dropdown === null) {
     Response::sendError(400, 'Bad request', Response::CONTENT_TYPE_TEXT_HTML);
 }
 
-Session::checkRightsOr($asset::$rightname, [READ, READ_ASSIGNED, READ_OWNED]);
+Session::checkRight($dropdown::$rightname, READ);
 
 if (isset($_POST['add'])) {
-    $asset->check(-1, CREATE, $_POST);
+    $dropdown->check(-1, CREATE, $_POST);
 
-    if ($new_id = $asset->add($_POST)) {
+    if ($new_id = $dropdown->add($_POST)) {
         Event::log(
             $new_id,
-            $asset::class,
+            $dropdown::class,
             4,
             'inventory',
             sprintf(__('%1$s adds the item %2$s'), $_SESSION['glpiname'], $_POST['name'])
         );
         if ($_SESSION['glpibackcreated']) {
-            Html::redirect($asset->getLinkURL());
+            Html::redirect($dropdown->getLinkURL());
         }
     }
     Html::back();
 } elseif (isset($_POST['update'])) {
-    $asset->check($_POST['id'], UPDATE);
-    if ($asset->update($_POST)) {
+    $dropdown->check($_POST['id'], UPDATE);
+    if ($dropdown->update($_POST)) {
         Event::log(
             $_POST['id'],
-            $asset::class,
+            $dropdown::class,
             4,
             'inventory',
             sprintf(__('%s updates an item'), $_SESSION['glpiname'])
@@ -89,46 +89,46 @@ if (isset($_POST['add'])) {
     }
     Html::back();
 } elseif (isset($_POST['delete'])) {
-    $asset->check($_POST['id'], DELETE);
-    if ($asset->delete($_POST)) {
+    $dropdown->check($_POST['id'], DELETE);
+    if ($dropdown->delete($_POST)) {
         Event::log(
             $_POST['id'],
-            $asset::class,
+            $dropdown::class,
             4,
             'inventory',
             sprintf(__('%s deletes an item'), $_SESSION['glpiname'])
         );
     }
-    $asset->redirectToList();
+    $dropdown->redirectToList();
 } elseif (isset($_POST['purge'])) {
-    $asset->check($_POST['id'], PURGE);
-    if ($asset->delete($_POST)) {
+    $dropdown->check($_POST['id'], PURGE);
+    if ($dropdown->delete($_POST)) {
         Event::log(
             $_POST['id'],
-            $asset::class,
+            $dropdown::class,
             4,
             'inventory',
             sprintf(__('%s purges an item'), $_SESSION["glpiname"])
         );
     }
-    $asset->redirectToList();
+    $dropdown->redirectToList();
 } elseif (isset($_POST['restore'])) {
-    $asset->check($_POST['id'], DELETE);
-    if ($asset->restore($_POST, 1)) {
+    $dropdown->check($_POST['id'], DELETE);
+    if ($dropdown->restore($_POST, 1)) {
         Event::log(
             $_POST['id'],
-            $asset::class,
+            $dropdown::class,
             4,
             'inventory',
             sprintf(__('%s restores an item'), $_SESSION['glpiname'])
         );
     }
-    $asset->redirectToList();
+    $dropdown->redirectToList();
 } else {
     $id = (int)($_GET['id'] ?? null);
-    $menus = ['assets', $asset::class];
-    $asset::displayFullPageForItem($id, $menus, [
-        AssetDefinition::getForeignKeyField() => $asset::getDefinition()->getID(),
+    $menus = ['config', 'commondropdown', $dropdown::class];
+    $dropdown::displayFullPageForItem($id, $menus, [
+        DropdownDefinition::getForeignKeyField() => $dropdown::getDefinition()->getID(),
         'withtemplate' => $_GET["withtemplate"] ?? '',
         'formoptions'  => "data-track-changes=true",
     ]);

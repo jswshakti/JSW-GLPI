@@ -38,6 +38,7 @@ use Glpi\Asset\Asset_PeripheralAsset;
 use Glpi\Asset\AssetDefinitionManager;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
+use Glpi\Dropdown\DropdownDefinitionManager;
 use Glpi\Features\DCBreadcrumb;
 use Glpi\Features\AssignableAsset;
 use Glpi\Plugin\Hooks;
@@ -1296,6 +1297,14 @@ JAVASCRIPT;
                 ]
 
             ]; //end $opt
+
+            $custom_dropdowns = DropdownDefinitionManager::getInstance()->getCustomObjectClassNames();
+            if (count($custom_dropdowns)) {
+                $optgroup[__('Custom dropdowns')] = [];
+                foreach ($custom_dropdowns as $dropdown) {
+                    $optgroup[__('Custom dropdowns')][$dropdown] = null;
+                }
+            }
 
             $plugdrop = Plugin::getDropdowns();
 
