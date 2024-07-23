@@ -455,9 +455,9 @@ abstract class CommonDBVisible extends CommonDBTM
         }
         if (isset($this->fields['entities_id'])) {
             $params['entity'] = $this->fields['entities_id'];
-            if (isset($this->fields['is_recursive'])) {
-                $params['entity_sons'] = $this->fields['is_recursive'];
-            }
+        }
+        if (isset($this->fields['is_recursive'])) {
+            $params['is_recursive'] = $this->fields['is_recursive'];
         }
         return $params;
     }

@@ -72,9 +72,7 @@ if (isset($_POST['type']) && !empty($_POST['type'])) {
             }
             if (isset($_POST['entity']) && $_POST['entity'] >= 0) {
                 $params['entity'] = $_POST['entity'];
-                if (isset($_POST['entity_sons'])) {
-                    $params['entity_sons'] = $_POST['entity_sons'];
-                }
+                $params['entity_sons'] = $_POST['is_recursive'] ?? false;
             }
 
             User::dropdown($params);
@@ -99,10 +97,8 @@ if (isset($_POST['type']) && !empty($_POST['type'])) {
             if (isset($_POST['entity']) && $_POST['entity'] >= 0) {
                 $params['entity'] = $_POST['entity'];
                 $params['toupdate']['moreparams']['entity'] = $_POST['entity'];
-                if (isset($_POST['entity_sons'])) {
-                    $params['entity_sons'] = $_POST['entity_sons'];
-                    $params['toupdate']['moreparams']['entity_sons'] = $_POST['entity_sons'];
-                }
+                $params['entity_sons'] = $_POST['is_recursive'] ?? false;
+                $params['toupdate']['moreparams']['entity_sons'] = $_POST['is_recursive'] ?? false;
             }
 
             Group::dropdown($params);

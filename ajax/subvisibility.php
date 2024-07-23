@@ -63,9 +63,7 @@ if (!empty($_POST['type']) && isset($_POST['items_id']) && ($_POST['items_id'] >
             }
             if (isset($_POST['entity']) && $_POST['entity'] >= 0) {
                 $params['entity'] = $_POST['entity'];
-                if (isset($_POST['entity_sons'])) {
-                    $params['entity_sons'] = $_POST['entity_sons'];
-                }
+                $params['entity_sons'] = $_POST['is_recursive'] ?? false;
             }
             echo "<table class='tab_format'><tr><td>";
             echo Entity::getTypeName(1);
