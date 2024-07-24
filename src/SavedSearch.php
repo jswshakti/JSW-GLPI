@@ -442,8 +442,7 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
                 SavedSearch_Alert::class,
                 SavedSearch_User::class,
                 SavedSearch_UserTarget::class,
-                Group_SavedSearch::class,
-                PlanningRecall::class
+                Group_SavedSearch::class
             ]
         );
     }
@@ -1332,7 +1331,7 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
                 // is owner
                 self::getTable() . '.users_id'    => Session::getLoginUserID(),
                 // directly targetted
-                SavedSearch_UserTarget::getTable().'.users_id' => Session::getLoginUserID(),
+                SavedSearch_UserTarget::getTable() . '.users_id' => Session::getLoginUserID(),
                 // targetted through groups
                 [
                     'glpi_groups_savedsearches.groups_id' => count($_SESSION["glpigroups"])
@@ -1378,70 +1377,22 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         if (Session::haveRight('config', UPDATE)) {
             return ['WHERE' => []];
         }
-        if (!Session::haveRight(self::$rightname, READ)) {
-            return [
-                'WHERE' => ['glpi_savedsearches.users_id' => Session::getLoginUserID()],
-            ];
-        }
-
-        $join = [];
-        $where = [];
-
-        // Users
-        $join['glpi_savedsearches_users'] = [
-            'FKEY' => [
-                'glpi_savedsearches_users'  => 'savedsearches_id',
-                'glpi_savedsearches'        => 'id'
-            ]
-        ];
-
-        if (Session::getLoginUserID()) {
-            $where['OR'] = [
-                'glpi_savedsearches.users_id'        => Session::getLoginUserID(),
-                'glpi_savedsearches_usertargets.users_id'  => Session::getLoginUserID(),
-            ];
-        } else {
-            $where = [
-                0
-            ];
-        }
-
-        // Groups
-        if (
-            $forceall
-            || (isset($_SESSION["glpigroups"]) && count($_SESSION["glpigroups"]))
-        ) {
-            $join['glpi_groups_savedsearches'] = [
-                'FKEY' => [
-                    'glpi_groups_savedsearches' => 'savedsearches_id',
-                    'glpi_savedsearches'        => 'id'
+        return [
+            'LEFT JOIN' => [
+                SavedSearch_UserTarget::getTable() => [
+                    'ON' => [
+                        SavedSearch_UserTarget::getTable()  => 'savedsearches_id',
+                        self::getTable()   => 'id'
+                    ]
+                ],
+                Group_SavedSearch::getTable() => [
+                    'ON' => [
+                        Group_SavedSearch::getTable()  => 'savedsearches_id',
+                        self::getTable()   => 'id'
+                    ]
                 ]
-            ];
-
-            $or = ['glpi_groups_savedsearches.no_entity_restriction' => 1];
-            $restrict = getEntitiesRestrictCriteria(
-                'glpi_groups_savedsearches',
-                '',
-                $_SESSION['glpiactiveentities'],
-                true
-            );
-            if (count($restrict)) {
-                $or = $or + $restrict;
-            }
-            $where['OR'][] = [
-                'glpi_groups_savedsearches.groups_id' => count($_SESSION["glpigroups"])
-                    ? $_SESSION["glpigroups"]
-                    : [-1],
-                'OR' => $or
-            ];
-        }
-
-        $criteria = [
-            'LEFT JOIN' => $join,
-            'WHERE'     => $where
-        ];
-
-        return $criteria;
+            ]
+        ] + self::getVisibilityCriteriaForMine();
     }
 
     public static function getIcon()
@@ -1458,7 +1409,8 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
      * No specific right needed to be a target
      * @return false
      */
-    public function getVisibilityRight() {
+    public function getVisibilityRight()
+    {
         return false;
     }
 }

@@ -212,7 +212,8 @@ abstract class CommonDBVisible extends CommonDBTM
      * Get right which will be used to determine which users can be targeted
      * @return string
      */
-    public function getVisibilityRight() {
+    public function getVisibilityRight()
+    {
         return strtolower($this::getType()) . '_public';
     }
 

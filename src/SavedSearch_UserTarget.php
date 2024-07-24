@@ -46,39 +46,6 @@ class SavedSearch_UserTarget extends CommonDBRelation
     public static $checkItem_2_Rights  = self::DONT_CHECK_ITEM_RIGHTS;
     public static $logs_for_item_2     = false;
 
-    public function prepareInputForUpdate($input)
-    {
-        return $this->can($input['id'], READ) ? $input : false;
-    }
-
-    /**
-     * Summary of getDefault
-     * @param mixed $users_id id of the user
-     * @param mixed $itemtype type of item
-     * @return array|boolean same output than SavedSearch::getParameters()
-     * @since 9.2
-     */
-    public static function getDefault($users_id, $itemtype)
-    {
-        /** @var \DBmysql $DB */
-        global $DB;
-
-        $iter = $DB->request(['SELECT' => 'savedsearches_id',
-            'FROM'   => 'glpi_savedsearches_users',
-            'WHERE'  => ['users_id' => $users_id,
-                'itemtype' => $itemtype
-            ]
-        ]);
-        if (count($iter)) {
-            $row = $iter->current();
-            // Load default bookmark for this $itemtype
-            $bookmark = new SavedSearch();
-            // Only get data for bookmarks
-            return $bookmark->getParameters($row['savedsearches_id']);
-        }
-        return false;
-    }
-
     /**
      * Get users for a saved search
      *
