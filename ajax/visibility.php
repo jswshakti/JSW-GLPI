@@ -69,6 +69,8 @@ if (isset($_POST['type']) && !empty($_POST['type'])) {
             $params = ['name' => $prefix . 'users_id' . $suffix];
             if (isset($_POST['right'])) {
                 $params['right'] = isset($_POST['allusers']) ? 'all' : $_POST['right'];
+            } else {
+                $params['right'] = 'all';
             }
             if (isset($_POST['entity']) && $_POST['entity'] >= 0) {
                 $params['entity'] = $_POST['entity'];
