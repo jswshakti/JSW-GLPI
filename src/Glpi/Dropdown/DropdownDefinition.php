@@ -144,24 +144,26 @@ final class DropdownDefinition extends AbstractDefinition
 
         parent::post_updateItem($history);
 
-        $it = $DB->request([
-            'SELECT' => ['id'],
-            'FROM' => 'glpi_dropdowns_dropdowns',
-            'WHERE' => ['dropdowns_dropdowndefinitions_id' => $this->getID()],
-        ]);
-        // If switching from non-tree to tree dropdown, the related caches should be cleared (only an issue if it was a tree dropdown at some point before)
-        foreach ($it as $data) {
-            $GLPI_CACHE->delete('ancestors_cache_glpi_dropdowns_dropdowns_' . $data['id']);
-            $GLPI_CACHE->delete('sons_cache_glpi_dropdowns_dropdowns_' . $data['id']);
+        if (isset($this->input['is_tree']) && $this->input['is_tree'] && !$this->oldvalues['is_tree']) {
+            // If switching from non-tree to tree dropdown, the related caches should be cleared (only an issue if it was a tree dropdown at some point before)
+            $it = $DB->request([
+                'SELECT' => ['id'],
+                'FROM' => 'glpi_dropdowns_dropdowns',
+                'WHERE' => ['dropdowns_dropdowndefinitions_id' => $this->getID()],
+            ]);
+            foreach ($it as $data) {
+                $GLPI_CACHE->delete('ancestors_cache_glpi_dropdowns_dropdowns_' . $data['id']);
+                $GLPI_CACHE->delete('sons_cache_glpi_dropdowns_dropdowns_' . $data['id']);
+            }
+            $DB->update(
+                'glpi_dropdowns_dropdowns',
+                [
+                    'ancestors_cache' => null,
+                    'sons_cache' => null,
+                ],
+                ['dropdowns_dropdowndefinitions_id' => $this->getID()]
+            );
         }
-        $DB->update(
-            'glpi_dropdowns_dropdowns',
-            [
-                'ancestors_cache' => null,
-                'sons_cache'      => null,
-            ],
-            ['dropdowns_dropdowndefinitions_id' => $this->getID()]
-        );
     }
 
     public function cleanDBonPurge()
