@@ -39,6 +39,7 @@ use CommonITILObject;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Form\AnswersSet;
 use Glpi\Form\Destination\CommonITILField\ContentField;
+use Glpi\Form\Destination\CommonITILField\TemplateField;
 use Glpi\Form\Destination\CommonITILField\TitleField;
 use Glpi\Form\Form;
 use Override;
@@ -140,9 +141,13 @@ abstract class AbstractCommonITILFormDestination extends AbstractFormDestination
      */
     public function getConfigurableFields(): array
     {
+        $target_itemtype = static::getTargetItemtype();
+        $template_class = (new $target_itemtype())->getTemplateClass();
+
         return [
             new TitleField(),
             new ContentField(),
+            new TemplateField($template_class),
         ];
     }
 
