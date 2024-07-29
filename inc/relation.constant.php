@@ -505,6 +505,10 @@ $RELATION = [
         'glpi_domainrecords'  => 'domainrecordtypes_id'
     ],
 
+    'glpi_dropdowns_dropdowndefinitions' => [
+        '_glpi_dropdowns_dropdowns' => 'dropdowns_dropdowndefinitions_id',
+    ],
+
     'glpi_enclosuremodels' => [
         'glpi_enclosures' => 'enclosuremodels_id',
     ],
