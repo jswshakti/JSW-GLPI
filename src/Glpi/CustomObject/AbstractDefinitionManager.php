@@ -34,14 +34,19 @@
 
 namespace Glpi\CustomObject;
 
-use Glpi\Dropdown\DropdownDefinition;
-
 /**
  * Abstract class for custom object definition managers
  * @template T of AbstractDefinition
  */
 abstract class AbstractDefinitionManager
 {
+    /**
+     * Definitions cache.
+     * @var AbstractDefinition[]|null
+     * @phpstan-var T[]|null
+     */
+    protected ?array $definitions_data;
+
     /**
      * @return class-string<AbstractDefinition>
      * @phpstan-return class-string<T>

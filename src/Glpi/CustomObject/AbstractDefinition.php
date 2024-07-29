@@ -183,7 +183,7 @@ abstract class AbstractDefinition extends CommonDBTM
 
     protected function displayMainForm(int $item_count, $options = []): void
     {
-        $definition_manager = self::getDefinitionManagerClass()::getInstance();
+        $definition_manager = static::getDefinitionManagerClass()::getInstance();
         TemplateRenderer::getInstance()->display(
             'pages/admin/customobjects/main.html.twig',
             [
