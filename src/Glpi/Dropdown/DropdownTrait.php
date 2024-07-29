@@ -149,6 +149,10 @@ trait DropdownTrait
 
     public function prepareInputForAdd($input)
     {
+        if (empty($input['name'])) {
+            \Session::addMessageAfterRedirect(__('A name is required.'), false, ERROR);
+            return false;
+        }
         $this->handleTreeFields($input);
         $input = parent::prepareInputForAdd($input);
         if ($input === false) {
@@ -159,6 +163,9 @@ trait DropdownTrait
 
     public function prepareInputForUpdate($input)
     {
+        if (empty($input['name'])) {
+            unset($input['name']);
+        }
         $this->handleTreeFields($input);
         $input = parent::prepareInputForUpdate($input);
         if ($input === false) {

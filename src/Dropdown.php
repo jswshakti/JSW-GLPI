@@ -1105,13 +1105,14 @@ JAVASCRIPT;
     /**
      * Get the dropdown list name the user is allowed to edit
      *
+     * @var boolean $force Force to rebuild the list of dropdowns
      * @return array (group of dropdown) of array (itemtype => localized name)
      **/
-    public static function getStandardDropdownItemTypes()
+    public static function getStandardDropdownItemTypes(bool $force = false)
     {
         static $optgroup = null;
 
-        if (is_null($optgroup)) {
+        if ($force || is_null($optgroup)) {
             $optgroup = [
                 __('Common') => [
                     'Location' => null,
@@ -1315,7 +1316,7 @@ JAVASCRIPT;
             foreach ($optgroup as $label => &$dp) {
                 foreach ($dp as $key => &$val) {
                     if ($tmp = getItemForItemtype($key)) {
-                        if (!$tmp->canView()) {
+                        if (!$tmp::canView()) {
                             unset($optgroup[$label][$key]);
                         } else if ($val === null) {
                             $val = $key::getTypeName(Session::getPluralNumber());
@@ -1325,7 +1326,7 @@ JAVASCRIPT;
                     }
                 }
 
-                if (count($optgroup[$label]) == 0) {
+                if (count($optgroup[$label]) === 0) {
                     unset($optgroup[$label]);
                 }
             }
