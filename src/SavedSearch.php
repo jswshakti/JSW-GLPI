@@ -1377,8 +1377,28 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         if (Session::haveRight('config', UPDATE)) {
             return ['WHERE' => []];
         }
+        if (!Session::haveRight(self::$rightname, READ)) {
+            return [
+                'WHERE' => ['glpi_savedsearches.users_id' => Session::getLoginUserID()],
+            ];
+        }
 
-        return self::getVisibilityCriteriaForMine();
+        $criteria = ['WHERE' => []];
+        $restrict = [
+            self::getTable() . '.is_private' => 1,
+            self::getTable() . '.users_id'   => Session::getLoginUserID(),
+        ];
+        if (Session::haveRight(self::$rightname, READ)) {
+            $restrict = [
+                'OR' => [
+                    $restrict,
+                    [self::getTable() . '.is_private' => 0]
+                ]
+            ];
+        }
+
+        $criteria['WHERE'] = $restrict + getEntitiesRestrictCriteria(self::getTable(), '', '', true);
+        return $criteria;
     }
 
     public static function getIcon()
