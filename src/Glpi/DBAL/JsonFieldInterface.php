@@ -33,52 +33,20 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Glpi\Form\Tag;
+namespace Glpi\DBAL;
 
-use Glpi\Form\AnswersSet;
-use Glpi\Form\Form;
-use Glpi\Form\Section;
-use Override;
+use JsonSerializable;
 
-final class SectionTagProvider implements TagProviderInterface
+/**
+ * Base interface that can be used to type check any json configuration
+ * from the database.
+ */
+interface JsonFieldInterface extends JsonSerializable
 {
-    #[Override]
-    public function getTagColor(): string
-    {
-        return "cyan";
-    }
-
-    #[Override]
-    public function getTags(Form $form): array
-    {
-        $tags = [];
-        foreach ($form->getSections() as $section) {
-            $tags[] = $this->getTagForSection($section);
-        }
-
-        return $tags;
-    }
-
-    #[Override]
-    public function getTagContentForValue(
-        string $value,
-        AnswersSet $answers_set
-    ): string {
-        $id = (int) $value;
-
-        $section = Section::getById($id);
-        if (!$section) {
-            return '';
-        }
-        return $section->fields['name'];
-    }
-
-    public function getTagForSection(Section $section): Tag
-    {
-        return new Tag(
-            label: sprintf(__('Section: %s'), $section->fields['name']),
-            value: $section->getId(),
-            provider: self::class,
-        );
-    }
+    /**
+     * Create an instance from a raw array of data.
+     *
+     * @param array $data
+     */
+    public static function jsonDeserialize(array $data): self;
 }

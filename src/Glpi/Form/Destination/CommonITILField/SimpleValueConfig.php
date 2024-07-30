@@ -33,52 +33,39 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Glpi\Form\Tag;
+namespace Glpi\Form\Destination\CommonITILField;
 
-use Glpi\Form\AnswersSet;
-use Glpi\Form\Form;
-use Glpi\Form\Section;
+use Glpi\DBAL\JsonFieldInterface;
 use Override;
 
-final class SectionTagProvider implements TagProviderInterface
+class SimpleValueConfig implements JsonFieldInterface
 {
-    #[Override]
-    public function getTagColor(): string
-    {
-        return "cyan";
+    // Unique reference to hardcoded names used for serialization and forms input names
+    public const VALUE = 'value';
+
+    public function __construct(
+        protected string $value,
+    ) {
     }
 
     #[Override]
-    public function getTags(Form $form): array
+    public static function jsonDeserialize(array $data): self
     {
-        $tags = [];
-        foreach ($form->getSections() as $section) {
-            $tags[] = $this->getTagForSection($section);
-        }
-
-        return $tags;
-    }
-
-    #[Override]
-    public function getTagContentForValue(
-        string $value,
-        AnswersSet $answers_set
-    ): string {
-        $id = (int) $value;
-
-        $section = Section::getById($id);
-        if (!$section) {
-            return '';
-        }
-        return $section->fields['name'];
-    }
-
-    public function getTagForSection(Section $section): Tag
-    {
-        return new Tag(
-            label: sprintf(__('Section: %s'), $section->fields['name']),
-            value: $section->getId(),
-            provider: self::class,
+        return new self(
+            $data[self::VALUE],
         );
+    }
+
+    #[Override]
+    public function jsonSerialize(): array
+    {
+        return [
+            self::VALUE => $this->value,
+        ];
+    }
+
+    public function getValue(): string
+    {
+        return $this->value;
     }
 }

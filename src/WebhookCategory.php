@@ -33,52 +33,17 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Glpi\Form\Tag;
-
-use Glpi\Form\AnswersSet;
-use Glpi\Form\Form;
-use Glpi\Form\Section;
-use Override;
-
-final class SectionTagProvider implements TagProviderInterface
+class WebhookCategory extends CommonTreeDropdown
 {
-    #[Override]
-    public function getTagColor(): string
+    public $can_be_translated = true;
+
+    public static function getTypeName($nb = 0)
     {
-        return "cyan";
+        return _n('Webhook category', 'Webhook categories', $nb);
     }
 
-    #[Override]
-    public function getTags(Form $form): array
+    public static function getIcon()
     {
-        $tags = [];
-        foreach ($form->getSections() as $section) {
-            $tags[] = $this->getTagForSection($section);
-        }
-
-        return $tags;
-    }
-
-    #[Override]
-    public function getTagContentForValue(
-        string $value,
-        AnswersSet $answers_set
-    ): string {
-        $id = (int) $value;
-
-        $section = Section::getById($id);
-        if (!$section) {
-            return '';
-        }
-        return $section->fields['name'];
-    }
-
-    public function getTagForSection(Section $section): Tag
-    {
-        return new Tag(
-            label: sprintf(__('Section: %s'), $section->fields['name']),
-            value: $section->getId(),
-            provider: self::class,
-        );
+        return "ti ti-tags";
     }
 }

@@ -37,7 +37,7 @@
 
 <div>
     {# @var Glpi\Form\Destination\ConfigFieldInterface field #}
-    {% for field in item.getConfigurableFields() %}
+    {% for field in item.getConfigurableFields()|sort((a, b) => a.getWeight() <=> b.getWeight()) %}
 
         {% set extra_options = {} %}
         {% if field.supportAutoConfiguration() %}
@@ -72,7 +72,7 @@
         <section data-glpi-itildestination-field aria-label="{{ field.getLabel() ~ " configuration" }}">
             {{ field.renderConfigForm(
                 form,
-                field.getValue(form, config),
+                field.getConfig(form, config),
                 item.formatConfigInputName(field.getKey()),
                 {'is_horizontal': false}|merge(extra_options)
             )|raw }}

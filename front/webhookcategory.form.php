@@ -33,52 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Glpi\Form\Tag;
+include('../inc/includes.php');
 
-use Glpi\Form\AnswersSet;
-use Glpi\Form\Form;
-use Glpi\Form\Section;
-use Override;
-
-final class SectionTagProvider implements TagProviderInterface
-{
-    #[Override]
-    public function getTagColor(): string
-    {
-        return "cyan";
-    }
-
-    #[Override]
-    public function getTags(Form $form): array
-    {
-        $tags = [];
-        foreach ($form->getSections() as $section) {
-            $tags[] = $this->getTagForSection($section);
-        }
-
-        return $tags;
-    }
-
-    #[Override]
-    public function getTagContentForValue(
-        string $value,
-        AnswersSet $answers_set
-    ): string {
-        $id = (int) $value;
-
-        $section = Section::getById($id);
-        if (!$section) {
-            return '';
-        }
-        return $section->fields['name'];
-    }
-
-    public function getTagForSection(Section $section): Tag
-    {
-        return new Tag(
-            label: sprintf(__('Section: %s'), $section->fields['name']),
-            value: $section->getId(),
-            provider: self::class,
-        );
-    }
-}
+$dropdown = new WebhookCategory();
+include(GLPI_ROOT . "/front/dropdown.common.form.php");

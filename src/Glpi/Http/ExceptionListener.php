@@ -8,7 +8,6 @@
  * http://glpi-project.org
  *
  * @copyright 2015-2024 Teclib' and contributors.
- * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
  * ---------------------------------------------------------------------
@@ -33,16 +32,26 @@
  * ---------------------------------------------------------------------
  */
 
- /**
-  * Base interface that can be used to type check any json configuration
-  * from the database.
-  */
-interface JsonConfigInterface
+namespace Glpi\Http;
+
+use Glpi\Application\ErrorHandler;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
+
+final readonly class ExceptionListener implements EventSubscriberInterface
 {
-    /**
-     * Create an instance from a raw array of data.
-     *
-     * @param array $data
-     */
-    public static function createFromRawArray(array $data): JsonConfigInterface;
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            KernelEvents::EXCEPTION => 'onKernelException',
+        ];
+    }
+
+    public function onKernelException(ExceptionEvent $event): void
+    {
+        $handler = ErrorHandler::getInstance();
+
+        $handler->handleException($event->getThrowable(), true);
+    }
 }

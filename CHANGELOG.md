@@ -159,6 +159,7 @@ The present file will list all changes made to the project; according to the
 - The `inc/autoload.function.php`, `inc/based_config.php`, `inc/config.php`, `inc/db.function.php` and `inc/define.php` files have been removed and the `inc/includes.php` file has been almost emptied.
   The corresponding global functions, constants and variables are now loaded and initialized automatically and the corresponding GLPI boostraping logic is now executed automatically.
 - `Plugin::init()` and `Plugin::checkStates()` methods signature changed. It is not anymore possible to exclude specific plugins.
+- In a HTTP request context, `$_SERVER['PATH_INFO']`, `$_SERVER['SCRIPT_FILENAME'] and `$_SERVER['SCRIPT_NAME']` will no longer contain the path to the requested script, but will contain the path to the `public/index.php` script.
 
 #### Deprecated
 - Usage of `MAIL_SMTPSSL` and `MAIL_SMTPTLS` constants.
@@ -231,6 +232,7 @@ The present file will list all changes made to the project; according to the
 - `$CFG_GLPI_PLUGINS` global variable.
 - `$DBCONNECTION_REQUIRED` and `$USEDBREPLICATE` global variables. Use `DBConnection::getReadConnection()` to get the most apporpriate connection for read only operations.
 - `$dont_check_maintenance_mode` and `$skip_db_check` global variables.
+- `$GLPI` global variable.
 - `$LANG` global variable.
 - `$PLUGINS_EXCLUDED` and `$PLUGINS_INCLUDED` global variables.
 - `$SECURITY_STRATEGY` global variable.
