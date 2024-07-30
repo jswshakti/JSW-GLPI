@@ -1377,22 +1377,8 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         if (Session::haveRight('config', UPDATE)) {
             return ['WHERE' => []];
         }
-        return [
-            'LEFT JOIN' => [
-                SavedSearch_UserTarget::getTable() => [
-                    'ON' => [
-                        SavedSearch_UserTarget::getTable()  => 'savedsearches_id',
-                        self::getTable()   => 'id'
-                    ]
-                ],
-                Group_SavedSearch::getTable() => [
-                    'ON' => [
-                        Group_SavedSearch::getTable()  => 'savedsearches_id',
-                        self::getTable()   => 'id'
-                    ]
-                ]
-            ]
-        ] + self::getVisibilityCriteriaForMine();
+
+        return self::getVisibilityCriteriaForMine();
     }
 
     public static function getIcon()
