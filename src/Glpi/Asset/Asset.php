@@ -88,7 +88,7 @@ abstract class Asset extends CommonDBTM
 
     public static function getIcon()
     {
-        return static::getDefinition()->getAssetsIcon();
+        return static::getDefinition()->getCustomObjectIcon();
     }
 
     public static function getTable($classname = null)
@@ -102,13 +102,13 @@ abstract class Asset extends CommonDBTM
     public static function getSearchURL($full = true)
     {
         return Toolbox::getItemTypeSearchURL(self::class, $full)
-            . '?class=' . static::getDefinition()->getAssetClassName(false);
+            . '?class=' . static::getDefinition()->getCustomObjectClassName(false);
     }
 
     public static function getFormURL($full = true)
     {
         return Toolbox::getItemTypeFormURL(self::class, $full)
-            . '?class=' . static::getDefinition()->getAssetClassName(false);
+            . '?class=' . static::getDefinition()->getCustomObjectClassName(false);
     }
 
     public static function getById(?int $id)
@@ -140,7 +140,7 @@ abstract class Asset extends CommonDBTM
         }
 
         // Instanciate concrete class
-        $asset_class = $definition->getAssetClassName(true);
+        $asset_class = $definition->getCustomObjectClassName(true);
         $asset = new $asset_class();
         if (!$asset->getFromDB($id)) {
             return false;

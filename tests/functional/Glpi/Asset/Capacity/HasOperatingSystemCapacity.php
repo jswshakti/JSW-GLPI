@@ -65,7 +65,7 @@ class HasOperatingSystemCapacity extends DbTestCase
 
         // Create custom asset definition
         $definition = $this->initAssetDefinition();
-        $class = $definition->getAssetClassName();
+        $class = $definition->getCustomObjectClassName();
 
         // The capacity is not yet enabled, the itemtype should not be
         // registered in $CFG_GLPI["operatingsystem_types"]
@@ -96,7 +96,7 @@ class HasOperatingSystemCapacity extends DbTestCase
     {
         // Create custom asset definition
         $definition = $this->initAssetDefinition();
-        $class = $definition->getAssetClassName();
+        $class = $definition->getCustomObjectClassName();
 
         // Create our test subject
         $subject = $this->createItem($class, [
@@ -133,7 +133,7 @@ class HasOperatingSystemCapacity extends DbTestCase
     {
         // Create custom asset definition
         $definition = $this->initAssetDefinition();
-        $class = $definition->getAssetClassName();
+        $class = $definition->getCustomObjectClassName();
 
         // Check that we have some valid search options to add
         $item_os = new Item_OperatingSystem();
@@ -177,7 +177,7 @@ class HasOperatingSystemCapacity extends DbTestCase
         $definition = $this->initAssetDefinition(
             capacities: [$this->getTargetCapacity()]
         );
-        $class = $definition->getAssetClassName();
+        $class = $definition->getCustomObjectClassName();
 
         // Create our test subject
         $subject = $this->createItem($class, [
@@ -225,7 +225,7 @@ class HasOperatingSystemCapacity extends DbTestCase
                 HasHistoryCapacity::class
             ]
         );
-        $class = $definition->getAssetClassName();
+        $class = $definition->getCustomObjectClassName();
 
         // Create our test subject
         $subject = $this->createItem($class, [
@@ -286,7 +286,7 @@ class HasOperatingSystemCapacity extends DbTestCase
         $definition = $this->initAssetDefinition(
             capacities: [$this->getTargetCapacity()]
         );
-        $class = $definition->getAssetClassName();
+        $class = $definition->getCustomObjectClassName();
 
         // Create our test subject and enable the capacity
         $subject = $this->createItem($class, [
@@ -344,7 +344,7 @@ class HasOperatingSystemCapacity extends DbTestCase
         $definition = $this->initAssetDefinition(
             capacities: [\Glpi\Asset\Capacity\HasOperatingSystemCapacity::class]
         );
-        $class = $definition->getAssetClassName();
+        $class = $definition->getCustomObjectClassName();
         $entity = $this->getTestRootEntity(true);
 
         /** @var Asset $asset */
