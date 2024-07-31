@@ -46,5 +46,15 @@
                 checkbox.checked = isChecked;
             });
         }
+        $(document).ready(function() {
+            var form = document.querySelector('form[action="/main/public/front/massiveaction.php"]');
+            if (form) {
+                var modalDialogs = form.querySelectorAll('.modal-dialog');
+                modalDialogs.forEach(function(modalDialog) {
+                    modalDialog.classList.add('modal-lg');
+                });
+                console.log(modalDialogs);
+            }
+        })
     </script>
 {% endif %}

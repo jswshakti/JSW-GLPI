@@ -35,8 +35,47 @@
 
 use Glpi\Application\View\TemplateRenderer;
 
-class PrintPreview
+class PrintPreview extends CommonDBTM
 {
+    /**
+     * @param CommonGLPI $item
+     * @param int $withtemplate
+     * @return string
+     */
+    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
+    {
+
+        if (!$withtemplate) {
+            if ($item instanceof CommonDBTM) {
+                $nb = 0;
+                return self::createTabEntry(__('Print preview'), $nb, $item::getType(), 'ti ti-file-unknown');
+            }
+        }
+        return '';
+    }
+
+    /**
+     * @param CommonGLPI $item
+     * @param int $tabnum
+     * @param int $withtemplate
+     * @return bool
+     */
+    public static function displayTabContentForItem(
+        CommonGLPI $item,
+        $tabnum = 1,
+        $withtemplate = 0
+    ) {
+
+        if ($item instanceof CommonDBTM) {
+            if (isset($_SESSION['preview_printable_type' . $item->getType() . $item->getID()])) {
+                $options = $_SESSION['preview_printable_typeComputer' . $item->getID()];
+                self::showPreview($item, $options);
+            } else {
+                echo "Pas de preview";
+            }
+        }
+        return true;
+    }
     public static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted = 0, CommonDBTM $checkitem = null)
     {
         /** @var array $CFG_GLPI */
@@ -81,7 +120,7 @@ class PrintPreview
         }
     }
 
-    public static function showPreview($ID, $options = [])
+    public static function showPreview($item, $options = [])
     {
         $unprintable = [
             'items_id' => '',
@@ -89,9 +128,8 @@ class PrintPreview
             'csrf_token' => '',
             'generate_preview' => '',
         ];
-        $itemtype = new $options['itemtype']();
-        $item = $itemtype->getById($ID);
 
+        echo '<div class="preview">';
         $html = TemplateRenderer::getInstance()->render('generic_show_form.html.twig', [
             'item'   => $item,
             'params' => $options + ['formfooter' => false],
@@ -130,47 +168,92 @@ class PrintPreview
                 $key::displayTabContentForItem($item, 0);
             }
         }
+        echo '</div>';
 
         $js = <<<JS
             $(document).ready(() => {
-                document.querySelectorAll('input').forEach(input => {
-                    input.setAttribute('readonly', true);
-                });
-
-                document.querySelectorAll('select').forEach(select => {
-                    select.setAttribute('disabled', true);
-                });
-
-                document.querySelectorAll('textarea').forEach(select => {
-                    select.setAttribute('readonly', true);
-                });
-
-                document.querySelectorAll('aside').forEach(aside => {
-                    aside.remove();
-                });
-
-                var tables = document.querySelectorAll('table, .table');
-
-                tables.forEach(function(table) {
-                    var maxColumnCount = 0;
-
-                    table.querySelectorAll('tr').forEach(function(row) {
-                        var columnCount = row.children.length;
-                        maxColumnCount = Math.max(maxColumnCount, columnCount);
+                var preview = document.querySelector('.preview');
+                console.log(preview);
+                if (preview) {
+                    preview.querySelectorAll('input').forEach(input => {
+                        input.setAttribute('readonly', true);
                     });
 
-                    if(maxColumnCount > 3) {
-                        table.querySelectorAll('th').forEach(function(th) {
-                            if(!th.hasAttribute('colspan') || th.getAttribute('colspan') < 3) {
-                                th.classList.add('more-than-three-columns');
-                            }
-                        });
-                    }
-                });
+                    var selectors = 'button,' +
+                                    'input[type="button"],' +
+                                    'input[type="submit"],' +
+                                    'input[type="reset"],' +
+                                    'input[type="checkbox"],' +
+                                    '[class*="btn "],' +
+                                    '[class*="search-pager"],' +
+                                    '[class*="tab_cadre_pager"],' +
+                                    '[class*="alert-"],' +
+                                    '[class*="selection__arrow"],' +
+                                    '[class*="fileupload"],' +
+                                    '[class*="add_relation"],' +
+                                    'form[action="contract_item"],' +
+                                    'form[action*="asset_peripheralasset"],' +
+                                    'form[action*="socket"],' +
+                                    'form[action*="document"],' +
+                                    'form[action*="item_line"],' +
+                                    'form[action*="networkport"],' +
+                                    'form[action*="item_softwarelicense"],' +
+                                    'form[action*="item_softwareversion"],' +
+                                    'form[action*="contract_item"],' +
+                                    'form[action*="knowbaseitem_item"],' +
+                                    'form[action*="certificate_item"],' +
+                                    'form[action*="domain"],' +
+                                    'form[action*="appliance_item"],' +
+                                    'label[for*="pictures_"],' +
+                                    'form[id*="form_device_add"],' +
+                                    'span[class*="fa-plus pointer"]';
 
-                document.querySelectorAll('.ms-auto.d-inline-flex.align-items-center.d-none.d-md-block.my-2').forEach(showentries => {
-                    showentries.remove();
-                });
+                    var elements = document.querySelectorAll(selectors);
+
+                    elements.forEach(function(element) {
+                        element.style.display = 'none';
+                    });
+
+                    var tables = preview.querySelectorAll('table, .table');
+                    console.log(tables);
+
+                    tables.forEach(function(table) {
+                        table.style.width = '100%';
+                        table.style.maxWidth = '100%';
+                        table.style.boxSizing = 'border-box';
+                        table.style.tableLayout = 'fixed';
+                        table.style.overflowX = 'hidden';
+
+                        var children = table.querySelectorAll('td, a, span');
+                        children.forEach(function(child) {
+                            child.style.whiteSpace = 'normal';
+                            child.style.wordWrap = 'break-word';
+                            child.style.overflowWrap = 'break-word';
+                        });
+
+                        var tfootAndNoHoverRows = table.querySelectorAll('tfoot, tr[class*="noHover"]');
+                        tfootAndNoHoverRows.forEach(function(element) {
+                            element.style.display = 'none';
+                        });
+                        var maxColumnCount = 0;
+
+                        table.querySelectorAll('tr').forEach(function(row) {
+                            var columnCount = row.children.length;
+                            maxColumnCount = Math.max(maxColumnCount, columnCount);
+                        });
+
+                        if(maxColumnCount > 3) {
+                            table.querySelectorAll('th').forEach(function(th) {
+                                if(!th.hasAttribute('colspan') || th.getAttribute('colspan') < 3) {
+                                    th.style.writingMode = 'vertical-rl';
+                                    th.style.transform = 'rotate(180deg)';
+                                    th.style.whiteSpace = 'nowrap';
+                                    th.style.verticalAlign = 'top';
+                                }
+                            });
+                        }
+                    });
+                }
             });
 JS;
         echo Html::scriptBlock($js);
@@ -228,6 +311,7 @@ JS;
         return [
             \Impact::class,
             \Log::class,
+            self::class,
         ];
     }
 

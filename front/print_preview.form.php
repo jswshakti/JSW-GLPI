@@ -38,7 +38,6 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (isset($_POST['generate_preview'])) {
-    Html::header(Preference::getTypeName(1), $_SERVER['PHP_SELF'], 'preference', 'none', 'print');
-    PrintPreview::showPreview($_POST['items_id'], $_POST);
-    Html::footer();
+    $_SESSION['preview_printable_type' . $_POST['itemtype'] . $_POST['items_id']] = $_POST;
+    Html::back();
 }
