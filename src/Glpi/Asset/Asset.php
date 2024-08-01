@@ -451,16 +451,6 @@ abstract class Asset extends CommonDBTM
         return $input;
     }
 
-    public function post_addItem()
-    {
-        parent::post_addItem();
-    }
-
-    public function post_updateItem($history = true)
-    {
-        parent::post_updateItem($history);
-    }
-
     public function getEmpty()
     {
         if (!$this->getEmptyFromAssignableItem()) {
