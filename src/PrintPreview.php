@@ -71,7 +71,7 @@ class PrintPreview extends CommonDBTM
                 $options = $_SESSION['preview_printable_typeComputer' . $item->getID()];
                 self::showPreview($item, $options);
             } else {
-                echo "Pas de preview";
+                self::showPreview($item);
             }
         }
         return true;
@@ -129,134 +129,19 @@ class PrintPreview extends CommonDBTM
             'generate_preview' => '',
         ];
 
-        echo '<div class="preview">';
-        $html = TemplateRenderer::getInstance()->render('generic_show_form.html.twig', [
-            'item'   => $item,
+        $has_preview = isset($_SESSION['preview_printable_type' . $item->getType() . $item->getID()]);
+
+        TemplateRenderer::getInstance()->display('pages/tools/print_preview.html.twig', [
+            'is_render' => true,
+            'has_preview' => $has_preview,
+            'item'  => $item,
             'params' => $options + ['formfooter' => false],
             'no_header' => false,
             'no_inventory_footer' => true,
             'no_form_buttons'   => true,
             'preview'        => true,
+            'printable_tabs' => array_diff($options, $unprintable)
         ]);
-        echo '
-            <div class="card my-0 border-0 shadow-none">
-                <div class="card-header">
-                    <h4 class="card-title ps-4">
-                        <i class="' . $item->getIcon() . '"></i> &nbsp' . $item->getTypeName(1) . '
-                    </h4>
-                </div>
-            </div>
-        ';
-        echo $html;
-
-        foreach (array_diff($options, $unprintable) as $key => $value) {
-            if (
-                (int) $value == 1
-                && class_exists($key)
-                && $key != $options['itemtype']
-            ) {
-                echo '
-                    <div class="break"></div>
-                    <div class="card my-0 border-0 shadow-none">
-                        <div class="card-header">
-                            <h4 class="card-title ps-4">
-                                <i class="' . $key::getIcon() . '"></i> &nbsp' . ($key == 'Item_Devices' ? 'Components' : $key::getTypeName(0)) . '
-                            </h4>
-                        </div>
-                    </div>
-                ';
-                $key::displayTabContentForItem($item, 0);
-            }
-        }
-        echo '</div>';
-
-        $js = <<<JS
-            $(document).ready(() => {
-                var preview = document.querySelector('.preview');
-                console.log(preview);
-                if (preview) {
-                    preview.querySelectorAll('input').forEach(input => {
-                        input.setAttribute('readonly', true);
-                    });
-
-                    var selectors = 'button,' +
-                                    'input[type="button"],' +
-                                    'input[type="submit"],' +
-                                    'input[type="reset"],' +
-                                    'input[type="checkbox"],' +
-                                    '[class*="btn "],' +
-                                    '[class*="search-pager"],' +
-                                    '[class*="tab_cadre_pager"],' +
-                                    '[class*="alert-"],' +
-                                    '[class*="selection__arrow"],' +
-                                    '[class*="fileupload"],' +
-                                    '[class*="add_relation"],' +
-                                    'form[action="contract_item"],' +
-                                    'form[action*="asset_peripheralasset"],' +
-                                    'form[action*="socket"],' +
-                                    'form[action*="document"],' +
-                                    'form[action*="item_line"],' +
-                                    'form[action*="networkport"],' +
-                                    'form[action*="item_softwarelicense"],' +
-                                    'form[action*="item_softwareversion"],' +
-                                    'form[action*="contract_item"],' +
-                                    'form[action*="knowbaseitem_item"],' +
-                                    'form[action*="certificate_item"],' +
-                                    'form[action*="domain"],' +
-                                    'form[action*="appliance_item"],' +
-                                    'label[for*="pictures_"],' +
-                                    'form[id*="form_device_add"],' +
-                                    'span[class*="fa-plus pointer"]';
-
-                    var elements = document.querySelectorAll(selectors);
-
-                    elements.forEach(function(element) {
-                        element.style.display = 'none';
-                    });
-
-                    var tables = preview.querySelectorAll('table, .table');
-                    console.log(tables);
-
-                    tables.forEach(function(table) {
-                        table.style.width = '100%';
-                        table.style.maxWidth = '100%';
-                        table.style.boxSizing = 'border-box';
-                        table.style.tableLayout = 'fixed';
-                        table.style.overflowX = 'hidden';
-
-                        var children = table.querySelectorAll('td, a, span');
-                        children.forEach(function(child) {
-                            child.style.whiteSpace = 'normal';
-                            child.style.wordWrap = 'break-word';
-                            child.style.overflowWrap = 'break-word';
-                        });
-
-                        var tfootAndNoHoverRows = table.querySelectorAll('tfoot, tr[class*="noHover"]');
-                        tfootAndNoHoverRows.forEach(function(element) {
-                            element.style.display = 'none';
-                        });
-                        var maxColumnCount = 0;
-
-                        table.querySelectorAll('tr').forEach(function(row) {
-                            var columnCount = row.children.length;
-                            maxColumnCount = Math.max(maxColumnCount, columnCount);
-                        });
-
-                        if(maxColumnCount > 3) {
-                            table.querySelectorAll('th').forEach(function(th) {
-                                if(!th.hasAttribute('colspan') || th.getAttribute('colspan') < 3) {
-                                    th.style.writingMode = 'vertical-rl';
-                                    th.style.transform = 'rotate(180deg)';
-                                    th.style.whiteSpace = 'nowrap';
-                                    th.style.verticalAlign = 'top';
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-JS;
-        echo Html::scriptBlock($js);
 
         return true;
     }
