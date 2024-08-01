@@ -38,6 +38,7 @@ use Glpi\Asset\Asset_PeripheralAsset;
 use Glpi\DBAL\QueryFunction;
 use Glpi\DBAL\QueryParam;
 use Glpi\Event;
+use Glpi\Features\AssignableItem;
 use Glpi\Features\CacheableListInterface;
 use Glpi\Plugin\Hooks;
 use Glpi\RichText\RichText;
@@ -1012,6 +1013,17 @@ class CommonDBTM extends CommonGLPI
          */
         global $CFG_GLPI, $DB;
 
+        if (in_array(static::class, $CFG_GLPI['assignable_types'], true)) {
+            $group_item = new Group_Item();
+            $group_item->deleteByCriteria(
+                [
+                    'itemtype' => static::class,
+                    'items_id' => $this->getID()
+                ],
+                true
+            );
+        }
+
         if (in_array(static::class, $CFG_GLPI['agent_types'], true)) {
            // Agent does not extends CommonDBConnexity
             $agent = new Agent();
@@ -1292,12 +1304,12 @@ class CommonDBTM extends CommonGLPI
                 }
             }
 
-            // Auto set date_creation if exsist
+            // Auto set date_creation if exist
             if (isset($table_fields['date_creation']) && !isset($this->input['date_creation'])) {
                 $this->fields['date_creation'] = $_SESSION["glpi_currenttime"];
             }
 
-            // Auto set date_mod if exsist
+            // Auto set date_mod if exist
             if (isset($table_fields['date_mod']) && !isset($this->input['date_mod'])) {
                 $this->fields['date_mod'] = $_SESSION["glpi_currenttime"];
             }
@@ -3488,11 +3500,18 @@ class CommonDBTM extends CommonGLPI
             $this->isField('groups_id')
             && ($this->getType() != 'Group')
         ) {
-            $tmp = Dropdown::getDropdownName("glpi_groups", $this->getField('groups_id'));
-            if ((strlen($tmp) != 0) && ($tmp != '&nbsp;')) {
-                $toadd[] = ['name'  => Group::getTypeName(1),
-                    'value' => $tmp
-                ];
+            $groups = $this->fields['groups_id'];
+            if (!is_array($groups)) {
+                $groups = [$groups];
+            }
+            foreach ($groups as $group) {
+                $tmp = Dropdown::getDropdownName("glpi_groups", $group);
+                if ($tmp !== '' && $tmp !== '&nbsp;') {
+                    $toadd[] = [
+                        'name'  => Group::getTypeName(1),
+                        'value' => $tmp
+                    ];
+                }
             }
         }
 

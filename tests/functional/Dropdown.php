@@ -40,7 +40,7 @@ use Computer;
 use DbTestCase;
 use Generator;
 use Glpi\Features\Clonable;
-use Glpi\Features\AssignableAsset;
+use Glpi\Features\AssignableItem;
 use Glpi\Socket;
 use Item_DeviceSimcard;
 use Session;
@@ -345,9 +345,9 @@ class Dropdown extends DbTestCase
     public function dataGetValueWithUnit()
     {
         return [
-            [1,      'auto',        null, '1024 Kio'],
-            [1,      'auto',        null, '1024 Kio'],
-            [1025,   'auto',        null, '1 Gio'],
+            [1,      'auto',        null, '1024 KiB'],
+            [1,      'auto',        null, '1024 KiB'],
+            [1025,   'auto',        null, '1 GiB'],
             [1,      'year',        null, '1 year'],
             [2,      'year',        null, '2 years'],
             [3,      '%',           null, '3%'],
@@ -1945,11 +1945,11 @@ class Dropdown extends DbTestCase
     /**
      * @dataProvider assignableAssetsProvider
      */
-    public function testGetDropdownValueAssignableAssets($itemtype)
+    public function testGetDropdownValueAssignableItems($itemtype)
     {
         $this->login();
 
-        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableAsset::class))->isTrue();
+        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableItem::class))->isTrue();
 
         // Create group for the user
         $group = new \Group();
@@ -2035,11 +2035,11 @@ class Dropdown extends DbTestCase
     /**
      * @dataProvider assignableAssetsProvider
      */
-    public function testGetDropdownFindNumAssignableAssets($itemtype)
+    public function testGetDropdownFindNumAssignableItems($itemtype)
     {
         $this->login();
 
-        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableAsset::class))->isTrue();
+        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableItem::class))->isTrue();
 
         // Create group for the user
         $group = new \Group();

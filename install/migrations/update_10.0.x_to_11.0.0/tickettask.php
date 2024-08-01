@@ -33,31 +33,16 @@
  * ---------------------------------------------------------------------
  */
 
-namespace tests\units\Glpi\Features;
+/**
+ * @var \Migration $migration
+ */
 
-class AssignableAsset extends \DbTestCase
-{
-    protected function itemtypeProvider()
-    {
-        /**
-         * @var array $CFG_GLPI
-         */
-        global $CFG_GLPI;
-
-        foreach (['linkuser_types', 'linkgroup_types', 'linkuser_tech_types', 'linkgroup_tech_types'] as $cfg_key) {
-            foreach ($CFG_GLPI[$cfg_key] as $itemtype) {
-                yield[
-                    'class' => $itemtype,
-                ];
-            }
-        }
-    }
-
-    /**
-     * @dataProvider itemtypeProvider
-     */
-    public function testClassUsesTrait($class)
-    {
-        $this->boolean(in_array(\Glpi\Features\AssignableAsset::class, class_uses($class, true)));
-    }
-}
+// new right values for task
+$migration->giveRight(
+    'task',
+    //CommonITILTask::ADDMY | CommonITILTask::ADD_AS_GROUP | CommonITILTask::ADD_AS_OBSERVER | CommonITILTask::ADD_AS_TECHNICIAN,
+    4 | 2048 | 16384 | 32768,
+    [
+        'ticket' => 32768, // Ticket::OWN
+    ]
+);
