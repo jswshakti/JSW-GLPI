@@ -276,15 +276,6 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
             'datatype'           => 'dropdown'
         ];
 
-        $tab[] = [
-            'id'  => 4,
-            'table'           => $this->getTable(),
-            'field'           => 'is_private',
-            'name'            => __('Is private'),
-            'datatype'        => 'bool',
-            'massiveaction'   => false,
-        ];
-
         $tab[] = ['id'                 => '8',
             'table'              => $this->getTable(),
             'field'              => 'itemtype',

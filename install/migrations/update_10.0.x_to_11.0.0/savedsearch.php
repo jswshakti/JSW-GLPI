@@ -36,6 +36,7 @@
 /**
  * @var \DBmysql $DB
  * @var \Migration $migration
+ * @var array $DELFROMDISPLAYPREF
  */
 
 $table = SavedSearch::getTable();
@@ -56,4 +57,6 @@ if ($DB->fieldExists($table, $field)) {
     }
 
     $migration->dropField($table, $field);
+
+    $DELFROMDISPLAYPREF['SavedSearch'] = 4;
 }
