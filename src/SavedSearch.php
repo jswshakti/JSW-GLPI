@@ -214,9 +214,9 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
             switch ($item->getType()) {
                 case 'SavedSearch':
                     if (Session::haveRight(self::$rightname, CREATE)) {
-                            if ($_SESSION['glpishow_count_on_tabs']) {
-                                $nb = $item->countVisibilities();
-                            }
+                        if ($_SESSION['glpishow_count_on_tabs']) {
+                            $nb = $item->countVisibilities();
+                        }
                             return [1 => self::createTabEntry(_n(
                                 'Target',
                                 'Targets',
@@ -761,7 +761,8 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
      * Get relations for targets
      * @return array[][] key 'LEFT JOIN' for request
      */
-    public static function getDefaultJoin() {
+    public static function getDefaultJoin()
+    {
         $table = self::getTable();
         $user_table = SavedSearch_UserTarget::getTable();
         $group_table = Group_SavedSearch::getTable();

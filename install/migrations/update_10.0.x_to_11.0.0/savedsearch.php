@@ -43,7 +43,7 @@ $field = 'is_private';
 if ($DB->fieldExists($table, $field)) {
     $obj = new SavedSearch();
     $entity_table = Entity_SavedSearch::getTable();
-    foreach($obj->find(['is_private' => 0]) as $search) {
+    foreach ($obj->find(['is_private' => 0]) as $search) {
         $DB->insertOrDie(
             $entity_table,
             [
