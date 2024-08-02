@@ -48,15 +48,6 @@ if (isset($_POST["add"])) {
    //Add a new saved search
     $savedsearch->check(-1, CREATE, $_POST);
     if ($savedsearch->add($_POST)) {
-        // for search saved as public, automatically create a link with its entity
-        if (!$_POST['is_private']) {
-            $item = new Entity_SavedSearch();
-            $item->add([
-                'savedsearches_id' => $savedsearch->getID(),
-                'entites_id' => $_POST['entities_id'],
-                'is_recursive' => $_POST['is_recursive']
-            ]);
-        }
         if ($_SESSION['glpibackcreated']) {
             Html::redirect($savedsearch->getLinkURL());
         }
