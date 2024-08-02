@@ -40,6 +40,7 @@ use Glpi\Config\ConfigProviderWithRequestInterface;
 use Glpi\Config\LegacyConfigProviders;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
+use Symfony\Component\Config\Exception\LoaderLoadException;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
@@ -52,6 +53,7 @@ final class Kernel extends BaseKernel
 
     public function __construct(?string $env = null)
     {
+//        $env = 'production';
         if ($env !== null) {
             define('GLPI_ENVIRONMENT_TYPE', $env);
         }
@@ -67,7 +69,7 @@ final class Kernel extends BaseKernel
         $glpi->initErrorHandler();
 
         $env = GLPI_ENVIRONMENT_TYPE;
-        parent::__construct($env, $env === 'development');
+        parent::__construct($env, $env === \GLPI::ENV_DEVELOPMENT);
     }
 
     public function __destruct()
@@ -145,6 +147,37 @@ final class Kernel extends BaseKernel
     {
         //  Global core controllers
         $routes->import($this->getProjectDir() . '/src/Glpi/Controller', 'attribute');
+
+        // This env var is used in autoload in order to determine
+        //   whether we check if plugin is active when autoloading a class.
+        // Since route configuration happens at Kernel's compile-time,
+        //   we cannot (and must not) rely on database calls that checks for plugins,
+        //   so setting this env var to any true-ish value will make sure no DB call is made.
+        // However, the var has to be unset just after, to make sure autoload behaves as expected.
+        // Check the "src/autoload/legacy-autoloader.php" file for more details.
+        $_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD'] = 1;
+
+        $plugins = glob($this->getProjectDir() . '/plugins/*');
+        foreach ($plugins as $pluginPath) {
+            $pluginControllerPath = $pluginPath . '/src/Controller';
+            if (!\is_dir($pluginControllerPath)) {
+                // Avoids loader error only related to inexistent dir.
+                continue;
+            }
+            try {
+                $routes->import($pluginControllerPath, 'attribute');
+            } catch (\Throwable $e) {
+                dd($e);
+                if (
+                    $e instanceof LoaderLoadException
+                    && \preg_match('~^Class "[a-z0-9\\\\_]+" does not exist in~iUu', $e->getMessage())
+                ) {
+                    continue;
+                }
+            }
+        }
+
+        unset($_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD']);
 
         // Env-specific route files.
         if (\is_file($path = $this->getProjectDir() . '/routes/' . $this->environment . '.php')) {

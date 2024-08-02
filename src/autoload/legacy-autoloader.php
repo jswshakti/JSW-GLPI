@@ -56,7 +56,8 @@ function glpi_autoload($classname)
     $plugin_key   = strtolower($plugin_name);
     $plugin_class = $plug['class'];
 
-    if (!Plugin::isPluginLoaded($plugin_key)) {
+    $bypass = $_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD'] ?? null;
+    if (!$bypass && !Plugin::isPluginLoaded($plugin_key)) {
         return false;
     }
 
@@ -71,12 +72,22 @@ function glpi_autoload($classname)
 
     // Legacy class path, e.g. `PluginMyPluginFoo` -> `plugins/myplugin/inc/foo.class.php`
     $legacy_path          = sprintf('%s/inc/%s.class.php', $plugin_path, str_replace('\\', '/', strtolower($plugin_class)));
-    // PSR-4 styled path for class without namespace, e.g. `PluginMyPluginFoo` -> `plugins/myplugin/src/PluginMyPluginFoo.php`
+
+    // PSR-4 styled path for full plugin classes (with or without namespaces),
+    // Resolves `PluginMyPluginFoo` -> `plugins/myplugin/src/PluginMyPluginFoo.php`
+    // Will also resolve "GlpiPlugin\MyPlugin\MyClass" -> "plugins/myplugin/src/GlpiPlugin/MyPlugin/MyClass.php"
     $psr4_styled_path     = sprintf('%s/src/%s.php', $plugin_path, str_replace('\\', '/', $classname));
+
+    // PSR-4 styled path for class with proper namespace configuration,
+    // will resolve "GlpiPlugin/MyPlugin/MyClass.php" to "plugins/myplugin/src/MyClass.php"
+    $psr4_shortened_path  = sprintf('%s/src/%s.php', $plugin_path, str_replace('\\', '/', $plugin_class));
+
     if (file_exists($legacy_path)) {
         include_once($legacy_path);
     } else if (strpos($classname, NS_PLUG) !== 0 && file_exists($psr4_styled_path)) {
         include_once($psr4_styled_path);
+    } else if (\str_starts_with($classname, NS_PLUG) && file_exists($psr4_shortened_path)) {
+        include_once($psr4_shortened_path);
     }
 }
 

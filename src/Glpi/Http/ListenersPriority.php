@@ -48,6 +48,12 @@ final class ListenersPriority
         // Config providers may still expect some `$_SERVER` variables to be redefined.
         // They must therefore be executed after the `LegacyRouterListener`.
         LegacyConfigProviderListener::class => 350,
+
+        // This listener allows disabling plugins routes at runtime,
+        //   that's why it's executed right after Symfony's Router,
+        //   and also after GLPI's config is set.
+        // @see \Symfony\Component\HttpKernel\EventListener\RouterListener::getSubscribedEvents()
+        PluginsRoutesListener::class => 31,
     ];
 
     private function __construct()
