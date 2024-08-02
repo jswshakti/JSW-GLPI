@@ -49,7 +49,7 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
     use Clonable;
 
     public static $rightname               = 'bookmark_public';
-    public static $types                   = ['Group', 'User'];
+    public static $types                   = ['Group', 'User', 'Entity'];
 
     const SEARCH = 1; //SEARCH SYSTEM bookmark
     const URI    = 2;
@@ -161,35 +161,6 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         return parent::haveVisibilityAccess();
     }
 
-    /**
-     * Return visibility joins to add to SQL
-     *
-     * @param $forceall force all joins (false by default)
-     *
-     * @return string joins to add
-     **/
-    public static function addVisibilityJoins($forceall = false)
-    {
-        //not deprecated because used in Search
-        /** @var \DBmysql $DB */
-        global $DB;
-
-        //get and clean criteria
-        $criteria = self::getVisibilityCriteria();
-        unset($criteria['WHERE']);
-        $criteria['FROM'] = self::getTable();
-
-        $it = new \DBmysqlIterator(null);
-        $it->buildQuery($criteria);
-        $sql = $it->getSql();
-        $sql = trim(str_replace(
-            'SELECT * FROM ' . $DB->quoteName(self::getTable()),
-            '',
-            $sql
-        ));
-        return $sql;
-    }
-
     public function canCreateItem(): bool
     {
 
@@ -216,6 +187,9 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
 
         // Users
         $this->users    = SavedSearch_UserTarget::getUsers($this);
+
+        // Entities
+        $this->users    = Entity_SavedSearch::getEntities($this);
     }
 
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
@@ -797,32 +771,11 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
                 ),
             ],
             'FROM'      => $table,
-            'LEFT JOIN' => [
-                $utable => [
-                    'ON' => [
-                        $utable  => 'savedsearches_id',
-                        $table   => 'id'
-                    ]
-                ],
-                // relations for targetted savedsearch
-                SavedSearch_UserTarget::getTable() => [
-                    'ON' => [
-                        SavedSearch_UserTarget::getTable()  => 'savedsearches_id',
-                        $table   => 'id'
-                    ]
-                ],
-                Group_SavedSearch::getTable() => [
-                    'ON' => [
-                        Group_SavedSearch::getTable()  => 'savedsearches_id',
-                        $table   => 'id'
-                    ]
-                ],
-            ],
             'ORDERBY'   => [
                 'itemtype',
                 'name'
             ]
-        ] + self::getVisibilityCriteriaForMine();
+        ] + self::getVisibilityCriteria();
 
         if ($itemtype != null) {
             if (!$inverse) {
@@ -918,6 +871,7 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
     {
         TemplateRenderer::getInstance()->display('layout/parts/saved_searches_list.html.twig', [
             'active'         => $_SESSION['glpi_loaded_savedsearch'] ?? "",
+            'current_user'   => Session::getLoginUserID(),
             'saved_searches' => $this->getMine($itemtype, $inverse, $enable_partial_warnings),
         ]);
     }
@@ -1322,47 +1276,6 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
         return $sql;
     }
 
-    private static function getVisibilityCriteriaForMine(): array
-    {
-        $criteria = ['WHERE' => []];
-        $restrict = [
-            self::getTable() . '.is_private' => 1,
-            'OR' => [
-                // is owner
-                self::getTable() . '.users_id'    => Session::getLoginUserID(),
-                // directly targetted
-                SavedSearch_UserTarget::getTable() . '.users_id' => Session::getLoginUserID(),
-                // targetted through groups
-                [
-                    'glpi_groups_savedsearches.groups_id' => count($_SESSION["glpigroups"])
-                        ? $_SESSION["glpigroups"]
-                        : [-1],
-                    'OR' => [
-                        ['glpi_groups_savedsearches.no_entity_restriction' => 1],
-                        getEntitiesRestrictCriteria(
-                            'glpi_groups_savedsearches',
-                            '',
-                            $_SESSION['glpiactiveentities'],
-                            true
-                        )
-                    ]
-                ]
-            ]
-        ];
-
-        if (Session::haveRight(self::$rightname, READ)) {
-            $restrict = [
-                'OR' => [
-                    $restrict,
-                    [self::getTable() . '.is_private' => 0]
-                ]
-            ];
-        }
-
-        $criteria['WHERE'] = $restrict + getEntitiesRestrictCriteria(self::getTable(), '', '', true);
-        return $criteria;
-    }
-
     /**
      * Return visibility joins to add to DBIterator parameters
      *
@@ -1382,22 +1295,76 @@ class SavedSearch extends CommonDBVisible implements ExtraVisibilityCriteria
                 'WHERE' => ['glpi_savedsearches.users_id' => Session::getLoginUserID()],
             ];
         }
-
-        $criteria = ['WHERE' => []];
-        $restrict = [
-            self::getTable() . '.is_private' => 1,
-            self::getTable() . '.users_id'   => Session::getLoginUserID(),
+        $table = self::getTable();
+        $user_table = SavedSearch_UserTarget::getTable();
+        $group_table = Group_SavedSearch::getTable();
+        $entity_table = Entity_SavedSearch::getTable();
+        $criteria = [
+            'LEFT JOIN' => [
+                // relations for targets
+                $user_table => [
+                    'ON' => [
+                        $user_table  => 'savedsearches_id',
+                        $table   => 'id'
+                    ]
+                ],
+                $group_table => [
+                    'ON' => [
+                        $group_table  => 'savedsearches_id',
+                        $table   => 'id'
+                    ]
+                ],
+                $entity_table => [
+                    'ON' => [
+                        $entity_table  => 'savedsearches_id',
+                        $table   => 'id'
+                    ]
+                ],
+            ],
         ];
+        $restrict = [
+            'OR' => [
+                // is owner and associated with the active entity
+                [
+                    $table . '.users_id'    => Session::getLoginUserID(),
+                    getEntitiesRestrictCriteria($table, '', '', true)
+                ]
+            ]
+        ];
+
         if (Session::haveRight(self::$rightname, READ)) {
-            $restrict = [
+            $restrict['OR'][] = [
                 'OR' => [
-                    $restrict,
-                    [self::getTable() . '.is_private' => 0]
+                    // directly targeted
+                    $user_table . '.users_id' => Session::getLoginUserID(),
+                    // targeted through groups
+                    [
+                        $group_table . '.groups_id' => count($_SESSION["glpigroups"])
+                            ? $_SESSION["glpigroups"]
+                            : [-1],
+                        'OR' => [
+                            [$group_table . '.no_entity_restriction' => 1],
+                            getEntitiesRestrictCriteria(
+                                $group_table,
+                                '',
+                                $_SESSION['glpiactiveentities'],
+                                true
+                            )
+                        ]
+                    ],
+                    // targeted through entities
+                    getEntitiesRestrictCriteria(
+                        $entity_table,
+                        '',
+                        '',
+                        true,
+                        true
+                    )
                 ]
             ];
         }
 
-        $criteria['WHERE'] = $restrict + getEntitiesRestrictCriteria(self::getTable(), '', '', true);
+        $criteria['WHERE'] = $restrict;
         return $criteria;
     }
 
