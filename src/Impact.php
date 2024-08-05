@@ -917,7 +917,7 @@ JS);
                 'NOT' => [
                     "$table.id" => $used
                 ],
-            ],
+            ] + $itemtype::getSystemSQLCriteria()
         ];
 
        // Add friendly name search criteria
