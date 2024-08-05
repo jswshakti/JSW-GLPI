@@ -157,16 +157,20 @@ final class Kernel extends BaseKernel
         $_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD'] = 1;
 
         $plugins = glob($this->getProjectDir() . '/plugins/*');
-        foreach ($plugins as $pluginPath) {
-            $pluginControllerPath = $pluginPath . '/src/Controller';
-            if (!\is_dir($pluginControllerPath)) {
+        foreach ($plugins as $plugin_path) {
+            $plugin_controller_path = $plugin_path . '/src/Controller';
+            if (!\is_dir($plugin_controller_path)) {
                 // Avoids loader error only related to inexistent dir.
                 continue;
             }
             try {
-                $routes->import($pluginControllerPath, 'attribute');
+                $plugin_name = \str_replace($this->getProjectDir() . '/plugins/', '', $plugin_path);
+
+                $routes
+                    ->import($plugin_controller_path, 'attribute')
+                    ->prefix('/plugins/' . $plugin_name)
+                ;
             } catch (\Throwable $e) {
-                dd($e);
                 if (
                     $e instanceof LoaderLoadException
                     && \preg_match('~^Class "[a-z0-9\\\\_]+" does not exist in~iUu', $e->getMessage())
