@@ -53,7 +53,6 @@ final class Kernel extends BaseKernel
 
     public function __construct(?string $env = null)
     {
-//        $env = 'production';
         if ($env !== null) {
             define('GLPI_ENVIRONMENT_TYPE', $env);
         }
