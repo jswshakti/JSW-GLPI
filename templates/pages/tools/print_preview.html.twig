@@ -60,6 +60,20 @@
     </script>
 {% else %}
     {% if has_preview == true %}
+
+        <div class="card my-0 border-0 shadow-none">
+            <div class="card-header">
+                <h4 class="card-title ps-4">
+                    {{ __('Print preview summary') }}
+                </h4>
+            </div>
+        </div>
+        <div class="text-center">
+            <button type="button" class="btn btn-primary" id="print-preview" onclick="window.print();">
+                <i class="ti ti-print me-1"></i>
+                {{ __('Print preview') }}
+            </button>
+        </div>
         <div class="preview">
             <div class="card my-0 border-0 shadow-none">
                 <div class="card-header">
@@ -98,13 +112,6 @@
                                     'input[type="submit"],' +
                                     'input[type="reset"],' +
                                     'input[type="checkbox"],' +
-                                    '[class*="btn "],' +
-                                    '[class*="search-pager"],' +
-                                    '[class*="tab_cadre_pager"],' +
-                                    '[class*="alert-"],' +
-                                    '[class*="selection__arrow"],' +
-                                    '[class*="fileupload"],' +
-                                    '[class*="add_relation"],' +
                                     'form[action="contract_item"],' +
                                     'form[action*="asset_peripheralasset"],' +
                                     'form[action*="socket"],' +
@@ -125,7 +132,9 @@
                     var elements = document.querySelectorAll(selectors);
 
                     elements.forEach(function(element) {
-                        element.style.display = 'none';
+                        if (element.id !== 'single-action' && element.id !== 'print-preview') {
+                            element.style.display = 'none';
+                        }
                     });
 
                     var tables = preview.querySelectorAll('table, .table');
