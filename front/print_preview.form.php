@@ -38,6 +38,10 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (isset($_POST['generate_preview'])) {
-    $_SESSION['preview_printable_type' . $_POST['itemtype'] . $_POST['items_id']] = $_POST;
+    Html::includeHeader('', 'none', 'none', 'print');
+    $_SESSION['print_preview' . $_POST['itemtype'] . $_POST['items_id']] = [
+        'printable_types' => $_POST,
+        'last_preview_date' => date('Y-m-d H:i:s')
+    ];
     Html::back();
 }

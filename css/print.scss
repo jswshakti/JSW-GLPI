@@ -30,126 +30,159 @@
  *
  * ---------------------------------------------------------------------
  */
-
-@page {
-    size: A4;
-}
-
-@mixin hide-elements {
-    display: none !important;
-}
-
-* {
-    box-shadow: none !important;
-}
-
-html, body {
-    width: 210mm;
-    height: 297mm;
-}
-
-.page-wrapper {
-    background-color: white;
-}
-
-.card-header {
-    padding-left: 0;
-}
-
 .page-body {
-    padding: 0;
-    margin: 0;
+    float : left;
+    width : 300mm;
 }
 
-#header,
-#footer,
-.navbar, /*left navbar*/
-.nav-tabs, /*item tab*/
-#debug-toolbar, /* toolbar */
-.navigationheader > div:first-of-type, /* navigationheader */
-.navigationheader > div:last-of-type, /* navigationheader */
-#single-action, /* btn action from item header */
-#nav,
-button,
-input[type="button"],
-input[type="submit"],
-input[type="reset"],
-input[type="checkbox"],
-[class*="btn "],
-[class*="search-pager"],
-[class*="tab_cadre_pager"],
-[class*="alert-"],
-[class*="selection__arrow"],
-[class*="fileupload"],
-[class*="add_relation"],
-form[action="contract_item"],
-form[action*="asset_peripheralasset"],
-form[action*="socket"],
-form[action*="document"],
-form[action*="item_line"],
-form[action*="networkport"],
-form[action*="item_softwarelicense"],
-form[action*="item_softwareversion"],
-form[action*="contract_item"],
-form[action*="knowbaseitem_item"],
-form[action*="certificate_item"],
-form[action*="domain"],
-form[action*="appliance_item"],
-label[for*="pictures_"],
-form[id*="form_device_add"],
-span[class*="fa-plus pointer"] {
-    @include hide-elements;
-}
+ .preview, .preview-summary {
+    width: 210mm;
 
-[class*="form-control"],
-[class*="form-select"],
-[class*="select2"],
-span {
-    border-color: transparent !important;
-    background-color: transparent !important;
-    color: black !important;
-}
-
-.break {
-    break-before: page !important;
-}
-
-label {
-    font-weight: bold;
-}
-
-table, .table {
-    width: 100%;
-    max-width: 210mm;
-    box-sizing: border-box;
-    table-layout: fixed;
-    overflow-x: hidden;
-
-    td, a, span {
-        white-space: normal;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
+    @page {
+        size: A4;
     }
 
-    tfoot, tr[class*="noHover"] {
+    * {
+        box-shadow: none !important;
+    }
+    [class*="form-control"],
+    [class*="form-select"],
+    [class*="select2"],
+    span {
+        border-color: transparent !important;
+        background-color: transparent !important;
+        color: black !important;
+    }
+
+    .break {
+        break-before: page !important;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    table, .table {
+        width: 100%;
+        max-width: 210mm;
+        box-sizing: border-box;
+        table-layout: fixed;
+        overflow-x: hidden;
+
+        td, a, span {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        tfoot, tr[class*="noHover"] {
+            display: none !important;
+        }
+    }
+
+    div[class*="form-field"] {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .card-header {
+        background-color: rgb(255, 255, 255) !important;
+        color: black !important;
+    }
+
+    @mixin hide-elements {
         display: none !important;
     }
+
+    * {
+        box-shadow: none !important;
+    }
+
+    #header,
+    #footer,
+    .navbar, /*left navbar*/
+    .nav-tabs, /*item tab*/
+    #debug-toolbar, /* toolbar */
+    .navigationheader > div:first-of-type, /* navigationheader */
+    .navigationheader > div:last-of-type, /* navigationheader */
+    #single-action, /* btn action from item header */
+    #nav,
+    button,
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    [class*="btn "],
+    [class*="search-pager"],
+    [class*="tab_cadre_pager"],
+    [class*="alert-"],
+    [class*="selection__arrow"],
+    [class*="fileupload"],
+    [class*="add_relation"],
+    form[action="contract_item"],
+    form[action*="asset_peripheralasset"],
+    form[action*="socket"],
+    form[action*="document"],
+    form[action*="item_line"],
+    form[action*="networkport"],
+    form[action*="item_softwarelicense"],
+    form[action*="item_softwareversion"],
+    form[action*="contract_item"],
+    form[action*="knowbaseitem_item"],
+    form[action*="certificate_item"],
+    form[action*="domain"],
+    form[action*="appliance_item"],
+    label[for*="pictures_"],
+    form[id*="form_device_add"],
+    span[class*="fa-plus pointer"] {
+        @include hide-elements;
+    }
 }
 
-div[class*="form-field"] {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-}
+@media print {
+    body * {
+        display: none !important;
+    }
 
-th.more-than-three-columns, .th.more-than-three-columns {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    white-space: nowrap;
-    vertical-align: top;
-}
+    .preview {
+        display: block !important;
+        width: 100% !important;
+    }
 
-.card-header {
-    background-color: lightgrey !important;
-    color: black !important;
+    .preview * {
+        display: block !important;
+    }
+
+    .preview {
+        width: 210mm;
+
+        @page {
+            size: A4;
+        }
+
+        * {
+            box-shadow: none !important;
+        }
+
+        [class*="form-control"],
+        [class*="form-select"],
+        [class*="select2"],
+        span {
+            border-color: transparent !important;
+            background-color: transparent !important;
+            color: black !important;
+        }
+
+        .break {
+            break-before: page !important;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        .card-header {
+            background-color: rgb(255, 255, 255) !important;
+        }
+    }
 }

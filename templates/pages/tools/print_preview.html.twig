@@ -1,3 +1,4 @@
+{% import 'components/form/fields_macros.html.twig' as fields %}
 {% import 'components/form/basic_inputs_macros.html.twig' as _inputs %}
 {% import 'components/alerts_macros.html.twig' as alerts %}
 
@@ -60,22 +61,41 @@
     </script>
 {% else %}
     {% if has_preview == true %}
-
-        <div class="card my-0 border-0 shadow-none">
-            <div class="card-header">
-                <h4 class="card-title ps-4">
-                    {{ __('Print preview summary') }}
-                </h4>
+        <div class="preview-summary">
+            <div class="row g-3 justify-content-evenly">
+                <div class="card border-0 shadow-none">
+                    <div class="card-header">
+                        <h4 class="card-title ps-4">
+                            <i class="ti ti-file-text me-1"></i>
+                            {{ __('Print preview summary') }}
+                        </h4>
+                    </div>
+                    <div class="card-body d-flex flex-wrap">
+                        <div class="col-12 col-xxl-{{ item_has_pictures ? '9' : '12' }} flex-column">
+                            <div class="d-flex flex-row flex-wrap flex-xl-nowrap">
+                                <div class="row flex-row align-items-start flex-grow-1">
+                                    <div class="row flex-row">
+                                        {% set print_btn %}
+                                            <button type="button" class="btn btn-primary" id="print-preview" onclick="window.print();">
+                                                <i class="ti ti-printer me-1"></i>
+                                                {{ __('Print preview') }}
+                                            </button>
+                                        {% endset %}
+                                        {{ fields.htmlField('last_preview_date', last_preview_date|formatted_datetime(true), __('Last preview date')) }}
+                                        {{ fields.htmlField(
+                                            'print-preview',
+                                            print_btn
+                                        )}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="text-center">
-            <button type="button" class="btn btn-primary" id="print-preview" onclick="window.print();">
-                <i class="ti ti-print me-1"></i>
-                {{ __('Print preview') }}
-            </button>
-        </div>
         <div class="preview">
-            <div class="card my-0 border-0 shadow-none">
+            <div class="card my-0 border-start-0 border-end-0 border-bottom-0 shadow-none">
                 <div class="card-header">
                     <h4 class="card-title ps-4">
                         <i class="{{ call(item.getType() ~ '::getIcon') }}"></i> &nbsp {{ call(item.getType() ~ '::getTypeName') }}
@@ -107,38 +127,7 @@
                         input.setAttribute('readonly', true);
                     });
 
-                    var selectors = 'button,' +
-                                    'input[type="button"],' +
-                                    'input[type="submit"],' +
-                                    'input[type="reset"],' +
-                                    'input[type="checkbox"],' +
-                                    'form[action="contract_item"],' +
-                                    'form[action*="asset_peripheralasset"],' +
-                                    'form[action*="socket"],' +
-                                    'form[action*="document"],' +
-                                    'form[action*="item_line"],' +
-                                    'form[action*="networkport"],' +
-                                    'form[action*="item_softwarelicense"],' +
-                                    'form[action*="item_softwareversion"],' +
-                                    'form[action*="contract_item"],' +
-                                    'form[action*="knowbaseitem_item"],' +
-                                    'form[action*="certificate_item"],' +
-                                    'form[action*="domain"],' +
-                                    'form[action*="appliance_item"],' +
-                                    'label[for*="pictures_"],' +
-                                    'form[id*="form_device_add"],' +
-                                    'span[class*="fa-plus pointer"]';
-
-                    var elements = document.querySelectorAll(selectors);
-
-                    elements.forEach(function(element) {
-                        if (element.id !== 'single-action' && element.id !== 'print-preview') {
-                            element.style.display = 'none';
-                        }
-                    });
-
                     var tables = preview.querySelectorAll('table, .table');
-                    console.log(tables);
 
                     tables.forEach(function(table) {
                         table.style.width = '100%';

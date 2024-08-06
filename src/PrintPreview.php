@@ -67,8 +67,8 @@ class PrintPreview extends CommonDBTM
     ) {
 
         if ($item instanceof CommonDBTM) {
-            if (isset($_SESSION['preview_printable_type' . $item->getType() . $item->getID()])) {
-                $options = $_SESSION['preview_printable_typeComputer' . $item->getID()];
+            if (isset($_SESSION['print_preview' . $item->getType() . $item->getID()])) {
+                $options = $_SESSION['print_preview' . $item->getType() . $item->getID()]['printable_types'];
                 self::showPreview($item, $options);
             } else {
                 self::showPreview($item);
@@ -129,7 +129,10 @@ class PrintPreview extends CommonDBTM
             'generate_preview' => '',
         ];
 
-        $has_preview = isset($_SESSION['preview_printable_type' . $item->getType() . $item->getID()]);
+        $has_preview = isset($_SESSION['print_preview' . $item->getType() . $item->getID()]);
+        if ($has_preview) {
+            $last_preview_date = $_SESSION['print_preview' . $item->getType() . $item->getID()]['last_preview_date'];
+        }
 
         TemplateRenderer::getInstance()->display('pages/tools/print_preview.html.twig', [
             'is_render' => true,
@@ -140,7 +143,8 @@ class PrintPreview extends CommonDBTM
             'no_inventory_footer' => true,
             'no_form_buttons'   => true,
             'preview'        => true,
-            'printable_tabs' => array_diff($options, $unprintable)
+            'printable_tabs' => array_diff($options, $unprintable),
+            'last_preview_date' => $last_preview_date ?? null,
         ]);
 
         return true;
