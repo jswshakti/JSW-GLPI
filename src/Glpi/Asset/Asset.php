@@ -494,7 +494,7 @@ abstract class Asset extends CommonDBTM
                     $value = $value[0] ?? '';
                 }
             }
-            $this->fields[$custom_field_name] = $value;
+            $this->fields[$custom_field_name] = $custom_field::formatFromDB($custom_field, $value);
         }
     }
 

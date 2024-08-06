@@ -35,6 +35,8 @@
 namespace tests\units\Glpi\Asset;
 
 use DbTestCase;
+use Glpi\DBAL\QueryExpression;
+use Glpi\DBAL\QueryFunction;
 
 class CustomField extends DbTestCase
 {
@@ -368,7 +370,7 @@ class CustomField extends DbTestCase
             'name' => 'test_placeholder',
             'label' => 'Test placeholder',
             'type' => 'placeholder',
-            'default_value' => '1',
+            'default_value' => '',
         ], ['name']);
         $opt = $custom_field_definition_10->getSearchOption();
         // No search option for placeholders as they are used for display purposed only
@@ -398,5 +400,68 @@ class CustomField extends DbTestCase
         ]))->isFalse();
 
         $this->hasSessionMessages(ERROR, ['The system name must be unique among fields for this asset definition']);
+    }
+
+    /**
+     * Date and datetime fields should be stored in the database in UTC/GMT and then converted to the user's timezone when read from the database
+     */
+    public function testDateTimezones()
+    {
+        /** @var \DBmysql $DB */
+        global $DB;
+
+        $original_tz = date_default_timezone_get();
+        // Hack to prevent the script tz from being changed by the DB access layer
+        $DB->use_timezones = true;
+        date_default_timezone_set('Etc/GMT-2'); // This is actually ahead of GMT by 2 hours because it uses the POSIX format
+
+        $asset_definition = $this->initAssetDefinition();
+
+        $field = new \Glpi\Asset\CustomField();
+
+        $fields_id = $field->add([
+            'assets_assetdefinitions_id' => $asset_definition->getID(),
+            'name' => 'test_datetime',
+            'label' => 'Test datetime',
+            'type' => 'datetime',
+            'default_value' => '2021-01-01 03:25:15',
+        ]);
+
+        $asset = new ($asset_definition->getAssetClassName());
+        $asset->add([
+            'name' => 'Test asset',
+            'custom_test_datetime' => '2024-04-05 07:25:15',
+        ]);
+
+        // Ensure the values are stored in the database in UTC
+        $it = $DB->request([
+            'SELECT' => ['default_value'],
+            'FROM' => $field::getTable(),
+            'WHERE' => ['id' => $fields_id],
+        ]);
+        $this->string($it->current()['default_value'])->isEqualTo('2021-01-01 01:25:15');
+
+        $it = $DB->request([
+            'SELECT' => [
+                QueryFunction::jsonUnquote(
+                    expression: QueryFunction::jsonExtract([
+                        'glpi_assets_assets.custom_fields',
+                        new QueryExpression($DB::quoteValue('$."' . $fields_id . '"'))
+                    ]),
+                    alias: 'value'
+                ),
+            ],
+            'FROM' => $asset::getTable(),
+            'WHERE' => ['id' => $asset->getID()],
+        ]);
+        $this->string($it->current()['value'])->isEqualTo('2024-04-05 05:25:15');
+
+        // Ensure the values are converted to the user's timezone when read from the database
+        $field->getFromDB($fields_id);
+        $this->string($field->fields['default_value'])->isEqualTo('2021-01-01 03:25:15');
+        $asset->getFromDB($asset->getID());
+        $this->string($asset->fields['custom_test_datetime'])->isEqualTo('2024-04-05 07:25:15');
+
+        date_default_timezone_set($original_tz);
     }
 }

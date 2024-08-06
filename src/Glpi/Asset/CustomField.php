@@ -140,7 +140,7 @@ final class CustomField extends CommonDBChild
 
         $valid = match ($this->fields['type']) {
             'bool' => (string) $value === '0' || (string) $value === '1',
-            'string', 'text' => is_string($value),
+            'url', 'string', 'text' => is_string($value),
             'number' => is_numeric($value),
             'date' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $value),
             'datetime' => preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $value),
@@ -152,10 +152,16 @@ final class CustomField extends CommonDBChild
             $value = match ($this->fields['type']) {
                 'bool' => $value ? '1' : '0',
                 'string' => substr((string) $value, 0, 255),
-                'text', 'date', 'datetime' => (string) $value,
+                'text', 'url' => (string) $value,
+                // Convert dates from current tz to utc/gmt
+                'date' => gmdate('Y-m-d', strtotime($value)),
+                'datetime' => gmdate('Y-m-d H:i:s', strtotime($value)),
                 'placeholder' => '',
                 default => $value,
             };
+            if ($value === false && in_array($this->fields['type'], ['date', 'datetime'])) {
+                return false;
+            }
 
             if ($this->fields['type'] === 'number') {
                 $min = $this->fields['field_options']['min'] ?? 0;
@@ -168,6 +174,19 @@ final class CustomField extends CommonDBChild
         }
 
         return $valid;
+    }
+
+    public static function formatFromDB(CustomField $field, mixed $value): mixed
+    {
+        // Convert date and datetime from utc/gmt to current tz
+        if (is_string($value)) {
+            $value = match($field->fields['type']) {
+                'date' => date('Y-m-d', strtotime($value . ' UTC')),
+                'datetime' => date('Y-m-d H:i:s', strtotime($value . ' UTC')),
+                default => $value,
+            };
+        }
+        return $value;
     }
 
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
@@ -320,6 +339,13 @@ final class CustomField extends CommonDBChild
             return false;
         }
 
+        // Ensure we have a field instance with the updated type and field options
+        $field_for_validation = new self();
+        $field_for_validation->fields = array_merge($this->fields, $input);
+        if (isset($input['default_value']) && !$field_for_validation->validateValue($input['default_value'])) {
+            $input['default_value'] = null;
+        }
+
         if (isset($input['field_options']['multiple'])) {
             $input['field_options']['multiple'] = (bool) $input['field_options']['multiple'];
         }
@@ -355,6 +381,7 @@ final class CustomField extends CommonDBChild
         if (isset($this->fields['field_options']['multiple'])) {
             $this->fields['field_options']['multiple'] = (bool) $this->fields['field_options']['multiple'];
         }
+        $this->fields['default_value'] = self::formatFromDB($this, $this->fields['default_value']);
         parent::post_getFromDB();
     }
 
