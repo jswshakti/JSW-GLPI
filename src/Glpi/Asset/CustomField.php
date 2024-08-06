@@ -180,7 +180,7 @@ final class CustomField extends CommonDBChild
     {
         // Convert date and datetime from utc/gmt to current tz
         if (is_string($value)) {
-            $value = match($field->fields['type']) {
+            $value = match ($field->fields['type']) {
                 'date' => date('Y-m-d', strtotime($value . ' UTC')),
                 'datetime' => date('Y-m-d H:i:s', strtotime($value . ' UTC')),
                 default => $value,
