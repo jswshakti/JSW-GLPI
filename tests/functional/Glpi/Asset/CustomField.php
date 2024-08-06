@@ -374,4 +374,29 @@ class CustomField extends DbTestCase
         // No search option for placeholders as they are used for display purposed only
         $this->variable($opt)->isNull();
     }
+
+    public function testSystemNameUnqiue()
+    {
+        $asset_definition = $this->initAssetDefinition();
+
+        $field = new \Glpi\Asset\CustomField();
+
+        $this->integer($field->add([
+            'assets_assetdefinitions_id' => $asset_definition->getID(),
+            'name' => 'test',
+            'label' => 'Test',
+            'type' => 'string',
+            'default_value' => 'default',
+        ]))->isGreaterThan(0);
+
+        $this->boolean($field->add([
+            'assets_assetdefinitions_id' => $asset_definition->getID(),
+            'name' => 'test',
+            'label' => 'Test',
+            'type' => 'string',
+            'default_value' => 'default',
+        ]))->isFalse();
+
+        $this->hasSessionMessages(ERROR, ['The system name must be unique among fields for this asset definition']);
+    }
 }

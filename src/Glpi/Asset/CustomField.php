@@ -298,10 +298,28 @@ final class CustomField extends CommonDBChild
         return false;
     }
 
-    private function prepareInputForAddAndUpdate(array $input): array
+    private function prepareInputForAddAndUpdate(array $input): array|false
     {
+        /** @var \DBmysql $DB */
+        global $DB;
+
         // Spaces are replaced with underscores and the name is made lowercase. Only lowercase letters and underscores are kept.
         $input['name'] = preg_replace('/[^a-z_]/', '', strtolower(str_replace(' ', '_', $input['name'])));
+
+        // The name must be unique for the asset definition
+        $it = $DB->request([
+            'COUNT' => 'cpt',
+            'FROM' => self::getTable(),
+            'WHERE' => [
+                'name' => $input['name'],
+                AssetDefinition::getForeignKeyField() => $input[self::$items_id],
+            ],
+        ]);
+        if ($it->current()['cpt'] > 0) {
+            Session::addMessageAfterRedirect(__('The system name must be unique among fields for this asset definition'), false, ERROR);
+            return false;
+        }
+
         if (isset($input['field_options']['multiple'])) {
             $input['field_options']['multiple'] = (bool) $input['field_options']['multiple'];
         }
@@ -316,12 +334,18 @@ final class CustomField extends CommonDBChild
     public function prepareInputForAdd($input)
     {
         $input = $this->prepareInputForAddAndUpdate($input);
+        if ($input === false) {
+            return false;
+        }
         return parent::prepareInputForAdd($input);
     }
 
     public function prepareInputForUpdate($input)
     {
         $input = $this->prepareInputForAddAndUpdate($input);
+        if ($input === false) {
+            return false;
+        }
         return parent::prepareInputForUpdate($input);
     }
 
