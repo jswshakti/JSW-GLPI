@@ -51,7 +51,7 @@ final class Kernel extends BaseKernel
 {
     use MicroKernelTrait;
 
-    public function __construct(?string $env = null)
+    public function __construct(?string $env = null, ?bool $debug = false)
     {
         if ($env !== null) {
             define('GLPI_ENVIRONMENT_TYPE', $env);
@@ -68,7 +68,7 @@ final class Kernel extends BaseKernel
         $glpi->initErrorHandler();
 
         $env = GLPI_ENVIRONMENT_TYPE;
-        parent::__construct($env, $env === \GLPI::ENV_DEVELOPMENT);
+        parent::__construct($env, $debug ?? $env === \GLPI::ENV_DEVELOPMENT);
     }
 
     public function __destruct()

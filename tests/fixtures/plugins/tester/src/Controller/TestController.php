@@ -32,13 +32,18 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+namespace GlpiPlugin\Example\Controller;
 
-use Glpi\Controller\ErrorController;
+use Glpi\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 
-return static function (ContainerConfigurator $container): void {
-    $container->extension('framework', [
-        'error_controller' => ErrorController::class,
-        'test' => $container->env() === \GLPI::ENV_TESTING,
-    ]);
-};
+class TestController implements Controller
+{
+    #[Route("/plugin-test", name: "plugin_test")]
+    public function __invoke(Request $request): Response
+    {
+        return new Response('It works!');
+    }
+}
