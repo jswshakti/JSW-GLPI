@@ -132,6 +132,50 @@ final class Kernel extends BaseKernel
         }
     }
 
+    public function registerPluginsRoutes(RoutingConfigurator $routes): void
+    {
+        // This env var is used in autoload in order to determine
+        //   whether we check if plugin is active when autoloading a class.
+        // Since route configuration happens at Kernel's compile-time,
+        //   we cannot (and must not) rely on database calls that checks for plugins,
+        //   so setting this env var to any true-ish value will make sure no DB call is made.
+        // However, the var has to be unset just after, to make sure autoload behaves as expected.
+        // Check the "src/autoload/legacy-autoloader.php" file for more details.
+        $_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD'] = 1;
+
+        foreach (\PLUGINS_DIRECTORIES as $base_dir) {
+            if (!\is_dir($base_dir)) {
+                continue;
+            }
+
+            $plugins = glob($base_dir . '/*');
+
+            foreach ($plugins as $plugin_path) {
+                $plugin_controller_path = $plugin_path . '/src/Controller';
+                if (!\is_dir($plugin_controller_path)) {
+                    // Avoids loader error only related to inexistent dir.
+                    continue;
+                }
+                try {
+                    $plugin_name = \str_replace($this->getProjectDir() . '/plugins/', '', $plugin_path);
+
+                    $routes
+                        ->import($plugin_controller_path, 'attribute')
+                        ->prefix('/plugins/' . $plugin_name);
+                } catch (\Throwable $e) {
+                    if (
+                        $e instanceof LoaderLoadException
+                        && \preg_match('~^Class "[a-z0-9\\\\_]+" does not exist in~iUu', $e->getMessage())
+                    ) {
+                        continue;
+                    }
+                }
+            }
+        }
+
+        unset($_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD']);
+    }
+
     protected function configureContainer(ContainerConfigurator $container): void
     {
         $projectDir = $this->getProjectDir();
@@ -147,40 +191,7 @@ final class Kernel extends BaseKernel
         //  Global core controllers
         $routes->import($this->getProjectDir() . '/src/Glpi/Controller', 'attribute');
 
-        // This env var is used in autoload in order to determine
-        //   whether we check if plugin is active when autoloading a class.
-        // Since route configuration happens at Kernel's compile-time,
-        //   we cannot (and must not) rely on database calls that checks for plugins,
-        //   so setting this env var to any true-ish value will make sure no DB call is made.
-        // However, the var has to be unset just after, to make sure autoload behaves as expected.
-        // Check the "src/autoload/legacy-autoloader.php" file for more details.
-        $_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD'] = 1;
-
-        $plugins = glob($this->getProjectDir() . '/plugins/*');
-        foreach ($plugins as $plugin_path) {
-            $plugin_controller_path = $plugin_path . '/src/Controller';
-            if (!\is_dir($plugin_controller_path)) {
-                // Avoids loader error only related to inexistent dir.
-                continue;
-            }
-            try {
-                $plugin_name = \str_replace($this->getProjectDir() . '/plugins/', '', $plugin_path);
-
-                $routes
-                    ->import($plugin_controller_path, 'attribute')
-                    ->prefix('/plugins/' . $plugin_name)
-                ;
-            } catch (\Throwable $e) {
-                if (
-                    $e instanceof LoaderLoadException
-                    && \preg_match('~^Class "[a-z0-9\\\\_]+" does not exist in~iUu', $e->getMessage())
-                ) {
-                    continue;
-                }
-            }
-        }
-
-        unset($_ENV['GLPI_BYPASS_PLUGINS_CHECKS_IN_AUTOLOAD']);
+        $this->registerPluginsRoutes($routes);
 
         // Env-specific route files.
         if (\is_file($path = $this->getProjectDir() . '/routes/' . $this->environment . '.php')) {
