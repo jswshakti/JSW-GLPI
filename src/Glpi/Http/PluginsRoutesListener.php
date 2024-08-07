@@ -78,7 +78,7 @@ class PluginsRoutesListener implements EventSubscriberInterface
             $request->attributes->remove('_controller');
             $request->attributes->remove('_route_params');
 
-            throw new NotFoundHttpException('Page not found');
+            throw new NotFoundHttpException('Route not found');
         }
     }
 }
