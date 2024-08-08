@@ -30,12 +30,11 @@
  *
  * ---------------------------------------------------------------------
  */
-.page-body {
-    float : left;
-    width : 300mm;
+.preview-summary {
+    width: 210mm;
 }
 
- .preview, .preview-summary {
+.preview {
     width: 210mm;
 
     @page {
@@ -112,6 +111,7 @@
     input[type="button"],
     input[type="submit"],
     input[type="reset"],
+    input[type="checkbox"],
     [class*="btn "],
     [class*="search-pager"],
     [class*="tab_cadre_pager"],
@@ -140,49 +140,7 @@
 }
 
 @media print {
-    body * {
+    .preview-summary {
         display: none !important;
-    }
-
-    .preview {
-        display: block !important;
-        width: 100% !important;
-    }
-
-    .preview * {
-        display: block !important;
-    }
-
-    .preview {
-        width: 210mm;
-
-        @page {
-            size: A4;
-        }
-
-        * {
-            box-shadow: none !important;
-        }
-
-        [class*="form-control"],
-        [class*="form-select"],
-        [class*="select2"],
-        span {
-            border-color: transparent !important;
-            background-color: transparent !important;
-            color: black !important;
-        }
-
-        .break {
-            break-before: page !important;
-        }
-
-        label {
-            font-weight: bold;
-        }
-
-        .card-header {
-            background-color: rgb(255, 255, 255) !important;
-        }
     }
 }

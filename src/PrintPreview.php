@@ -190,6 +190,10 @@ class PrintPreview extends CommonDBTM
         $tabKeys = array_diff($tabKeys, self::getUnprintableTypes());
 
         foreach ($tabKeys as $tabKey) {
+            $content = self::getPrintableTypeLabel($tabKey, $item);
+            if ($tabKey != $itemtype && strpos($content, "class='badge") === false) {
+                continue;
+            }
             $cleanTabs[$tabKey] = self::getPrintableTypeLabel($tabKey, $item);
         }
         return $cleanTabs ?? [];
