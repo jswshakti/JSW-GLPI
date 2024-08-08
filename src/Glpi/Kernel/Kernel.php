@@ -157,7 +157,7 @@ final class Kernel extends BaseKernel
                     continue;
                 }
                 try {
-                    $plugin_name = \str_replace($this->getProjectDir() . '/plugins/', '', $plugin_path);
+                    $plugin_name = \str_replace($base_dir . '/', '', $plugin_path);
 
                     $routes
                         ->import($plugin_controller_path, 'attribute')
