@@ -32,7 +32,7 @@
  * ---------------------------------------------------------------------
  */
 
-namespace GlpiPlugin\Example\Controller;
+namespace GlpiPlugin\Tester\Controller;
 
 use Glpi\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
