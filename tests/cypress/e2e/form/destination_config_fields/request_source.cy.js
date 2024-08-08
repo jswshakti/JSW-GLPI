@@ -76,9 +76,8 @@ describe('Request source configuration', () => {
         // Go to preview
         cy.findByRole('tab', { 'name': "Form" }).click();
         cy.findByRole('link', { 'name': "Preview" })
-            .invoke('removeAttr', 'target') // Cypress can't handle tab changes
-            .click()
-            ;
+        .invoke('removeAttr', 'target') // Cypress can't handle tab changes
+        .click();
 
         cy.findByRole('button', { 'name': 'Send form' }).click();
         cy.findByRole('link', { 'name': 'My test form' }).click();
