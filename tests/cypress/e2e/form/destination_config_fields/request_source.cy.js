@@ -50,7 +50,7 @@ describe('Request source configuration', () => {
     });
 
     it('can use all possibles configuration options', () => {
-        cy.findByRole('region', { 'name': "Request source configuration" }).as("config");
+        cy.findByRole('region', { 'name': "Request sources configuration" }).as("config");
         cy.get('@config').getDropdownByLabelText('Request source').as("source_dropdown");
 
         // Default value
