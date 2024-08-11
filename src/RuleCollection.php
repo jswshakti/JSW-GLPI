@@ -2076,8 +2076,10 @@ TWIG, $twig_params);
             ];
         }
 
+        $custom_assets = \Glpi\Asset\AssetDefinitionManager::getInstance()->getDefinitions(true);
+
         if (Session::haveRight("rule_dictionnary_dropdown", READ)) {
-            $dictionnaries[] = [
+            $model_dictionaries = [
                 'type'      => _n('Model', 'Models', Session::getPluralNumber()),
                 'entries'   => [
                     [
@@ -2107,10 +2109,21 @@ TWIG, $twig_params);
                     ]
                 ]
             ];
+
+            foreach ($custom_assets as $custom_asset) {
+                $model_class = $custom_asset->getAssetModelClassName();
+                $model_dictionaries['entries'][] = [
+                    'label' => $model_class::getTypeName(Session::getPluralNumber()),
+                    'link'  => 'asset/ruledictionarymodel.php?class=' . $custom_asset->fields['system_name'],
+                    'icon'  => $model_class::getIcon(),
+                ];
+            }
+
+            $dictionnaries[] = $model_dictionaries;
         }
 
         if (Session::haveRight("rule_dictionnary_dropdown", READ)) {
-            $dictionnaries[] = [
+            $type_dictionaries = [
                 'type'      => _n('Type', 'Types', Session::getPluralNumber()),
                 'entries'   => [
                     [
@@ -2140,6 +2153,17 @@ TWIG, $twig_params);
                     ]
                 ]
             ];
+
+            foreach ($custom_assets as $custom_asset) {
+                $type_class = $custom_asset->getAssetTypeClassName();
+                $type_dictionaries['entries'][] = [
+                    'label' => $type_class::getTypeName(Session::getPluralNumber()),
+                    'link'  => 'asset/ruledictionarytype.php?class=' . $custom_asset->fields['system_name'],
+                    'icon'  => $type_class::getIcon(),
+                ];
+            }
+
+            $dictionnaries[] = $type_dictionaries;
         }
 
         if (Session::haveRight("rule_dictionnary_dropdown", READ)) {

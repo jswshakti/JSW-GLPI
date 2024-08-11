@@ -856,7 +856,7 @@ TWIG, ['name' => $name, 'value' => $value]);
      * Get the definition's concrete asset model class name.
      *
      * @param bool $with_namespace
-     * @return string
+     * @return class-string<CommonDBTM>
      */
     public function getAssetModelClassName(bool $with_namespace = true): string
     {
@@ -867,7 +867,7 @@ TWIG, ['name' => $name, 'value' => $value]);
      * Get the definition's concrete asset type class name.
      *
      * @param bool $with_namespace
-     * @return string
+     * @return class-string<CommonDBTM>
      */
     public function getAssetTypeClassName(bool $with_namespace = true): string
     {
