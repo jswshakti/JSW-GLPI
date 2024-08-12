@@ -42,6 +42,9 @@ final class FormContentSpecification
     public string $entity_name;
     public bool $is_recursive;
 
+    /** @var AccesControlPolicyContentSpecification[] $policies */
+    public array $policies = [];
+
     /** @var DataRequirementSpecification[] $data_requirements */
     public array $data_requirements = [];
 
