@@ -44,6 +44,7 @@
     * {
         box-shadow: none !important;
     }
+
     [class*="form-control"],
     [class*="form-select"],
     [class*="select2"],
@@ -140,7 +141,10 @@
 }
 
 @media print {
-    .preview-summary {
+    .preview-summary,
+    [class*="navbar"],
+    [id*="tabspanel-select"],
+    div[id*="navigationheader"] {
         display: none !important;
     }
 }

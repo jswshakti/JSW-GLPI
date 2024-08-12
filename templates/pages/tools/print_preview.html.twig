@@ -165,6 +165,17 @@
                             });
                         }
                     });
+
+                    var selects = preview.querySelectorAll('select[onchange*="glpilist_limit"]');
+
+                    selects.forEach(function(select) {
+                        if (select.value == '500') {
+                            return;
+                        }
+                        select.value = '500';
+                        var event = new Event('change');
+                        select.dispatchEvent(event);
+                    });
                 }
             });
         </script>
