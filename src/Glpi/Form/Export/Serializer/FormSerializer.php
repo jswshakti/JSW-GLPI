@@ -215,7 +215,6 @@ final class FormSerializer extends AbstractFormSerializer
         FormContentSpecification $spec,
         DatabaseMapper $mapper,
     ): Form {
-        /** @var AccesControlPolicyContentSpecification $policy_spec */
         foreach ($spec->policies as $policy_spec) {
             $policy = new FormAccessControl();
 
