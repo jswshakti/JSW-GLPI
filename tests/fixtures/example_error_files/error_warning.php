@@ -8,7 +8,6 @@
  * http://glpi-project.org
  *
  * @copyright 2015-2024 Teclib' and contributors.
- * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
  * ---------------------------------------------------------------------
@@ -33,25 +32,12 @@
  * ---------------------------------------------------------------------
  */
 
-function plugin_version_tester()
-{
-    return [
-        'name'           => 'tester',
-        'version'        => '1.0.0',
-        'author'         => 'GLPI Test suite',
-        'license'        => 'GPL v2+',
-        'requirements'   => [
-            'glpi' => [
-                'min' => '9.5.0',
-            ]
-        ]
-    ];
-}
+trigger_error('Warning triggered', E_USER_WARNING);
 
-function plugin_tester_install(): bool {
-    return true;
-}
+Session::checkRightsOr(Computer::$rightname, [READ, READ_ASSIGNED, READ_OWNED]);
 
-function plugin_tester_uninstall(): bool {
-    return true;
-}
+Html::header(Computer::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "assets", "computer");
+
+echo "Example page to trigger a PHP Warning error.";
+
+Html::footer();

@@ -8,7 +8,6 @@
  * http://glpi-project.org
  *
  * @copyright 2015-2024 Teclib' and contributors.
- * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
  * ---------------------------------------------------------------------
@@ -33,25 +32,4 @@
  * ---------------------------------------------------------------------
  */
 
-function plugin_version_tester()
-{
-    return [
-        'name'           => 'tester',
-        'version'        => '1.0.0',
-        'author'         => 'GLPI Test suite',
-        'license'        => 'GPL v2+',
-        'requirements'   => [
-            'glpi' => [
-                'min' => '9.5.0',
-            ]
-        ]
-    ];
-}
-
-function plugin_tester_install(): bool {
-    return true;
-}
-
-function plugin_tester_uninstall(): bool {
-    return true;
-}
+anything
