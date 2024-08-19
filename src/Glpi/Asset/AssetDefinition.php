@@ -537,7 +537,7 @@ final class AssetDefinition extends CommonDBTM
             in_array('is_active', $this->updates, true)
             || in_array('profiles', $this->updates, true)
             || array_key_exists('profiles_extra', $this->input)
-        ){
+        ) {
             $this->syncProfilesRights();
         }
     }
