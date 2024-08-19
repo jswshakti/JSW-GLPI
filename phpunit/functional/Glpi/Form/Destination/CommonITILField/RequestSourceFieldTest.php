@@ -74,7 +74,6 @@ final class RequestSourceFieldTest extends DbTestCase
             config: new RequestSourceFieldConfig(
                 strategy: RequestSourceFieldStrategy::FROM_TEMPLATE,
             ),
-            expected_source_id: $source
         );
 
         $this->assertEquals($source, $created_ticket->fields['requesttypes_id']);
@@ -114,9 +113,8 @@ final class RequestSourceFieldTest extends DbTestCase
             form: $this->createAndGetFormWithTicketDestination(),
             config: new RequestSourceFieldConfig(
                 strategy: RequestSourceFieldStrategy::SPECIFIC_VALUE,
-                specific_request_source: $ticket_template->getID()
+                specific_request_source: $specified_source,
             ),
-            expected_source_id: $specified_source
         );
 
         $this->assertEquals($specified_source, $created_ticket->fields['requesttypes_id']);
@@ -125,7 +123,6 @@ final class RequestSourceFieldTest extends DbTestCase
     private function checkRequestSourceFieldConfiguration(
         Form $form,
         RequestSourceFieldConfig $config,
-        int $expected_source_id
     ): Ticket {
         // Insert config
         $destinations = $form->getDestinations();
@@ -150,9 +147,6 @@ final class RequestSourceFieldTest extends DbTestCase
         $created_items = $answers->getCreatedItems();
         $this->assertCount(1, $created_items);
         $ticket = current($created_items);
-
-        // Check template
-        $this->assertEquals($expected_source_id, $ticket->fields['requesttypes_id']);
 
         // Return the created ticket to be able to check other fields
         return $ticket;

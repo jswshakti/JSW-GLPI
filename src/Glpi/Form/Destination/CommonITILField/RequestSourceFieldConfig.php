@@ -46,7 +46,6 @@ final class RequestSourceFieldConfig implements JsonFieldInterface
 
     public function __construct(
         private RequestSourceFieldStrategy $strategy,
-        private ?int $specific_question_id = null,
         private ?int $specific_request_source = null,
     ) {
     }

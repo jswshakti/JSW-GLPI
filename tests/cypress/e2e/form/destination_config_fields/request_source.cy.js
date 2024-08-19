@@ -73,6 +73,11 @@ describe('Request source configuration', () => {
     });
 
     it('can create ticket using default configuration', () => {
+        cy.createWithAPI('TicketTemplatePredefinedField', {
+            'tickettemplates_id': 1, // Default template
+            'num': 9, // Request source
+            'value': 3, // Phone
+        });
         // Go to preview
         cy.findByRole('tab', { 'name': "Form" }).click();
         cy.findByRole('link', { 'name': "Preview" })
@@ -83,7 +88,7 @@ describe('Request source configuration', () => {
         cy.findByRole('link', { 'name': 'My test form' }).click();
 
         // Check ticket values
-        cy.getDropdownByLabelText('Request source').should('have.text', 'Helpdesk');
+        cy.getDropdownByLabelText('Request source').should('have.text', 'Phone');
 
         // Others possibles configurations are tested directly by the backend.
     });
