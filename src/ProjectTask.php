@@ -153,7 +153,7 @@ class ProjectTask extends CommonDBChild implements CalDAVCompatibleItemInterface
                     'value' => 'myself'
                 ],
                 [
-                    'link' => 'AND',
+                    'link' => 'OR',
                     'field' => 88,
                     'searchtype' => 'equals',
                     'value' => 'mygroups'
