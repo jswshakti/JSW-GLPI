@@ -649,9 +649,9 @@ final class AssetDefinition extends CommonDBTM
             if (isset($extra_data['helpdesk_item_type'])) {
                 $itemtype_allowed = (bool) $extra_data['helpdesk_item_type'];
                 if ($itemtype_allowed && !in_array($this->getAssetClassName(), $old_values[$profile_id], true)) {
-                    $changes['helpdesk_item_type'][$profile_id][] = $this->getAssetClassName();
+                    $changes['helpdesk_item_type'] = [...$old_values[$profile_id], ...[$this->getAssetClassName()]];
                 } else if (!$itemtype_allowed && in_array($this->getAssetClassName(), $old_values[$profile_id], true)) {
-                    $changes['helpdesk_item_type'][$profile_id] = array_diff($old_values[$profile_id], [$this->getAssetClassName()]);
+                    $changes['helpdesk_item_type'] = array_diff($old_values[$profile_id], [$this->getAssetClassName()]);
                 }
                 if (count($changes) > 0) {
                     $changes = array_map(static fn ($v) => is_array($v) ? json_encode($v) : $v, $changes);
