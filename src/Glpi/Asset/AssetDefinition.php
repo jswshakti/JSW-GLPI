@@ -627,39 +627,39 @@ final class AssetDefinition extends CommonDBTM
             }
         }
 
-        if (isset($this->input['profiles_extra'])) {
-            $it = $DB->request([
-                'SELECT' => ['id', 'helpdesk_item_type'],
-                'FROM'   => Profile::getTable(),
-                'WHERE'  => [
-                    ['id', array_keys($this->input['profiles_extra'])],
-                ],
-            ]);
-            $old_values = [];
-            foreach ($it as $data) {
-                $old_values[$data['id']] = json_decode($data['helpdesk_item_type'], associative: true);
-                if (!is_array($old_values[$data['id']])) {
-                    $old_values[$data['id']] = [];
-                }
+        if (!isset($this->input['profiles_extra'])) {
+            return;
+        }
+        $it = $DB->request([
+            'SELECT' => ['id', 'helpdesk_item_type'],
+            'FROM'   => Profile::getTable(),
+            'WHERE'  => [
+                ['id', array_keys($this->input['profiles_extra'])],
+            ],
+        ]);
+        $old_values = [];
+        foreach ($it as $data) {
+            $old_values[$data['id']] = json_decode($data['helpdesk_item_type'], associative: true);
+            if (!is_array($old_values[$data['id']])) {
+                $old_values[$data['id']] = [];
             }
-            foreach ($this->input['profiles_extra'] as $profile_id => $extra_data) {
-                if (isset($extra_data['helpdesk_item_type'])) {
-                    $itemtype_allowed = (bool) $extra_data['helpdesk_item_type'];
-                    if ($itemtype_allowed && !in_array($this->getAssetClassName(), $old_values[$profile_id], true)) {
-                        $old_values[$profile_id][] = $this->getAssetClassName();
-                        $DB->update(
-                            Profile::getTable(),
-                            ['helpdesk_item_type' => json_encode($old_values[$profile_id])],
-                            ['id' => $profile_id]
-                        );
-                    } elseif (!$itemtype_allowed && in_array($this->getAssetClassName(), $old_values[$profile_id], true)) {
-                        $old_values[$profile_id] = array_diff($old_values[$profile_id], [$this->getAssetClassName()]);
-                        $DB->update(
-                            Profile::getTable(),
-                            ['helpdesk_item_type' => json_encode($old_values[$profile_id])],
-                            ['id' => $profile_id]
-                        );
-                    }
+        }
+        foreach ($this->input['profiles_extra'] as $profile_id => $extra_data) {
+            $changes = [];
+            if (isset($extra_data['helpdesk_item_type'])) {
+                $itemtype_allowed = (bool) $extra_data['helpdesk_item_type'];
+                if ($itemtype_allowed && !in_array($this->getAssetClassName(), $old_values[$profile_id], true)) {
+                    $changes['helpdesk_item_type'][$profile_id][] = $this->getAssetClassName();
+                } else if (!$itemtype_allowed && in_array($this->getAssetClassName(), $old_values[$profile_id], true)) {
+                    $changes['helpdesk_item_type'][$profile_id] = array_diff($old_values[$profile_id], [$this->getAssetClassName()]);
+                }
+                if (count($changes) > 0) {
+                    $changes = array_map(static fn ($v) => is_array($v) ? json_encode($v) : $v, $changes);
+                    $DB->update(
+                        Profile::getTable(),
+                        $changes,
+                        ['id' => $profile_id]
+                    );
                 }
             }
         }
