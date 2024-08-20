@@ -1,3 +1,35 @@
+{#
+ # ---------------------------------------------------------------------
+ #
+ # GLPI - Gestionnaire Libre de Parc Informatique
+ #
+ # http://glpi-project.org
+ #
+ # @copyright 2015-2024 Teclib' and contributors.
+ # @licence   https://www.gnu.org/licenses/gpl-3.0.html
+ #
+ # ---------------------------------------------------------------------
+ #
+ # LICENSE
+ #
+ # This file is part of GLPI.
+ #
+ # This program is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ #
+ # ---------------------------------------------------------------------
+ #}
+
 {% import 'components/form/fields_macros.html.twig' as fields %}
 {% import 'components/form/basic_inputs_macros.html.twig' as _inputs %}
 {% import 'components/alerts_macros.html.twig' as alerts %}
@@ -82,10 +114,7 @@
                                             </button>
                                         {% endset %}
                                         {{ fields.htmlField('last_preview_date', last_preview_date|formatted_datetime(true), __('Last preview date')) }}
-                                        {{ fields.htmlField(
-                                            'print-preview',
-                                            print_btn
-                                        )}}
+                                        {{ fields.htmlField('print-preview', print_btn) }}
                                     </div>
                                 </div>
                             </div>
@@ -104,7 +133,7 @@
             </div>
             {% include 'generic_show_form.html.twig' %}
             {% for key, value in printable_tabs %}
-                {% if value == 1 and call('class_exists',[key]) and key != options.itemtype %}
+                {% if value == 1 and call('class_exists', [key]) and key != options.itemtype %}
                     <div class="break"></div>
                     <div class="card my-0 border-0 shadow-none">
                         <div class="card-header">
@@ -114,7 +143,7 @@
                             </h4>
                         </div>
                     </div>
-                    {% do call(key ~ '::displayTabContentForItem',[item, 0]) %}
+                    {% do call(key ~ '::displayTabContentForItem', [item, 0]) %}
                 {% endif %}
             {% endfor %}
         </div>
