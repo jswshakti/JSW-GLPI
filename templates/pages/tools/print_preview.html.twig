@@ -121,7 +121,6 @@
         <script type="text/javascript">
             $(document).ready(() => {
                 var preview = document.querySelector('.preview');
-                console.log(preview);
                 if (preview) {
                     preview.querySelectorAll('input').forEach(input => {
                         input.setAttribute('readonly', true);
@@ -130,51 +129,67 @@
                     var tables = preview.querySelectorAll('table, .table');
 
                     tables.forEach(function(table) {
-                        table.style.width = '100%';
-                        table.style.maxWidth = '100%';
-                        table.style.boxSizing = 'border-box';
-                        table.style.tableLayout = 'fixed';
-                        table.style.overflowX = 'hidden';
-
-                        var children = table.querySelectorAll('td, a, span');
-                        children.forEach(function(child) {
-                            child.style.whiteSpace = 'normal';
-                            child.style.wordWrap = 'break-word';
-                            child.style.overflowWrap = 'break-word';
+                        Object.assign(table.style, {
+                            width: '100%',
+                            maxWidth: '100%',
+                            boxSizing: 'border-box',
+                            tableLayout: 'fixed',
+                            overflowX: 'hidden'
                         });
 
-                        var tfootAndNoHoverRows = table.querySelectorAll('tfoot, tr[class*="noHover"]');
-                        tfootAndNoHoverRows.forEach(function(element) {
+                        table.querySelectorAll('td, a, span').forEach(function(child) {
+                            Object.assign(child.style, {
+                                whiteSpace: 'normal',
+                                wordWrap: 'break-word',
+                                overflowWrap: 'break-word'
+                            });
+                        });
+
+                        table.querySelectorAll('tfoot, tr[class*="noHover"]').forEach(function(element) {
                             element.style.display = 'none';
                         });
-                        var maxColumnCount = 0;
 
-                        table.querySelectorAll('tr').forEach(function(row) {
-                            var columnCount = row.children.length;
-                            maxColumnCount = Math.max(maxColumnCount, columnCount);
-                        });
+                        var maxColumnCount = Array.from(table.querySelectorAll('tr')).reduce((max, row) => {
+                            return Math.max(max, row.children.length);
+                        }, 0);
 
-                        if(maxColumnCount > 3) {
+                        if (maxColumnCount > 3) {
                             table.querySelectorAll('th').forEach(function(th) {
-                                if(!th.hasAttribute('colspan') || th.getAttribute('colspan') < 3) {
-                                    th.style.writingMode = 'vertical-rl';
-                                    th.style.transform = 'rotate(180deg)';
-                                    th.style.whiteSpace = 'nowrap';
-                                    th.style.verticalAlign = 'top';
+                                if (!th.hasAttribute('colspan') || th.getAttribute('colspan') < 3) {
+                                    Object.assign(th.style, {
+                                        writingMode: 'vertical-rl',
+                                        transform: 'rotate(180deg)',
+                                        whiteSpace: 'nowrap',
+                                        verticalAlign: 'top'
+                                    });
                                 }
                             });
                         }
+
+                        table.querySelectorAll('th').forEach(function(th) {
+                            if (th.querySelector('input[type="checkbox"]') || th.querySelector('div input[type="checkbox"]')) {
+                                th.remove();
+                            }
+                        });
+
+                        table.querySelectorAll('td').forEach(function(td) {
+                            if (td.querySelector('input[type="checkbox"]') || td.querySelector('div input[type="checkbox"]')) {
+                                td.remove();
+                            }
+                        });
                     });
 
-                    var selects = preview.querySelectorAll('select[onchange*="glpilist_limit"]');
+                    preview.querySelectorAll('label.col-xxl-5').forEach(function(label) {
+                        label.classList.add('col-sm-3');
+                        label.classList.replace('text-xxl-end', 'text-xxl-start');
+                    });
 
-                    selects.forEach(function(select) {
-                        if (select.value == '500') {
-                            return;
-                        }
-                        select.value = '500';
-                        var event = new Event('change');
-                        select.dispatchEvent(event);
+                    preview.querySelectorAll('div.col-xxl-7').forEach(function(content) {
+                        content.classList.add('col-sm-9');
+                    });
+
+                    preview.querySelectorAll('div.form-field.col-sm-6').forEach(function(formfield) {
+                        formfield.classList.add('col-sm-12');
                     });
                 }
             });
