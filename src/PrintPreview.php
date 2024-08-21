@@ -95,6 +95,9 @@ class PrintPreview extends CommonDBTM
                 $items = $ma->getItems();
                 $itemtypes = array_keys($items);
                 $firstItemtype = reset($itemtypes);
+                if (!isset($itemtypes[$firstItemtype])) {
+                    return false;
+                }
                 $firstitem = reset($items[$firstItemtype]);
                 TemplateRenderer::getInstance()->display('pages/tools/print_preview.html.twig', [
                     'is_render' => false,
