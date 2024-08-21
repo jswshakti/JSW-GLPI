@@ -47,3 +47,13 @@ function plugin_version_tester()
         ]
     ];
 }
+
+function plugin_tester_install(): bool
+{
+    return true;
+}
+
+function plugin_tester_uninstall(): bool
+{
+    return true;
+}
