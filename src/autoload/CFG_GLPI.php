@@ -629,6 +629,7 @@ $CFG_GLPI['plug_types'] = ['PDU'];
 $CFG_GLPI["print_preview_types"]  = ['Computer', 'Monitor', 'Software', 'NetworkEquipment',
     'Devices', 'Printers', 'Cartridge', 'ConsumableItem', 'Phone', 'Racks', 'Enclosure', 'Pdu', 'PassiveDCEquipment',
     'Unmanaged', 'Cable', 'DeviceSimcard'
+];
 
 $CFG_GLPI['management_types'] = [
     'Budget', 'Supplier', 'Contact', 'Contract', 'Document', 'Project', 'Certificate', 'Appliance', 'Database'
