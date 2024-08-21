@@ -43,12 +43,15 @@
         <input type="hidden" name="itemtype" value="{{ itemtype }}">
         <input type="hidden" name="items_id" value="{{ items_id }}">
         <div class="container">
-            <div class="row">
+            <div class="row center">
+                {{ alerts.alert_info(
+                    __("If some tabs are not visible, they are empty.")
+                ) }}
                 {% for key, tab in tabs %}
                     <div class="col-1 my-2 align-items-center text-end">
                         {{ _inputs.checkbox(key, key == itemtype ? 1 : 0, {'disabled': key == itemtype ? true : false}) }}
                     </div>
-                    <div class="col-3 text-start my-2">
+                    <div class="col-5 text-start my-2">
                         {{ tab|raw }}
                     </div>
                 {% endfor %}
@@ -225,7 +228,7 @@
         </script>
     {% else %}
         {{ alerts.alert_warning(
-            __('No preview generated for this item, please execute "Display to a printable view" action.')
+            __('No preview generated for this item, please execute "Display to a printable view" massive action.')
         ) }}
     {% endif %}
 {% endif %}

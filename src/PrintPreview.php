@@ -95,10 +95,8 @@ class PrintPreview extends CommonDBTM
                 $items = $ma->getItems();
                 $itemtypes = array_keys($items);
                 $firstItemtype = reset($itemtypes);
-                if (!isset($itemtypes[$firstItemtype])) {
-                    return false;
-                }
-                $firstitem = reset($items[$firstItemtype]);
+                $fitem = $items[$firstItemtype] ?? [];
+                $firstitem = reset($fitem);
                 TemplateRenderer::getInstance()->display('pages/tools/print_preview.html.twig', [
                     'is_render' => false,
                     'tabs'      => self::getPrintableTabs($firstItemtype, $firstitem),
@@ -208,6 +206,7 @@ class PrintPreview extends CommonDBTM
             \Impact::class,
             \Log::class,
             self::class,
+            \Software::class,
         ];
     }
 
