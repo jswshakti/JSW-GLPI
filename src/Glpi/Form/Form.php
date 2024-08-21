@@ -42,8 +42,10 @@ use Glpi\Application\View\TemplateRenderer;
 use Glpi\Form\AccessControl\ControlType\ControlTypeInterface;
 use Glpi\Form\AccessControl\FormAccessControl;
 use Glpi\Form\Destination\FormDestination;
+use Glpi\Form\QuestionType\QuestionTypeInterface;
 use Html;
 use Glpi\DBAL\QuerySubQuery;
+use Glpi\Form\AccessControl\FormAccessControlManager;
 use Glpi\Form\QuestionType\QuestionTypesManager;
 use Log;
 use Override;
@@ -104,16 +106,6 @@ final class Form extends CommonDBTM
         $this->initForm($id, $options);
 
         $types_manager = QuestionTypesManager::getInstance();
-        $js_files = [
-            'js/form_editor_controller.js'
-        ];
-        foreach ($types_manager->getQuestionTypes() as $type) {
-            foreach ((new $type())->loadJavascriptFiles() as $file) {
-                if (!in_array($file, $js_files)) {
-                    $js_files[] = $file;
-                }
-            }
-        }
 
         // Render twig template
         $twig = TemplateRenderer::getInstance();
@@ -121,7 +113,7 @@ final class Form extends CommonDBTM
             'item'                   => $this,
             'params'                 => $options,
             'question_types_manager' => $types_manager,
-            'js_files'               => $js_files,
+            'allow_unauthenticated_access'      => FormAccessControlManager::getInstance()->allowUnauthenticatedAccess($this),
         ]);
         return true;
     }
@@ -387,6 +379,40 @@ final class Form extends CommonDBTM
         }
 
         return $controls;
+    }
+
+    /**
+     * Get questions of this form that match the given types.
+     *
+     * @param string[] $types
+     * @return Question[]
+     */
+    public function getQuestionsByTypes(array $types): array
+    {
+        foreach ($types as $type) {
+            if (!$this->isValidQuestionType($type)) {
+                throw new \InvalidArgumentException("Invalid question type: $type");
+            }
+        }
+
+        return array_filter(
+            $this->getQuestions(),
+            function (Question $question) use ($types) {
+                $type = get_class($question->getQuestionType());
+                return in_array($type, $types);
+            }
+        );
+    }
+
+    /**
+     * Get questions of this form that match the given type.
+     *
+     * @param string $type
+     * @return Question[]
+     */
+    public function getQuestionsByType(string $type): array
+    {
+        return $this->getQuestionsByTypes([$type]);
     }
 
     /**
@@ -774,6 +800,14 @@ final class Form extends CommonDBTM
     {
         return
             is_a($class, ControlTypeInterface::class, true)
+            && !(new ReflectionClass($class))->isAbstract()
+        ;
+    }
+
+    protected function isValidQuestionType(string $class): bool
+    {
+        return
+            is_a($class, QuestionTypeInterface::class, true)
             && !(new ReflectionClass($class))->isAbstract()
         ;
     }

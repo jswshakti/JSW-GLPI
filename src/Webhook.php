@@ -157,6 +157,14 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'searchtype'         => ['equals', 'notequals']
         ];
 
+        $tab[] = [
+            'id'                 => '7',
+            'table'              => 'glpi_webhookcategories',
+            'field'              => 'completename',
+            'name'               => WebhookCategory::getTypeName(1),
+            'datatype'           => 'dropdown'
+        ];
+
         return $tab;
     }
 
@@ -304,6 +312,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'get'       => 'GET',
             'update'    => 'UPDATE',
             'patch'     => 'PATCH',
+            'put'       => 'PUT',
         ];
     }
 

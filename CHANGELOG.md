@@ -68,6 +68,7 @@ The present file will list all changes made to the project; according to the
 - Running `front/cron.php` or `bin/console` will attempt to check and block execution if running as root.
 - Testing LDAP replicates now shows results as toast notifications rather than inside the replicate tab after a page reload.
 - The debug tab that was present, for some items, when the debug mode was active, no longer exists. The corresponding features have been either moved, either removed.
+- `Group` and `Group in charge` fields for assets may now contain multiple groups.
 
 ### Deprecated
 - Survey URL tags `TICKETCATEGORY_ID` and `TICKETCATEGORY_NAME` are deprecated and replaced by `ITILCATEGORY_ID` and `ITILCATEGORY_NAME` respectively.
@@ -153,15 +154,22 @@ The present file will list all changes made to the project; according to the
 - Usage of `ajax/dropdownValidator.php` with the `users_id_validate` parameter is no longer supported. Use `items_id_target` instead.
 - `Glpi\Dashboard\Filters\AbstractFilter::field()` method has been made protected.
 - Usage of `CommonITILValidation::dropdownValidator()` with the `name` and `users_id_validate` options are no longer supported. Use `prefix` and `itemtype_target`/`items_id_target` respectively instead.
-- Namespaced plugins files must be placed in a subdirectory of the plugin `src` directory that corresponds to the second part of the plugin namespace (e.g. `src/Myplugin/` for a plugin called `myplugin`).
 - The `helper` property of form fields will not support anymore the presence of HTML code.
 - `Glpi\Application\ErrorHandler` constructor visibility has been changed to private.
 - `GLPI::initErrorHandler()` does not return any value anymore.
-- The `inc/autoload.function.php`, `inc/db.function.php` and `inc/define.php` file has been removed and the corresponding global functions, constants and variables are now loaded and initialized automatically.
+- The `inc/autoload.function.php`, `inc/based_config.php`, `inc/config.php`, `inc/db.function.php` and `inc/define.php` files have been removed and the `inc/includes.php` file has been almost emptied.
+  The corresponding global functions, constants and variables are now loaded and initialized automatically and the corresponding GLPI boostraping logic is now executed automatically.
 - `Plugin::init()` and `Plugin::checkStates()` methods signature changed. It is not anymore possible to exclude specific plugins.
+- In a HTTP request context, `$_SERVER['PATH_INFO']`, `$_SERVER['SCRIPT_FILENAME'] and `$_SERVER['SCRIPT_NAME']` will no longer contain the path to the requested script, but will contain the path to the `public/index.php` script.
+- Any class added to `$CFG_GLPI['directconnect_types']` must now use the `Glpi\Features\AssignableItem` trait as multi-group support is required.
+- For assets, `groups_id` and `groups_id_tech` fields were changed from integers to arrays and are loaded into the `fields` array after `getFromDB`/`getEmpty`.
+  If reading directly from the DB, you need to query the new linking table `glpi_groups_items`.
+- `Group::getDataItems()` signature changed. The two first parameters `$types` and `$field` were replaced
+  by a unique boolean `$tech` parameter that is used to compute the `$types` and `$field` values automatically.
 
 #### Deprecated
 - Usage of `MAIL_SMTPSSL` and `MAIL_SMTPTLS` constants.
+- `$AJAX_INCLUDE` global variable usage. Use `$this->setAjax()` in legacy `/ajax/` and `/front` scripts or `Html::setAjax()` and `Session::setAjax()`.
 - Usage of `name` and `users_id_validate` parameter in `ajax/dropdownValidator.php`.
 - Usage of `users_id_validate` parameter in `front/commonitilvalidation.form.php`.
 - `ajax/itemTicket.php` script usage.
@@ -172,6 +180,7 @@ The present file will list all changes made to the project; according to the
 - Usage of `name` and `users_id_validate` options in `CommonITILValidation::dropdownValidator()`.
 - Usage of `verbatim_value` Twig filter.
 - `js/Forms/FaIconSelector.js` and therefore `window.GLPI.Forms.FaIconSelector` has been deprecated and replaced by `js/modules/Form/WebIconSelector.js`
+- `linkuser_types`, `linkgroup_types`, `linkuser_tech_types`, `linkgroup_tech_types` configuration entries have been merged in a unique `assignable_types` configuration entry.
 - `Auth::getErr()`
 - `AuthLDAP::dropdownUserDeletedActions()`
 - `AuthLDAP::getOptions()`
@@ -208,11 +217,17 @@ The present file will list all changes made to the project; according to the
 - `Html::cleanInputText()`
 - `Html::cleanPostForTextArea()`
 - `Html::createProgressBar()`
+- `Html::entities_deep()`
+- `Html::entity_decode_deep()`
 - `HookManager::enableCSRF()`
+- `ITILFollowup::ADDMYTICKET` constant. Use `ITILFollowup::ADDMY`.
+- `ITILFollowup::ADDGROUPTICKET` constant. Use `ITILFollowup::ADD_AS_GROUP`.
+- `ITILFollowup::ADDALLTICKET` constant. Use `ITILFollowup::ADDALLITEM`.
 - `Knowbase::getTreeCategoryList()`
 - `Knowbase::showBrowseView()`
 - `Knowbase::showManageView()`
 - `KnowbaseItem::showManageForm()`
+- `Migration::updateRight()`. Use `Migration::replaceRight()` instead.
 - `Pdu_Plug` has been deprecated and replaced by `Item_Plug`
 - `Search::getOptions()` no longer returns a reference
 - `Ticket` `link_to_problem` massive action is deprecated. Use `CommonITILObject_CommonITILObject` `add` massive action instead.
@@ -226,8 +241,12 @@ The present file will list all changes made to the project; according to the
 #### Removed
 - `GLPI_USE_CSRF_CHECK`, `GLPI_USE_IDOR_CHECK`, `GLPI_CSRF_EXPIRES`, `GLPI_CSRF_MAX_TOKENS` and `GLPI_IDOR_EXPIRES` constants.
 - `$CFG_GLPI_PLUGINS` global variable.
+- `$DBCONNECTION_REQUIRED` and `$USEDBREPLICATE` global variables. Use `DBConnection::getReadConnection()` to get the most apporpriate connection for read only operations.
+- `$dont_check_maintenance_mode` and `$skip_db_check` global variables.
+- `$GLPI` global variable.
 - `$LANG` global variable.
-- `$PLUGINS_EXCLUDED` global variable.
+- `$PLUGINS_EXCLUDED` and `$PLUGINS_INCLUDED` global variables.
+- `$SECURITY_STRATEGY` global variable.
 - Usage of `csrf_compliant` plugins hook.
 - Usage of `migratetypes` plugin hooks.
 - Usage of `planning_scheduler_key` plugins hook.
@@ -244,6 +263,7 @@ The present file will list all changes made to the project; according to the
 - `CommonDBTM::getCacheKeyForFriendlyName()`
 - `CommonDBTM::getSNMPCredential()`
 - `CommonDBTM::showDebugInfo()`
+- `CommonDevice::title()`
 - `CommonDropdown::displayHeader()`
 - `CommonGLPI::getAvailableDisplayOptions()`
 - `CommonGLPI::getDisplayOptions()`
@@ -279,6 +299,7 @@ The present file will list all changes made to the project; according to the
 - `DropdownTranslation::canBeTranslated()`. Translations are now always active.
 - `DropdownTranslation::isDropdownTranslationActive()`. Translations are now always active.
 - `Entity::getDefaultContractValues()`
+- `Entity::title()`
 - `FieldUnicity::showDebug()`
 - `GLPI::getErrorHandler()`
 - `GLPI::getLogLevel()`
@@ -317,6 +338,8 @@ The present file will list all changes made to the project; according to the
 - `Html::showTimeField()`
 - `Impact::buildNetwork()`
 - `Infocom::showDebug()`
+- `IPNetwork::recreateTree()`
+- `IPNetwork::title()`
 - `Item_Problem::showForProblem()`
 - `Item_Ticket::showForTicket()`
 - `KnowbaseItem::addToFaq()`
@@ -334,6 +357,7 @@ The present file will list all changes made to the project; according to the
 - `MailCollector::listEncodings()`
 - `MailCollector::title()`
 - `ManualLink::showForItem()`
+- `MigrationCleaner` class
 - `Netpoint` class
 - `NetworkAlias::getInternetNameFromID()`
 - `NetworkName::getInternetNameFromID()`
@@ -347,6 +371,7 @@ The present file will list all changes made to the project; according to the
 - `NetworkPortInstantiation::getInstantiationNetworkPortDisplayOptions()`
 - `NetworkPortInstantiation::getInstantiationNetworkPortHTMLTable()`
 - `NetworkPortInstantiation::getPeerInstantiationHTMLTable()` and all sub classes overrides.
+- `NetworkPortMigration` class
 - `NotificationEvent::debugEvent()`
 - `NotificationTemplateTranslation::showDebug()`
 - `OlaLevel::showForSLA()`. Replaced by `LevelAgreementLevel::showForLA()`.
@@ -433,7 +458,28 @@ The present file will list all changes made to the project; according to the
 - `ajax/ticketsatisfaction.php` and `ajax/changesatisfaction.php` scripts. Access `ajax/commonitilsatisfaction.php` directly instead.
 
 
-## [10.0.16] unreleased
+## [10.0.17] unreleased
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### API changes
+
+#### Added
+
+#### Changes
+
+#### Deprecated
+
+#### Removed
+
+
+## [10.0.16] 2024-07-03
 
 ### Added
 

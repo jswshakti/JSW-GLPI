@@ -648,7 +648,17 @@ class Config extends CommonDBTM
             }
         }
 
-        $central = new Central();
+        $central_tabs = [
+            1 => __('Personal View'),
+            2 => __('Group View'),
+            3 => __('Global View'),
+            4 => _n('RSS feed', 'RSS feeds', Session::getPluralNumber()),
+        ];
+        $grid = new Glpi\Dashboard\Grid('central');
+        if ($grid::canViewOneDashboard()) {
+            array_unshift($central_tabs, __('Dashboard'));
+        }
+
         $palettes = $this->getPalettes(true);
         TemplateRenderer::getInstance()->display('pages/setup/general/preferences_setup.html.twig', [
             'is_user' => $userpref,
@@ -659,7 +669,7 @@ class Config extends CommonDBTM
             'palettes' => array_combine(array_keys($palettes), array_column($palettes, 'name')),
             'palettes_isdark' => array_combine(array_keys($palettes), array_column($palettes, 'dark')),
             'timezones' => $DB->use_timezones ? $DB->getTimezones() : null,
-            'central_tabs' => $central->getTabNameForItem($central, 0),
+            'central_tabs' => $central_tabs,
         ]);
     }
 
@@ -1012,8 +1022,29 @@ class Config extends CommonDBTM
             [ 'name'    => 'symfony/console',
                 'check'   => 'Symfony\\Component\\Console\\Application'
             ],
+            [ 'name'    => 'symfony/config',
+                'check'   => 'Symfony\\Component\\Config\\Loader\\LoaderInterface'
+            ],
+            [ 'name'    => 'symfony/dependency-injection',
+                'check'   => 'Symfony\\Component\\DependencyInjection\\ContainerInterface'
+            ],
+            [ 'name'    => 'symfony/event-dispatcher',
+                'check'   => 'Symfony\\Component\\EventDispatcher\\EventDispatcherInterface'
+            ],
             [ 'name'    => 'symfony/filesystem',
                 'check'   => 'Symfony\\Component\\Filesystem\\Filesystem'
+            ],
+            [ 'name'    => 'symfony/framework-bundle',
+                'check'   => 'Symfony\\Bundle\\FrameworkBundle\\FrameworkBundle'
+            ],
+            [ 'name'    => 'symfony/http-foundation',
+                'check'   => 'Symfony\\Component\\HttpFoundation\\Request'
+            ],
+            [ 'name'    => 'symfony/http-kernel',
+                'check'   => 'Symfony\\Component\\HttpKernel\\KernelInterface'
+            ],
+            [ 'name'    => 'symfony/routing',
+                'check'   => 'Symfony\\Component\\Routing\\RouterInterface'
             ],
             [ 'name'    => 'scssphp/scssphp',
                 'check'   => 'ScssPhp\ScssPhp\Compiler'
@@ -1154,7 +1185,19 @@ class Config extends CommonDBTM
             [
                 'name' => 'webonyx/graphql-php',
                 'check' => 'GraphQL\\GraphQL'
-            ]
+            ],
+            [
+                'name' => 'phpdocumentor/reflection-docblock',
+                'check' => 'phpDocumentor\Reflection\DocBlock'
+            ],
+            [
+                'name' => 'symfony/property-access',
+                'check' => 'Symfony\Component\PropertyAccess\PropertyAccess'
+            ],
+            [
+                'name' => 'symfony/serializer',
+                'check' => 'Symfony\Component\Serializer\Serializer'
+            ],
         ];
         return $deps;
     }

@@ -1381,8 +1381,8 @@ var GLPIImpact = {
             },
             {
                 id             : 'editEdge',
-                content        : '<i class="fas fa-edit me-2"></i>' + _.escape(__("Edge properties...")),
-                tooltipText    : _.escape(__("Set name for this edge")),
+                content        : '<i class="fas fa-edit me-2"></i>' + __("Edge properties..."),
+                tooltipText    : _.unescape(__("Set name for this edge")),
                 selector       : 'edge',
                 onClickFunction: this.menuOnEditEdge,
                 show           : !this.readonly,
@@ -3670,7 +3670,7 @@ var GLPIImpact = {
                     }
 
                     var str = '<p class="' + cssClass + '" data-id="' + value['id'] + '" data-type="' + itemtype + '">';
-                    str += '<img src="' + $(GLPIImpact.selectors.sideSearch + " img").attr('src') + '"></img>';
+                    str += `<img src='${_.escape(value['image'])}'></img>`;
                     str += value["name"];
 
                     if (isHidden) {

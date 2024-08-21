@@ -35,7 +35,7 @@
 
 namespace Glpi\Tests;
 
-use JsonConfigInterface;
+use Glpi\DBAL\JsonFieldInterface;
 
 /**
  * Helper class to ease form creation using DbTestCase::createForm()
@@ -277,7 +277,7 @@ class FormBuilder
      *
      * @param string $name          Question name
      * @param string $type          Question type
-     * @param string $default_value Question default value
+     * @param mixed  $default_value Question default value
      * @param string $extra_data    Question extra data
      * @param string $description   Question description
      * @param bool   $is_mandatory  Is the question mandatory ?
@@ -287,7 +287,7 @@ class FormBuilder
     public function addQuestion(
         string $name,
         string $type,
-        string $default_value = "",
+        mixed $default_value = "",
         string $extra_data = "",
         string $description = "",
         bool $is_mandatory = false,
@@ -378,13 +378,13 @@ class FormBuilder
      * Add a destination to the form
      *
      * @param string                  $strategy
-     * @param JsonConfigInterface $values
+     * @param JsonFieldInterface $values
      *
      * @return self To allow chain calls
      */
     public function addAccessControl(
         string $strategy,
-        JsonConfigInterface $config
+        JsonFieldInterface $config
     ): self {
         $this->access_control[$strategy] = $config;
         return $this;

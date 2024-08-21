@@ -531,7 +531,7 @@ JS;
         $description = Toolbox::stripTags($plugin['description']);
 
         $authors = Toolbox::stripTags(implode(', ', array_column($plugin['authors'] ?? [], 'name', 'id')));
-        $authors_title = Html::entities_deep($authors);
+        $authors_title = htmlspecialchars($authors);
         $authors = strlen($authors)
             ? "<i class='fa-fw ti ti-users'></i>{$authors}"
             : "";
@@ -550,28 +550,28 @@ JS;
             ? self::getStarsHtml($plugin['note'])
             : "";
 
-        $home_url = Html::entities_deep($plugin['homepage_url'] ?? "");
+        $home_url = htmlspecialchars($plugin['homepage_url'] ?? "");
         $home_url = strlen($home_url)
             ? "<a href='{$home_url}' target='_blank' >
                <i class='ti ti-home-2 add_tooltip' title='" . __s("Homepage") . "'></i>
                </a>"
             : "";
 
-        $issues_url = Html::entities_deep($plugin['issues_url'] ?? "");
+        $issues_url = htmlspecialchars($plugin['issues_url'] ?? "");
         $issues_url = strlen($issues_url)
             ? "<a href='{$issues_url}' target='_blank' >
                <i class='ti ti-bug add_tooltip' title='" . __s("Get help") . "'></i>
                </a>"
             : "";
 
-        $readme_url = Html::entities_deep($plugin['readme_url'] ?? "");
+        $readme_url = htmlspecialchars($plugin['readme_url'] ?? "");
         $readme_url = strlen($readme_url)
             ? "<a href='{$readme_url}' target='_blank' >
                <i class='ti ti-book add_tooltip' title='" . __s("Readme") . "'></i>
                </a>"
             : "";
 
-        $changelog_url = Html::entities_deep($plugin['changelog_url'] ?? "");
+        $changelog_url = htmlspecialchars($plugin['changelog_url'] ?? "");
         $changelog_url = strlen($changelog_url)
             ? "<a href='{$changelog_url}' target='_blank' >
                <i class='ti ti-news add_tooltip' title='" . __s("Changelog") . "'></i>
@@ -845,26 +845,32 @@ HTML;
 
         if ($can_run_local_install) {
             $title = __s("Install");
-            $icon  = "ti ti-folder-plus";
+            $icon = "ti ti-folder-plus";
             if ($has_local_update) {
                 $title = __s("Update");
-                $icon  =  "far fa-caret-square-up";
+                $icon = "far fa-caret-square-up";
+                $buttons .= TemplateRenderer::getInstance()->render('components/plugin_update_modal.html.twig', [
+                    'plugin_name' => $plugin_inst->getField('name'),
+                    'to_version' => $plugin_inst->getField('version'),
+                    'modal_id' => 'updateModal' . $plugin_inst->getField('directory'),
+                    'open_btn' => '<button data-bs-toggle="modal"
+                                           data-bs-target="#updateModal' . $plugin_inst->getField('directory') . '"
+                                           title="' . $title . '">
+                                       <i class="' . $icon . '"></i>
+                                   </button>',
+                    'update_btn' => '<a href="#" class="btn btn-info w-100 modify_plugin"
+                                           data-action="install_plugin"
+                                           data-bs-dismiss="modal">
+                                           ' . _x("button", "Update") . '
+                                       </a>',
+                ]);
+            } else {
+                $buttons .= "<button class='modify_plugin'
+                                     data-action='install_plugin'
+                                     title='" . $title . "'>
+                        <i class='$icon'></i>
+                    </button>";
             }
-            $buttons .= TemplateRenderer::getInstance()->render('components/plugin_update_modal.html.twig', [
-                'plugin_name' => $plugin_inst->getField('name'),
-                'to_version' => $plugin_inst->getField('version'),
-                'modal_id' => 'updateModal' . $plugin_inst->getField('directory'),
-                'open_btn' => '<button data-bs-toggle="modal"
-                                       data-bs-target="#updateModal' . $plugin_inst->getField('directory') . '"
-                                       title="' . $title . '">
-                                   <i class="' . $icon . '"></i>
-                               </button>',
-                'update_btn' => '<a href="#" class="btn btn-info w-100 modify_plugin"
-                                       data-action="install_plugin"
-                                       data-bs-dismiss="modal">
-                                       ' . _x("button", "Update") . '
-                                   </a>',
-            ]);
         }
 
         if ($is_installed) {
@@ -884,19 +890,25 @@ HTML;
                 }
             }
 
-            $buttons .= TemplateRenderer::getInstance()->render('components/plugin_uninstall_modal.html.twig', [
-                'plugin_name' => $plugin_inst->getField('name'),
+            $uninstall_label = __s("Uninstall");
+            $buttons .= <<<HTML
+                <button data-bs-toggle="modal"
+                        data-bs-target="#uninstallModal{$plugin_inst->getField('directory')}"
+                        title="{$uninstall_label}">
+                    <i class="ti ti-folder-x"></i>
+                </button>
+HTML;
+            $buttons .= TemplateRenderer::getInstance()->render('components/danger_modal.html.twig', [
                 'modal_id' => 'uninstallModal' . $plugin_inst->getField('directory'),
-                'open_btn' => '<button data-bs-toggle="modal"
-                                       data-bs-target="#uninstallModal' . $plugin_inst->getField('directory') . '"
-                                       title="' . __s('Uninstall') . '">
-                                   <i class="ti ti-folder-x"></i>
-                               </button>',
-                'uninstall_btn' => '<a href="#" class="btn btn-danger w-100 modify_plugin"
+                'confirm_btn' => '<a href="#" class="btn btn-danger w-100 modify_plugin"
                                        data-action="uninstall_plugin"
                                        data-bs-dismiss="modal">
                                        ' . _x("button", "Uninstall") . '
                                    </a>',
+                'content' => sprintf(
+                    __s('By uninstalling the "%s" plugin you will lose all the data of the plugin.'),
+                    htmlspecialchars($plugin_inst->getField('name'))
+                )
             ]);
 
             if (!strlen($error) && $is_actived && $config_page) {
@@ -927,7 +939,7 @@ HTML;
     {
         $icon = "";
 
-        $logo_url = Html::entities_deep($plugin['logo_url'] ?? "");
+        $logo_url = htmlspecialchars($plugin['logo_url'] ?? "");
         if (strlen($logo_url)) {
             $icon = "<img src='{$logo_url}'>";
         } else {

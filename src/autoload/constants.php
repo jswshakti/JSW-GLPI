@@ -33,17 +33,19 @@
  * ---------------------------------------------------------------------
  */
 
+define('GLPI_ROOT', dirname(__DIR__, 2));
+
 // Current version of GLPI
 define('GLPI_VERSION', '11.0.0-dev');
 
-$schema_file = sprintf('%s/install/mysql/glpi-empty.sql', dirname(__FILE__, 3));
+$schema_file = sprintf('%s/install/mysql/glpi-empty.sql', GLPI_ROOT);
 define(
     "GLPI_SCHEMA_VERSION",
     GLPI_VERSION . (is_readable($schema_file) ? '@' . sha1_file($schema_file) : '')
 );
 
-define('GLPI_MIN_PHP', '8.2'); // Must also be changed in top of index.php
-define('GLPI_MAX_PHP', '8.3'); // Must also be changed in top of index.php
+define('GLPI_MIN_PHP', '8.2'); // Must also be changed in top of public/index.php
+define('GLPI_MAX_PHP', '8.3'); // Must also be changed in top of public/index.php
 define('GLPI_YEAR', '2024');
 
 //Define a global recipient address for email notifications
@@ -105,3 +107,6 @@ define("ERROR_RIGHT", 2);
 define("ERROR_COMPAT", 3);
 define("ERROR_ON_ACTION", 4);
 define("ERROR_ALREADY_DEFINED", 5);
+
+// Directory constants
+define('GLPI_I18N_DIR', GLPI_ROOT . "/locales");

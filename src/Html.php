@@ -53,14 +53,24 @@ use ScssPhp\ScssPhp\Compiler;
 class Html
 {
     /**
+     * Indicates whether the request is made in an AJAX context.
+     * @FIXME This flag is actually not set to true by all AJAX requests.
+     */
+    private static bool $is_ajax_request = false;
+
+    /**
      * Recursivly execute html_entity_decode on an array
      *
      * @param string|array $value
      *
      * @return string|array
+     *
+     * @deprecated 11.0.0
      **/
     public static function entity_decode_deep($value)
     {
+        Toolbox::deprecated();
+
         if (is_array($value)) {
             return array_map([__CLASS__, 'entity_decode_deep'], $value);
         }
@@ -77,9 +87,13 @@ class Html
      * @param string|array $value
      *
      * @return string|array
+     *
+     * @deprecated 11.0.0
      **/
     public static function entities_deep($value)
     {
+        Toolbox::deprecated();
+
         if (is_array($value)) {
             return array_map([__CLASS__, 'entities_deep'], $value);
         }
@@ -117,7 +131,7 @@ class Html
         try {
             $date = new \DateTime($time);
         } catch (\Throwable $e) {
-            ErrorHandler::getInstance()->handleException($e);
+            ErrorHandler::getInstance()->handleException($e, false);
             Session::addMessageAfterRedirect(
                 htmlspecialchars(sprintf(
                     __('%1$s %2$s'),
@@ -450,14 +464,13 @@ class Html
     public static function redirectToLogin($params = '')
     {
         /**
-         * @var int $AJAX_INCLUDE
          * @var array $CFG_GLPI
          */
-        global $AJAX_INCLUDE, $CFG_GLPI;
+        global $CFG_GLPI;
 
-        $dest     = $CFG_GLPI["root_doc"] . "/index.php";
+        $dest = $CFG_GLPI["root_doc"] . "/index.php";
 
-        if (!$AJAX_INCLUDE) {
+        if (!self::$is_ajax_request) {
             $url_dest = preg_replace(
                 '/^' . preg_quote($CFG_GLPI["root_doc"], '/') . '/',
                 '',
@@ -1211,7 +1224,7 @@ HTML;
         } else {
             $theme_path = $theme->getPath();
         }
-        $tpl_vars['css_files'][] = ['path' => 'css/tabler.scss'];
+        $tpl_vars['css_files'][] = ['path' => 'public/lib/tabler.css'];
         $tpl_vars['css_files'][] = ['path' => 'css/glpi.scss'];
         if ($theme->isCustomTheme()) {
             $tpl_vars['css_files'][] = ['path' => $theme_path];
@@ -1321,7 +1334,7 @@ HTML;
                 'title' => __('Tools'),
                 'types' => [
                     'Project', 'Reminder', 'RSSFeed', 'KnowbaseItem',
-                    'ReservationItem', 'Report', 'MigrationCleaner',
+                    'ReservationItem', 'Report',
                     'SavedSearch', 'Impact'
                 ],
                 'icon' => 'ti ti-briefcase'
@@ -1994,9 +2007,6 @@ HTML;
         $HEADER_LOADED = true;
        // Print a nice HTML-head with no controls
 
-       // Detect root_doc in case of error
-        Config::detectRootDoc();
-
        // Send UTF8 Headers
         header("Content-Type: text/html; charset=UTF-8");
 
@@ -2072,6 +2082,7 @@ HTML;
      * @return void
      */
     public static function zeroSecurityIframedHeader(
+        string $title = "",
         string $sector = "none",
         string $item = "none",
         string $option = ""
@@ -2084,7 +2095,7 @@ HTML;
         }
         $HEADER_LOADED = true;
 
-        self::includeHeader('', $sector, $item, $option, true, true);
+        self::includeHeader($title, $sector, $item, $option, true, true);
         echo "<body class='iframed'>";
         self::displayMessageAfterRedirect();
         echo "<div id='page'>";
@@ -2582,7 +2593,7 @@ HTML;
             } else {
                 $out .= "onclick='modal_massiveaction_window$identifier.show();'";
             }
-            $out .= " href='#modal_massaction_content$identifier' title=\"" . htmlentities($p['title'], ENT_QUOTES, 'UTF-8') . "\">";
+            $out .= " href='#modal_massaction_content$identifier' title=\"" . htmlspecialchars($p['title']) . "\">";
             if ($p['display_arrow']) {
                 $out .= "<i class='ti ti-corner-left-" . ($p['ontop'] ? 'down' : 'up') . " mt-1' style='margin-left: -2px;'></i>";
             }
@@ -3508,9 +3519,12 @@ JS;
      * @param boolean $enable_images    enable image pasting in rich text
      * @param int     $editor_height    editor default height
      * @param array   $add_body_classes tinymce iframe's body classes
+     * @param bool    $toolbar          tinymce toolbar (default: true)
      * @param string  $toolbar_location tinymce toolbar location (default: top)
      * @param bool    $init             init the editor (default: true)
      * @param string  $placeholder      textarea placeholder
+     * @param bool    $statusbar        tinymce statusbar (default: true)
+     * @param string  $content_style    content style to apply to the editor
      *
      * @return void|string
      *    integer if param display=true
@@ -3526,7 +3540,10 @@ JS;
         array $add_body_classes = [],
         string $toolbar_location = 'top',
         bool $init = true,
-        string $placeholder = ''
+        string $placeholder = '',
+        bool $toolbar = true,
+        bool $statusbar = true,
+        string $content_style = ''
     ) {
         /**
          * @var array $CFG_GLPI
@@ -3549,17 +3566,17 @@ JS;
        // Apply all GLPI styles to editor content
         $theme = ThemeManager::getInstance()->getCurrentTheme();
         $content_css_paths = [
-            'css/tabler.scss',
             'css/glpi.scss',
             'css/core_palettes.scss',
         ];
         if ($theme->isCustomTheme()) {
             $content_css_paths[] = $theme->getPath();
         }
-        $content_css = implode(',', array_map(static function ($path) {
+        $content_css = preg_replace('/^.*href="([^"]+)".*$/', '$1', self::css('public/lib/base.css', ['force_no_version' => true]));
+        $content_css .= ',' . preg_replace('/^.*href="([^"]+)".*$/', '$1', self::css('public/lib/tabler.css', ['force_no_version' => true]));
+        $content_css .= ',' . implode(',', array_map(static function ($path) {
             return preg_replace('/^.*href="([^"]+)".*$/', '$1', self::scss($path, ['force_no_version' => true]));
         }, $content_css_paths));
-        $content_css .= ',' . preg_replace('/^.*href="([^"]+)".*$/', '$1', self::css('public/lib/base.css', ['force_no_version' => true]));
         $skin_url = preg_replace('/^.*href="([^"]+)".*$/', '$1', self::css('css/standalone/tinymce_empty_skin', ['force_no_version' => true]));
 
         // TODO: the recent changes to $skin_url above break tinyMCE's placeholders
@@ -3617,118 +3634,128 @@ JS;
         // Compute init option as "string boolean" so it can be inserted directly into the js output
         $init = $init ? 'true' : 'false';
 
+        // Compute toolbar option as "string boolean" so it can be inserted directly into the js output
+        $toolbar = $toolbar ? 'true' : 'false';
+
+        // Compute statusbar option as "string boolean" so it can be inserted directly into the js output
+        $statusbar = $statusbar ? 'true' : 'false';
+
         $js = <<<JS
-         $(function() {
-            const html_el = $('html');
-            var richtext_layout = "{$_SESSION['glpirichtext_layout']}";
+            $(function() {
+                const html_el = $('html');
+                var richtext_layout = "{$_SESSION['glpirichtext_layout']}";
 
-            // Store config in global var so the editor can be reinitialized from the client side if needed
-            tinymce_editor_configs['{$id}'] = Object.assign({
-               license_key: 'gpl',
+                // Store config in global var so the editor can be reinitialized from the client side if needed
+                tinymce_editor_configs['{$id}'] = Object.assign({
+                    license_key: 'gpl',
 
-               link_default_target: '_blank',
-               branding: false,
-               selector: '#' + $.escapeSelector('{$id}'),
-               text_patterns: false,
-               paste_webkit_styles: 'all',
+                    link_default_target: '_blank',
+                    branding: false,
+                    selector: '#' + $.escapeSelector('{$id}'),
+                    text_patterns: false,
+                    paste_webkit_styles: 'all',
 
-               plugins: {$pluginsjs},
+                    plugins: {$pluginsjs},
 
-               // Appearance
-               skin_url: '{$skin_url}', // Doesn't matter which skin is used. We include the proper skins in the core GLPI styles.
-               body_class: '{$body_class}',
-               content_css: '{$content_css}',
-               highlight_on_focus: false,
-               autoresize_bottom_margin: 0, // Avoid excessive bottom padding
-               autoresize_overflow_padding: 0,
+                    // Appearance
+                    skin_url: '{$skin_url}', // Doesn't matter which skin is used. We include the proper skins in the core GLPI styles.
+                    body_class: '{$body_class}',
+                    content_css: '{$content_css}',
+                    content_style: '{$content_style}',
+                    highlight_on_focus: false,
+                    autoresize_bottom_margin: 1, // Avoid excessive bottom padding
+                    autoresize_overflow_padding: 0,
 
-               min_height: $editor_height,
-               height: $editor_height, // Must be used with min_height to prevent "height jump" when the page is loaded
-               resize: true,
+                    min_height: $editor_height,
+                    height: $editor_height, // Must be used with min_height to prevent "height jump" when the page is loaded
+                    resize: true,
 
-               // disable path indicator in bottom bar
-               elementpath: false,
+                    // disable path indicator in bottom bar
+                    elementpath: false,
 
-               placeholder: "{$placeholder}",
+                    placeholder: "{$placeholder}",
 
-               // inline toolbar configuration
-               menubar: false,
-               toolbar_location: '{$toolbar_location}',
-               toolbar: richtext_layout == 'classic'
-                  ? 'styles | bold italic | forecolor backcolor | bullist numlist outdent indent | emoticons table link image | code fullscreen'
-                  : false,
-               quickbars_insert_toolbar: richtext_layout == 'inline'
-                  ? 'emoticons quicktable quickimage quicklink | bullist numlist | outdent indent '
-                  : false,
-               quickbars_selection_toolbar: richtext_layout == 'inline'
-                  ? 'bold italic | styles | forecolor backcolor '
-                  : false,
-               contextmenu: richtext_layout == 'classic'
-                  ? false
-                  : 'copy paste | emoticons table image link | undo redo | code fullscreen',
+                    // inline toolbar configuration
+                    menubar: false,
+                    toolbar_location: '{$toolbar_location}',
+                    toolbar: {$toolbar} && richtext_layout == 'classic'
+                        ? 'styles | bold italic | forecolor backcolor | bullist numlist outdent indent | emoticons table link image | code fullscreen'
+                        : false,
+                    quickbars_insert_toolbar: richtext_layout == 'inline'
+                        ? 'emoticons quicktable quickimage quicklink | bullist numlist | outdent indent '
+                        : false,
+                    quickbars_selection_toolbar: richtext_layout == 'inline'
+                        ? 'bold italic | styles | forecolor backcolor '
+                        : false,
+                    contextmenu: richtext_layout == 'classic'
+                        ? false
+                        : 'copy paste | emoticons table image link | undo redo | code fullscreen',
 
-               // Content settings
-               entity_encoding: 'raw',
-               invalid_elements: '{$invalid_elements}',
-               readonly: {$readonlyjs},
-               relative_urls: false,
-               remove_script_host: false,
+                    // Status bar configuration
+                    statusbar: {$statusbar},
 
-               // Misc options
-               browser_spellcheck: true,
-               cache_suffix: '{$cache_suffix}',
+                    // Content settings
+                    entity_encoding: 'raw',
+                    invalid_elements: '{$invalid_elements}',
+                    readonly: {$readonlyjs},
+                    relative_urls: false,
+                    remove_script_host: false,
 
-               // Security options
-               // Iframes are disabled by default. We assume that administrator that enable it are aware of the potential security issues.
-               sandbox_iframes: false,
+                    // Misc options
+                    browser_spellcheck: true,
+                    cache_suffix: '{$cache_suffix}',
 
-               init_instance_callback: (editor) => {
-                   const page_root_el = $(document.documentElement);
-                   const root_el = $(editor.dom.doc.documentElement);
-                   // Copy data-glpi-theme and data-glpi-theme-dark from page html element to editor root element
-                   const to_copy = ['data-glpi-theme', 'data-glpi-theme-dark'];
-                   for (const attr of to_copy) {
-                       if (page_root_el.attr(attr) !== undefined) {
-                           root_el.attr(attr, page_root_el.attr(attr));
-                       }
-                   }
-               },
-               setup: function(editor) {
-                  // "required" state handling
-                  if ($('#$id').attr('required') == 'required') {
-                     $('#$id').removeAttr('required'); // Necessary to bypass browser validation
+                    // Security options
+                    // Iframes are disabled by default. We assume that administrator that enable it are aware of the potential security issues.
+                    sandbox_iframes: false,
 
-                     editor.on('submit', function (e) {
-                        if ($('#$id').val() == '') {
-                           const field = $('#$id').closest('.form-field').find('label').text().replace('*', '').trim();
-                           alert({$mandatory_field_msg}.replace('%s', field));
-                           e.preventDefault();
-
-                           // Prevent other events to run
-                           // Needed to not break single submit forms
-                           e.stopPropagation();
+                    init_instance_callback: (editor) => {
+                        const page_root_el = $(document.documentElement);
+                        const root_el = $(editor.dom.doc.documentElement);
+                        // Copy data-glpi-theme and data-glpi-theme-dark from page html element to editor root element
+                        const to_copy = ['data-glpi-theme', 'data-glpi-theme-dark'];
+                        for (const attr of to_copy) {
+                            if (page_root_el.attr(attr) !== undefined) {
+                                root_el.attr(attr, page_root_el.attr(attr));
+                            }
                         }
-                     });
-                     editor.on('keyup', function (e) {
-                        editor.save();
-                        if ($('#$id').val() == '') {
-                           $(editor.container).addClass('required');
-                        } else {
-                           $(editor.container).removeClass('required');
+                    },
+                    setup: function(editor) {
+                        // "required" state handling
+                        if ($('#$id').attr('required') == 'required') {
+                            $('#$id').removeAttr('required'); // Necessary to bypass browser validation
+
+                            editor.on('submit', function (e) {
+                                if ($('#$id').val() == '') {
+                                    const field = $('#$id').closest('.form-field').find('label').text().replace('*', '').trim();
+                                    alert({$mandatory_field_msg}.replace('%s', field));
+                                    e.preventDefault();
+
+                                    // Prevent other events to run
+                                    // Needed to not break single submit forms
+                                    e.stopPropagation();
+                                }
+                            });
+                            editor.on('keyup', function (e) {
+                                editor.save();
+                                if ($('#$id').val() == '') {
+                                    $(editor.container).addClass('required');
+                                } else {
+                                    $(editor.container).removeClass('required');
+                                }
+                            });
+                            editor.on('init', function (e) {
+                                if (strip_tags($('#$id').val()) == '') {
+                                    $(editor.container).addClass('required');
+                                }
+                            });
+                            editor.on('paste', function (e) {
+                                // Remove required on paste event
+                                // This is only needed when pasting with right click (context menu)
+                                // Pasting with Ctrl+V is already handled by keyup event above
+                                $(editor.container).removeClass('required');
+                            });
                         }
-                     });
-                     editor.on('init', function (e) {
-                        if (strip_tags($('#$id').val()) == '') {
-                           $(editor.container).addClass('required');
-                        }
-                     });
-                     editor.on('paste', function (e) {
-                        // Remove required on paste event
-                        // This is only needed when pasting with right click (context menu)
-                        // Pasting with Ctrl+V is already handled by keyup event above
-                        $(editor.container).removeClass('required');
-                     });
-                   }
                         // Propagate click event to allow other components to
                         // listen to it
                         editor.on('click', function (e) {
@@ -4012,7 +4039,7 @@ JAVASCRIPT
                                 echo "(object) " . get_class($val);
                             }
                         } else {
-                            echo htmlentities($val ?? "");
+                            echo htmlspecialchars($val ?? "");
                         }
                     }
                 }
@@ -4501,6 +4528,8 @@ JS;
             'parent_id_field'     => null,
             'templateResult'      => 'templateResult',
             'templateSelection'   => 'templateSelection',
+            'container_css_class' => '',
+            'aria_label'          => '',
         ];
         $params = array_merge($default_options, $params);
 
@@ -4512,6 +4541,8 @@ JS;
         $multiple = $params['multiple'];
         $templateResult = $params['templateResult'];
         $templateSelection = $params['templateSelection'];
+        $container_css_class = $params['container_css_class'];
+        $aria_label = $params['aria_label'];
         unset($params["on_change"], $params["width"]);
 
         $allowclear =  "false";
@@ -4540,6 +4571,11 @@ JS;
         $parent_id_field = $params['parent_id_field'];
 
         unset($params['placeholder'], $params['value'], $params['valuename'], $params['parent_id_field']);
+
+        if (!empty($aria_label)) {
+            $params['specific_tags']['aria-label'] = $aria_label;
+        }
+        unset($params['aria_label']);
 
         foreach ($params['specific_tags'] as $tag => $val) {
             if (is_array($val)) {
@@ -4579,6 +4615,7 @@ JS;
                 on_change: {$on_change},
                 templateResult: {$templateResult},
                 templateSelection: {$templateSelection},
+                container_css_class: '{$params['container_css_class']}',
                 params: {
                     {$js_params}
                 }
@@ -4775,7 +4812,8 @@ JS;
         }
         $select = '';
         if (isset($options['multiple']) && $options['multiple']) {
-            $original_field_name = htmlspecialchars(rtrim($name, '[]'));
+            $original_field_name = str_ends_with($name, '[]') ? substr($name, 0, -2) : $name;
+            $original_field_name = htmlspecialchars($original_field_name);
             $select .= "<input type='hidden' name='$original_field_name' value=''>";
         }
         $select .= sprintf(
@@ -5055,26 +5093,26 @@ HTML;
      *
      * @since 9.4
      *
-     * @param string  $url                   File to include (relative to GLPI_ROOT)
-     * @param array   $options               Array of HTML attributes
-     * @param bool    $force_compiled_file   Force usage of compiled file, even in debug mode (usefull for install/update process)
+     * @param string  $url      File to include (relative to GLPI_ROOT)
+     * @param array   $options  Array of HTML attributes
+     * @param bool    $no_debug Ignore the debug mode of GLPI (usefull for install/update process)
      *
      * @return string CSS link tag
      **/
-    public static function scss($url, $options = [], bool $force_compiled_file = false)
+    public static function scss($url, $options = [], bool $no_debug = false)
     {
         $prod_file = self::getScssCompilePath($url);
 
         if (
             file_exists($prod_file)
-            && ($force_compiled_file || $_SESSION['glpi_use_mode'] != Session::DEBUG_MODE)
+            && ($no_debug || $_SESSION['glpi_use_mode'] != Session::DEBUG_MODE)
         ) {
             $url = self::getPrefixedUrl(str_replace(GLPI_ROOT, '', $prod_file));
         } else {
             $file = $url;
             $url = self::getPrefixedUrl('/front/css.php');
             $url .= '?file=' . $file;
-            if ($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE) {
+            if (!$no_debug && $_SESSION['glpi_use_mode'] == Session::DEBUG_MODE) {
                 $url .= '&debug';
             }
         }
@@ -6416,13 +6454,14 @@ HTML;
 
         $css = '';
         try {
-            Toolbox::logDebug("Compile $file");
+            $start = microtime(true);
             $result = $scss->compileString($import, dirname($path));
             $css = $result->getCss();
             if (!isset($args['nocache'])) {
                 $GLPI_CACHE->set($ckey, $css);
                 $GLPI_CACHE->set($fckey, $file_hash);
             }
+            Toolbox::logDebug(sprintf('Compiling the file `%s` took %s seconds.', $file, round(microtime(true) - $start, 2)));
         } catch (\Throwable $e) {
             ErrorHandler::getInstance()->handleException($e, true);
             if (isset($args['debug'])) {
@@ -6620,5 +6659,21 @@ CSS;
         }
 
         return "";
+    }
+
+    /**
+     * Indicates that the request is made in an AJAX context.
+     */
+    public static function setAjax(): void
+    {
+        self::$is_ajax_request = true;
+    }
+
+    /**
+     * Unset the flag that indicates that the request is made in an AJAX context.
+     */
+    public static function resetAjaxParam(): void
+    {
+        self::$is_ajax_request = false;
     }
 }

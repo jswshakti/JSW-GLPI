@@ -234,7 +234,14 @@ final class DbUtils
                 $table = substr($table, \strlen(NS_GLPI));
             }
         }
+
+        // handle PHPUnit mocks
+        if (str_starts_with($table, 'mockobject_')) {
+            $table = preg_replace('/^mockobject_(.+)_.+$/', '$1', $table);
+        }
+        // handle aoutm mocks
         $table = str_replace(['mock\\', '\\'], ['', '_'], $table);
+
         if (strstr($table, '_')) {
             $split = explode('_', $table);
 
@@ -409,11 +416,14 @@ final class DbUtils
         }
 
         if (
-            (
-                $mapping[$context] !== null
+            !defined('TU_USER')
+            && (
+                (
+                    $mapping[$context] !== null
                 && !in_array(GLPI_ENVIRONMENT_TYPE, [GLPI::ENV_DEVELOPMENT, GLPI::ENV_TESTING])
+                )
+                || in_array($context, $already_scanned)
             )
-            || in_array($context, $already_scanned)
         ) {
             // Do not scan class files if mapping was already cached, unless current env is development/testing.
             //

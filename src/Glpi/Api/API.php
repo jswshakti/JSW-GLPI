@@ -149,8 +149,7 @@ abstract class API
         /** @var array $CFG_GLPI */
         global $CFG_GLPI;
 
-       // Load GLPI configuration
-        include_once(GLPI_ROOT . '/inc/includes.php');
+        // Load GLPI configuration
         $variables = get_defined_vars();
         foreach ($variables as $var => $value) {
             if ($var === strtoupper($var)) {
@@ -367,6 +366,10 @@ abstract class API
             }
             if ($session != $current && !empty($session)) {
                 session_id($session);
+
+                // Restart the session
+                Session::start();
+                Session::loadLanguage();
             }
         }
     }
@@ -1239,6 +1242,13 @@ abstract class API
 
             // make text search
             foreach ($search_values as $filter_field => $filter_value) {
+                if (!$DB->fieldExists($table, $filter_field)) {
+                    $this->returnError(
+                        sprintf(__('Field %s is not valid for %s item.'), $filter_field, $item->getType()),
+                        400,
+                        "ERROR_FIELD_NOT_FOUND"
+                    );
+                }
                 if (!empty($filter_value)) {
                     $criteria['WHERE']["$table.$filter_field"] = ['LIKE', SQLProvider::makeTextSearchValue($filter_value)];
                 }

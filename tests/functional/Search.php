@@ -580,7 +580,6 @@ class Search extends DbTestCase
                 \CommonITILRecurrentCron::class, // not searchable
                 \CommonITILValidationCron::class, // not searchable
                 \Item_Devices::class, // should be abstract
-                \NetworkPortMigration::class, // has no table by default
                 \NetworkPortInstantiation::class, // should be abstract
                 \NotificationSettingConfig::class, // not searchable
                 \PendingReasonCron::class, // not searchable
@@ -808,10 +807,12 @@ class Search extends DbTestCase
         $search_params = ['is_deleted'   => 0,
             'start'        => 0,
             'search'       => 'Search',
-            'criteria'     => [0 => ['field'      => 'view',
-                'searchtype' => 'contains',
-                'value'      => ''
-            ]
+            'criteria'     => [
+                0 => [
+                    'field'      => 'view',
+                    'searchtype' => 'contains',
+                    'value'      => ''
+                ]
             ],
                                                      // group is_notify
             'metacriteria' => [0 => ['link'       => 'AND',
@@ -1899,10 +1900,8 @@ class Search extends DbTestCase
             'users_id',
             'contact',
             'contact_num',
-            'groups_id',
             'date_mod',
             'manufacturers_id',
-            'groups_id_tech',
             'entities_id',
         ];
 
@@ -2573,7 +2572,6 @@ class Search extends DbTestCase
             [
                 '/^Common.*/', // Should be abstract
                 'NetworkPortInstantiation', // Should be abstract (or have $notable = true)
-                'NetworkPortMigration', // Tables only exists in specific cases
                 'NotificationSettingConfig', // Stores its data in glpi_configs, does not acts as a CommonDBTM
                 'PendingReasonCron',
                 \PrintPreview::class, // not searchable
@@ -3957,7 +3955,7 @@ class Search extends DbTestCase
     }
 
     /**
-     * @dataprovider containsCriterionProvider
+     * @dataProvider containsCriterionProvider
      */
     public function testContainsCriterion(
         string $itemtype,
@@ -4426,7 +4424,7 @@ class Search extends DbTestCase
     }
 
     /**
-     * @dataprovider testRichTextProvider
+     * @dataProvider testRichTextProvider
      */
     public function testRichText(
         array $search_params,

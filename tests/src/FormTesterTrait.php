@@ -36,7 +36,7 @@
 namespace Glpi\Tests;
 
 use Glpi\Form\AccessControl\FormAccessControl;
-use Glpi\Form\AccessControl\FormAccessControlManager;
+use Glpi\Form\AnswersHandler\AnswersHandler;
 use Glpi\Form\Comment;
 use Glpi\Form\Destination\FormDestination;
 use Glpi\Form\Form;
@@ -44,6 +44,8 @@ use Glpi\Form\Question;
 use Glpi\Form\Section;
 use Glpi\Form\Tag\Tag;
 use Glpi\Tests\FormBuilder;
+use Ticket;
+use User;
 
 /**
  * Helper trait to tests helpdesk form related features
@@ -88,6 +90,8 @@ trait FormTesterTrait
                     'is_mandatory'      => $question_data['is_mandatory'],
                     'default_value'     => $question_data['default_value'],
                     'extra_data'        => $question_data['extra_data'],
+                ], [
+                    'default_value', // The default value can be formatted by the question type
                 ]);
             }
 
@@ -175,7 +179,7 @@ trait FormTesterTrait
                 fn($question) => $question->fields['name'] === $question_name
                     && $question->fields['forms_sections_id'] === $section->getID()
             );
-            $this->array($filtered_questions)->hasSize(1);
+            $this->assertCount(1, $filtered_questions);
             $question = array_pop($filtered_questions);
             return $question->getID();
         }
@@ -253,7 +257,7 @@ trait FormTesterTrait
                 fn($comment) => $comment->fields['name'] === $comment_name
                     && $comment->fields['forms_sections_id'] === $section->getID()
             );
-            $this->array($filtered_comments)->hasSize(1);
+            $this->assertCount(1, $filtered_comments);
             $comment = array_pop($filtered_comments);
             return $comment->getID();
         }
@@ -288,5 +292,78 @@ trait FormTesterTrait
             $tags,
             fn($tag) => $tag->label === $name,
         ));
+    }
+
+    protected function addSectionToForm(Form $form, string $section_name): Section
+    {
+        $section = $this->createItem(Section::class, [
+            'forms_forms_id' => $form->getID(),
+            'name'           => $section_name,
+        ]);
+
+        return $section;
+    }
+
+    protected function addQuestionToForm(Form $form, string $question_name): Question
+    {
+        // Get last section
+        $sections = $form->getSections();
+        $section = end($sections);
+
+        $question = $this->createItem(Question::class, [
+            'forms_sections_id' => $section->getID(),
+            'name'              => $question_name,
+        ]);
+
+        return $question;
+    }
+
+    protected function addCommentBlockToForm(
+        Form $form,
+        string $title,
+        string $content,
+    ): Comment {
+        // Get last section
+        $sections = $form->getSections();
+        $section = end($sections);
+
+        $comment = $this->createItem(Comment::class, [
+            'forms_sections_id' => $section->getID(),
+            'name'              => $title,
+            'description'       => $content,
+        ]);
+
+        return $comment;
+    }
+
+    protected function sendFormAndGetCreatedTicket(
+        Form $form, // We assume $form has a single "Ticket" destination
+        array $answers = [],
+    ): Ticket {
+        // The provider use a simplified answer format to be more readable.
+        // Rewrite answers into expected format.
+        $formatted_answers = [];
+        foreach ($answers as $question => $answer) {
+            $key = $this->getQuestionId($form, $question);
+            // Real answer will be decoded as string by default
+            $formatted_answers[$key] = (string) $answer;
+        }
+
+        // Submit form
+        $answers_handler = AnswersHandler::getInstance();
+        $answers = $answers_handler->saveAnswers(
+            $form,
+            $formatted_answers,
+            getItemByTypeName(User::class, TU_USER, true)
+        );
+
+        // Get created ticket
+        $created_items = $answers->getCreatedItems();
+        $this->assertCount(1, $created_items);
+
+        /** @var Ticket $ticket */
+        $ticket = current($created_items);
+        $this->assertInstanceOf(Ticket::class, $ticket);
+        return $ticket;
     }
 }

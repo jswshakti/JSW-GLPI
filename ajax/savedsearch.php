@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-include('../inc/includes.php');
 header('Content-Type: application/json; charset=UTF-8');
 Html::header_nocache();
 
@@ -92,7 +91,7 @@ if ($action == 'display_mine') {
 }
 
 if ($action == 'reorder') {
-    $savedsearch->saveOrder($_POST['ids']);
+    $savedsearch->saveOrder(array_map('intval', $_POST['ids']));
     header("Content-Type: application/json; charset=UTF-8");
     echo json_encode(['res' => true]);
 }

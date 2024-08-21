@@ -818,7 +818,17 @@ class Toolbox
     {
 
        //TRANS: list of unit (o for octet)
-        $bytes = [__('o'), __('Kio'), __('Mio'), __('Gio'), __('Tio'), __('Pio'), __('Eio'), __('Zio'), __('Yio')];
+        $bytes = [
+            _x('size', 'B'),
+            _x('size', 'KiB'),
+            _x('size', 'MiB'),
+            _x('size', 'GiB'),
+            _x('size', 'TiB'),
+            _x('size', 'PiB'),
+            _x('size', 'EiB'),
+            _x('size', 'ZiB'),
+            _x('size', 'YiB'),
+        ];
         foreach ($bytes as $val) {
             if ($size > 1024) {
                 $size = $size / 1024;
@@ -2437,12 +2447,20 @@ class Toolbox
                                 $height = $img_infos[1];
                             }
 
+                            // Avoids creating a link within a link, when the image is already in an <a> tag
+                            $add_link_tmp = $add_link;
+                            if ($add_link) {
+                                $pattern = '/<a[^>]*>[^<>]*?<img[^>]+' . preg_quote($image['tag'], '/') . '[^<]+>[^<>]*?<\/a>/s';
+                                if (preg_match($pattern, $content_text)) {
+                                    $add_link_tmp = false;
+                                }
+                            }
                             // replace image
                             $new_image =  Html::getImageHtmlTagForDocument(
                                 $id,
                                 $width,
                                 $height,
-                                $add_link,
+                                $add_link_tmp,
                                 $object_url_param
                             );
                             if (empty($new_image)) {
@@ -3072,7 +3090,7 @@ HTML;
      * This function checks the class itself and all parent classes for the trait.
      * @since 10.0.0
      * @param string|object $class The class or object
-     * @param string $trait The trait
+     * @param class-string $trait The trait
      * @return bool True if the class or its parents have the specified trait
      */
     public static function hasTrait($class, string $trait): bool

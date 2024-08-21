@@ -42,19 +42,18 @@ use Override;
 
 final class QuestionTagProvider implements TagProviderInterface
 {
-    public const ACCENT_COLOR = "orange";
+    #[Override]
+    public function getTagColor(): string
+    {
+        return "orange";
+    }
 
     #[Override]
     public function getTags(Form $form): array
     {
         $tags = [];
-        foreach ($form->getQuestions() as $questions) {
-            $tags[] = new Tag(
-                label: sprintf(__('Question: %s'), $questions->fields['name']),
-                value: $questions->getId(),
-                provider: self::class,
-                color: self::ACCENT_COLOR,
-            );
+        foreach ($form->getQuestions() as $question) {
+            $tags[] = $this->getTagForQuestion($question);
         }
 
         return $tags;
@@ -67,10 +66,19 @@ final class QuestionTagProvider implements TagProviderInterface
     ): string {
         $id = (int) $value;
 
-        $question = Question::getById((int) $id);
+        $question = Question::getById($id);
         if (!$question) {
             return '';
         }
         return $question->fields['name'];
+    }
+
+    public function getTagForQuestion(Question $question): Tag
+    {
+        return new Tag(
+            label: sprintf(__('Question: %s'), $question->fields['name']),
+            value: $question->getId(),
+            provider: self::class,
+        );
     }
 }

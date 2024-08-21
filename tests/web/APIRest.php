@@ -59,6 +59,7 @@ use User;
 class APIRest extends atoum
 {
     protected $session_token;
+    /** @var GuzzleHttp\Client */
     protected $http_client;
     protected $base_uri = "";
     protected $last_error;
@@ -3255,5 +3256,31 @@ class APIRest extends atoum
         $computer = new \Computer();
         $this->boolean((bool)$computer->getFromDB($computers_id))->isTrue();
         $this->boolean((bool)$computer->getField('is_deleted'))->isTrue();
+    }
+
+    public function testSearchTextResponseCode()
+    {
+        $data = $this->query(
+            'getItems',
+            ['itemtype' => Computer::class,
+                'headers'  => ['Session-Token' => $this->session_token],
+                'query'    => ['searchText' => ['test' => 'test']]
+            ],
+            400,
+            'ERROR_FIELD_NOT_FOUND'
+        );
+
+        $this->variable($data)->isNotFalse();
+
+        $data = $this->query(
+            'getItems',
+            ['itemtype' => Computer::class,
+                'headers'  => ['Session-Token' => $this->session_token],
+                'query'    => ['searchText' => ['name' => 'test']]
+            ],
+            200,
+        );
+
+        $this->variable($data)->isNotFalse();
     }
 }

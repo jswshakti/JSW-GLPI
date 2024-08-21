@@ -642,7 +642,17 @@ var urlExists = function(url) {
  * @return {string}  The formated size
  */
 var getSize = function (size) {
-    var bytes   = ['o', 'Kio', 'Mio', 'Gio', 'Tio'];
+    var bytes = [
+        _x('size', 'B'),
+        _x('size', 'KiB'),
+        _x('size', 'MiB'),
+        _x('size', 'GiB'),
+        _x('size', 'TiB'),
+        _x('size', 'PiB'),
+        _x('size', 'EiB'),
+        _x('size', 'ZiB'),
+        _x('size', 'YiB'),
+    ];
     var lastval = '';
     bytes.some(function(val) {
         if (size > 1024) {
@@ -1739,6 +1749,7 @@ function setupAjaxDropdown(config) {
     const field_id = $.escapeSelector(config.field_id);
 
     const select2_el = $('#' + field_id).select2({
+        containerCssClass: config.container_css_class,
         width: config.width,
         multiple: config.multiple,
         placeholder: config.placeholder,

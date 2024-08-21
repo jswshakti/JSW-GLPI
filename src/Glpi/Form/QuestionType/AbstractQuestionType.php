@@ -46,12 +46,6 @@ abstract class AbstractQuestionType implements QuestionTypeInterface
     }
 
     #[Override]
-    public function loadJavascriptFiles(): array
-    {
-        return []; // No extra JS files by default
-    }
-
-    #[Override]
     public function formatDefaultValueForDB(mixed $value): ?string
     {
         return $value; // Default value is already formatted
@@ -76,6 +70,19 @@ abstract class AbstractQuestionType implements QuestionTypeInterface
     }
 
     #[Override]
+    public function getFormEditorJsOptions(): string
+    {
+        return <<<JS
+            {
+                "extractDefaultValue": function (question) { return null; },
+                "convertDefaultValue": function (question, value) {
+                    return value;
+                }
+            }
+        JS;
+    }
+
+    #[Override]
     public function renderAdministrationOptionsTemplate(?Question $question): string
     {
         return ''; // No options by default
@@ -97,5 +104,11 @@ abstract class AbstractQuestionType implements QuestionTypeInterface
     public function getWeight(): int
     {
         return 10;
+    }
+
+    #[Override]
+    public function isAllowedForUnauthenticatedAccess(): bool
+    {
+        return false;
     }
 }

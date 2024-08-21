@@ -31,7 +31,15 @@
  * ---------------------------------------------------------------------
  */
 
-describe('Form preview', () => {
+// Tests from this file seems to randomly fail 1/20 times.
+// No one has been able to fix it yet, thus we are adding retries for now...
+const config = {
+    retries: {
+        runMode: 2,
+    },
+};
+
+describe('Form preview', config, () => {
     beforeEach(() => {
         cy.createWithAPI('Glpi\\Form\\Form', {
             'name': 'Test form preview',
@@ -48,15 +56,17 @@ describe('Form preview', () => {
 
     function checkPreviewButton() {
         // Check the preview button
+        cy.findByRole('button', { 'name': 'Preview' }).should('not.exist');
         cy.findByRole('button', { 'name': 'Save and preview' }).should('exist');
 
         // Save the form and check the preview button
-        cy.findByRole('button', { 'name': 'Save' }).click({ force: true });
+        cy.findByRole('button', { 'name': 'Save' }).click();
         cy.findByRole('alert')
             .should('contain.text', 'Item successfully updated')
             .within(() => {
                 cy.findByRole('button', { 'name': 'Close' }).click();
             });
+        cy.findByRole('link', { 'name': 'Save and preview' }).should('not.exist');
         cy.findByRole('link', { 'name': 'Preview' }).should('exist');
     }
 
@@ -85,14 +95,14 @@ describe('Form preview', () => {
     */
     it('Test form preview unsaved changes handling in sections', () => {
         // Add a new question
-        cy.findByRole('button', { 'name': 'Add a new question' }).click({ force: true });
+        cy.findByRole('button', { 'name': 'Add a new question' }).click();
         checkPreviewButton();
 
         // Focus question
         cy.findByRole('textbox', { 'name': 'Question name' }).click();
 
         // Add a new section
-        cy.findByRole('button', { 'name': 'Add a new section' }).click({ force: true });
+        cy.findByRole('button', { 'name': 'Add a new section' }).click();
         checkPreviewButton();
 
         cy.findAllByRole('region', { 'name': 'Form section' }).first().within(() => {
@@ -135,7 +145,7 @@ describe('Form preview', () => {
         };
 
         // Add a new question
-        cy.findByRole('button', { 'name': 'Add a new question' }).click({ force: true });
+        cy.findByRole('button', { 'name': 'Add a new question' }).click();
         check();
 
         // Edit the question name
@@ -185,7 +195,7 @@ describe('Form preview', () => {
         };
 
         // Add a new comment
-        cy.findByRole('button', { 'name': 'Add a new comment' }).click({ force: true });
+        cy.findByRole('button', { 'name': 'Add a new comment' }).click();
 
         // Edit the comment name
         cy.findByRole('textbox', { 'name': 'Comment title' }).type('Test comment');

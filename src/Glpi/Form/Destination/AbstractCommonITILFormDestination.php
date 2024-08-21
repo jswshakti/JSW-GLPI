@@ -79,12 +79,17 @@ abstract class AbstractCommonITILFormDestination extends AbstractFormDestination
         $input = [
             'name'    => '',
             'content' => '',
+            // Temporary as entity configuration is not yet available
+            'entities_id' => $form->fields['entities_id']
         ];
+
+        // Compute and apply template predefined template fields
+        $input = $this->applyPredefinedTemplateFields($input);
 
         // Compute input from fields configuration
         foreach ($this->getConfigurableFields() as $field) {
             $input = $field->applyConfiguratedValueToInputUsingAnswers(
-                $config[$field->getKey()] ?? null,
+                $field->getConfig($form, $config),
                 $input,
                 $answers_set
             );
@@ -131,7 +136,7 @@ abstract class AbstractCommonITILFormDestination extends AbstractFormDestination
     /**
      * List the configurable fields for this destination type.
      *
-     * @return \Glpi\Form\Destination\ConfigFieldInterface[]
+     * @return \Glpi\Form\Destination\AbstractConfigField[]
      */
     public function getConfigurableFields(): array
     {
@@ -149,5 +154,28 @@ abstract class AbstractCommonITILFormDestination extends AbstractFormDestination
         }
 
         return "config[$field_key]";
+    }
+
+    private function applyPredefinedTemplateFields(array $input): array
+    {
+        $itemtype = static::getTargetItemtype();
+
+        /** @var \CommonITILObject $itil */
+        $itil = new $itemtype();
+        $template = $itil->getITILTemplateToUse(
+            entities_id: $_SESSION["glpiactive_entity"]
+        );
+
+        $predefined_fields_class = $itemtype . "TemplatePredefinedField";
+
+        /** @var \ITILTemplatePredefinedField $predefined_fields */
+        $predefined_fields = new $predefined_fields_class();
+
+        $fields = $predefined_fields->getPredefinedFields($template->fields['id']);
+        foreach ($fields as $field => $value) {
+            $input[$field] = $value;
+        }
+
+        return $input;
     }
 }

@@ -48,7 +48,11 @@ Cypress.Commands.add('login', (username = 'e2e_tests', password = 'glpi') => {
         username,
         () => {
             cy.blockGLPIDashboards();
-            cy.visit('/');
+            cy.visit('/', {
+                headers: {
+                    'Accept-Language': 'en-GB,en;q=0.9',
+                }
+            });
             cy.title().should('eq', 'Authentication - GLPI');
             cy.findByRole('textbox', {'name': "Login"}).type(username);
             cy.findByLabelText("Password", {exact: false}).type(password);
@@ -73,6 +77,17 @@ Cypress.Commands.add('login', (username = 'e2e_tests', password = 'glpi') => {
             cacheAcrossSpecs: true,
         },
     );
+});
+
+/**
+ * @memberof Cypress.Chainable.prototype
+ * @method logout
+ * @description Logout of GLPI
+ * @returns Chainable
+ */
+Cypress.Commands.add('logout', () => {
+    cy.findByRole('link', {name: 'User menu'}).click();
+    cy.findByRole('link', {name: 'Logout'}).click();
 });
 
 /**
@@ -133,7 +148,10 @@ Cypress.Commands.add('iframe', {prevSubject: 'element'}, (iframe, url_pattern) =
     }
     return cy.wrap(new Cypress.Promise(resolve => {
         // Check if the iframe's content window is already loaded to a page on the same domain
-        if (iframe[0].contentWindow.location.href.match(url_pattern)) {
+        if (
+            iframe[0].contentWindow.location.href.match(url_pattern)
+            && iframe.contents().find('body').length > 0
+        ) {
             resolve(iframe.contents().find('body'));
             return;
         }

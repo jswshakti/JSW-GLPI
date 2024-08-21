@@ -173,13 +173,11 @@ final class AssetDefinitionManager
         // Register asset into configuration entries related to the capacities that cannot be disabled
         $config_keys = [
             'asset_types',
-            'linkuser_types',
-            'linkgroup_types',
-            'linkuser_tech_types',
-            'linkgroup_tech_types',
+            'assignable_types',
             'location_types',
             'state_types',
             'ticket_types',
+            'unicity_types'
         ];
         foreach ($config_keys as $config_key) {
             $CFG_GLPI[$config_key][] = $asset_class_name;

@@ -88,9 +88,21 @@
                     {% set question_type = form_block.getQuestionType() %}
                 {% endif %}
 
+                {% set skip_question = false %}
+
                 {# Skip unknown types (may be a disabled plugin) #}
-                {% if form_block is not instanceof('Glpi\\Form\\Question') or question_type is not null %}
-                    <div
+                {% if form_block is instanceof('Glpi\\Form\\Question') and question_type is null %}
+                    {% set skip_question = true %}
+                {% endif %}
+
+                {# Skip questions not allowed for anonymous forms #}
+                {% if not skip_question and form_block is instanceof('Glpi\\Form\\Question') and unauthenticated_user and not question_type.isAllowedForUnauthenticatedAccess() %}
+                    {% set skip_question = true %}
+                {% endif %}
+
+                {% if not skip_question %}
+                    <section
+                        aria-label="{{ form_block.fields.name }}"
                         class="card mb-3 {{ is_first_section ? "" : "d-none" }}"
                         data-glpi-form-renderer-parent-section="{{ section_index }}"
                     >
@@ -112,7 +124,7 @@
                                 {{ form_block.fields.description|safe_html }}
                             </div>
                         </div>
-                    </div>
+                    </section>
                 {% endif %}
             {% endfor %}
 
@@ -180,6 +192,8 @@
 </form>
 
 <script>
-    new GlpiFormRendererController($('#forms_form_answers'));
+    import("{{ js_path('js/modules/Forms/RendererController.js') }}").then((m) => {
+        new m.GlpiFormRendererController($('#forms_form_answers'));
+    });
 </script>
 

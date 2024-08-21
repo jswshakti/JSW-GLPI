@@ -39,7 +39,7 @@ use Glpi\Asset\AssetDefinitionManager;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Features\DCBreadcrumb;
-use Glpi\Features\AssignableAsset;
+use Glpi\Features\AssignableItem;
 use Glpi\Plugin\Hooks;
 use Glpi\SocketModel;
 
@@ -156,6 +156,12 @@ class Dropdown
             && ((strlen($params['value']) == 0) || !is_numeric($params['value']) && $params['value'] != 'mygroups')
         ) {
             $params['value'] = 0;
+        }
+
+        if ($params['multiple'] && $params['values'] === '') {
+            // Prevent issues when the value corresponds to the empty string default value sent by the form
+            // when no value is selected and is used when form is redisplayed due, for instance, to unicity check fails.
+            $params['values'] = [];
         }
 
         // Remove selected value from used to prevent current selected value from being hidden from available values
@@ -1292,7 +1298,8 @@ JAVASCRIPT;
                 ],
                 __('Others') => [
                     'USBVendor' => null,
-                    'PCIVendor' => null
+                    'PCIVendor' => null,
+                    WebhookCategory::class => null,
                 ]
 
             ]; //end $opt
@@ -1580,6 +1587,10 @@ JAVASCRIPT;
         $params['toupdate']            = '';
         $params['display']             = true;
         $params['track_changes']       = true;
+        $params['init']                = true;
+        $params['width']               = '';
+        $params['no_sort']             = false;
+        $params['aria_label']          = '';
 
         if (is_array($options) && count($options)) {
             foreach ($options as $key => $val) {
@@ -1590,17 +1601,11 @@ JAVASCRIPT;
         if (!is_array($types)) {
             $types = $CFG_GLPI["state_types"];
         }
-        $options = [];
+        $options = self::buildItemtypesDropdownOptions($types, $params['checkright']);
 
-        foreach ($types as $type) {
-            if ($item = getItemForItemtype($type)) {
-                if ($params['checkright'] && !$item->canView()) {
-                    continue;
-                }
-                $options[$type] = $item->getTypeName($params['plural'] ? 2 : 1);
-            }
+        if (!$params['no_sort']) {
+            asort($options);
         }
-        asort($options);
 
         if (count($options)) {
             return Dropdown::showFromArray($params['name'], $options, [
@@ -1612,9 +1617,49 @@ JAVASCRIPT;
                 'display'             => $params['display'],
                 'rand'                => $params['rand'],
                 'track_changes'       => $params['track_changes'],
+                'init'                => $params['init'],
+                'width'               => $params['width'],
+                'aria_label'          => $params['aria_label'],
             ]);
         }
         return 0;
+    }
+
+    /**
+     * Build dropdown options and check rights if needed
+     *
+     * This method dynamically builds dropdown options based on the provided types.
+     * It supports both single and multiple types (nested) and checks access rights if required.
+     *
+     * @param array       $types The types for which to build dropdown options. Can be a single type or an array of types.
+     * @param bool        $checkright Whether to check access rights for the type(s).
+     * @return array|null The built dropdown options, or null if access is denied or type is invalid.
+     */
+    public static function buildItemtypesDropdownOptions(
+        array $types,
+        bool $checkright = false
+    ): array|null {
+        $options = []; // Initialize the options array to accumulate results.
+
+        foreach ($types as $label => $type) {
+            if (!is_array($type)) {
+                if (
+                    ($item = getItemForItemtype($type)) !== false
+                    && (!$checkright || $item->canView())
+                ) {
+                    $options[$type] = $item->getTypeName();
+                }
+                continue;
+            }
+
+            // Recursively build dropdown options for the current type.
+            $opts = self::buildItemtypesDropdownOptions($type, $checkright);
+            if ($opts !== null) {
+                $options[$label] = $opts;
+            }
+        }
+
+        return $options;
     }
 
 
@@ -1648,22 +1693,28 @@ JAVASCRIPT;
         global $CFG_GLPI;
 
         $params = [
-            'itemtype_name'             => 'itemtype',
-            'items_id_name'             => 'items_id',
-            'itemtypes'                 => '',
-            'default_itemtype'          => 0,
-            'default_items_id'          => -1,
-            'entity_restrict'           => -1,
-            'onlyglobal'                => false,
-            'checkright'                => false,
-            'showItemSpecificity'       => '',
-            'emptylabel'                => self::EMPTY_VALUE,
-            'display_emptychoice'       => true,
-            'used'                      => [],
-            'ajax_page'                 => $CFG_GLPI["root_doc"] . "/ajax/dropdownAllItems.php",
-            'display'                   => true,
-            'rand'                      => mt_rand(),
-            'itemtype_track_changes'    => false,
+            'itemtype_name'                   => 'itemtype',
+            'items_id_name'                   => 'items_id',
+            'itemtypes'                       => '',
+            'default_itemtype'                => 0,
+            'default_items_id'                => -1,
+            'entity_restrict'                 => -1,
+            'onlyglobal'                      => false,
+            'checkright'                      => false,
+            'showItemSpecificity'             => '',
+            'emptylabel'                      => self::EMPTY_VALUE,
+            'display_emptychoice'             => true,
+            'used'                            => [],
+            'ajax_page'                       => $CFG_GLPI["root_doc"] . "/ajax/dropdownAllItems.php",
+            'display'                         => true,
+            'rand'                            => mt_rand(),
+            'itemtype_track_changes'          => false,
+            'init'                            => true,
+            'width'                           => '80%',
+            'container_css_class'             => '',
+            'no_sort'                         => false,
+            'aria_label'                      => '',
+            'specific_tags_items_id_dropdown' => [],
         ];
 
         if (is_array($options) && count($options)) {
@@ -1680,14 +1731,21 @@ JAVASCRIPT;
             'display'             => $params['display'],
             'rand'                => $params['rand'],
             'track_changes'       => $params['itemtype_track_changes'],
+            'init'                => $params['init'],
+            'width'               => $params['width'],
+            'no_sort'             => $params['no_sort'],
+            'aria_label'          => $params['aria_label'],
         ]);
 
         $p_ajax = [
-            'idtable'             => '__VALUE__',
-            'name'                => $params['items_id_name'],
-            'entity_restrict'     => $params['entity_restrict'],
-            'showItemSpecificity' => $params['showItemSpecificity'],
-            'rand'                => $params['rand']
+            'idtable'                         => '__VALUE__',
+            'name'                            => $params['items_id_name'],
+            'entity_restrict'                 => $params['entity_restrict'],
+            'showItemSpecificity'             => $params['showItemSpecificity'],
+            'rand'                            => $params['rand'],
+            'width'                           => $params['width'],
+            'container_css_class'             => $params['container_css_class'],
+            'specific_tags_items_id_dropdown' => $params['specific_tags_items_id_dropdown'],
         ];
 
        // manage condition
@@ -2191,8 +2249,6 @@ JAVASCRIPT;
             }
         }
 
-        $param['option_tooltips'] = Html::entities_deep($param['option_tooltips']);
-
         if ($param["display_emptychoice"] && !$param["multiple"]) {
             $elements = [ 0 => $param['emptylabel'] ] + $elements;
         }
@@ -2228,11 +2284,11 @@ JAVASCRIPT;
             }
 
             if ($param['tooltip']) {
-                $output .= ' title="' . Html::entities_deep($param['tooltip']) . '"';
+                $output .= ' title="' . htmlspecialchars($param['tooltip']) . '"';
             }
 
             if ($param['class']) {
-                $output .= ' class="' . Html::entities_deep($param['class']) . '"';
+                $output .= ' class="' . htmlspecialchars($param['class']) . '"';
             }
 
             if (!empty($param["on_change"])) {
@@ -2280,7 +2336,7 @@ JAVASCRIPT;
             foreach ($elements as $key => $val) {
                // optgroup management
                 if (is_array($val)) {
-                    $opt_goup = Html::entities_deep($key);
+                    $opt_goup = htmlspecialchars($key);
                     if ($max_option_size < strlen($opt_goup)) {
                         $max_option_size = strlen($opt_goup);
                     }
@@ -2290,11 +2346,11 @@ JAVASCRIPT;
                     if (isset($param['option_tooltips'][$key])) {
                         if (is_array($param['option_tooltips'][$key])) {
                             if (isset($param['option_tooltips'][$key]['__optgroup_label'])) {
-                                $output .= ' title="' . $param['option_tooltips'][$key]['__optgroup_label'] . '"';
+                                $output .= ' title="' . htmlspecialchars($param['option_tooltips'][$key]['__optgroup_label']) . '"';
                             }
                             $optgroup_tooltips = $param['option_tooltips'][$key];
                         } else {
-                            $output .= ' title="' . $param['option_tooltips'][$key] . '"';
+                            $output .= ' title="' . htmlspecialchars($param['option_tooltips'][$key]) . '"';
                         }
                     }
                     $output .= ">";
@@ -2310,9 +2366,9 @@ JAVASCRIPT;
                                 }
                             }
                             if ($optgroup_tooltips && isset($optgroup_tooltips[$key2])) {
-                                $output .= ' title="' . $optgroup_tooltips[$key2] . '"';
+                                $output .= ' title="' . htmlspecialchars($optgroup_tooltips[$key2]) . '"';
                             }
-                            $output .= ">" .  Html::entities_deep($val2) . "</option>";
+                            $output .= ">" .  htmlspecialchars($val2) . "</option>";
                             if ($max_option_size < strlen($val2)) {
                                 $max_option_size = strlen($val2);
                             }
@@ -2321,7 +2377,7 @@ JAVASCRIPT;
                     $output .= "</optgroup>";
                 } else {
                     if (!isset($param['used'][$key])) {
-                        $output .= "<option value='" . Html::entities_deep($key) . "'";
+                        $output .= "<option value='" . htmlspecialchars($key) . "'";
                        // Do not use in_array : trouble with 0 and empty value
                         foreach ($param['values'] as $value) {
                             if (strcmp($key, $value) === 0) {
@@ -2330,9 +2386,9 @@ JAVASCRIPT;
                             }
                         }
                         if (isset($param['option_tooltips'][$key])) {
-                            $output .= ' title="' . $param['option_tooltips'][$key] . '"';
+                            $output .= ' title="' . htmlspecialchars($param['option_tooltips'][$key]) . '"';
                         }
-                        $output .= ">" . Html::entities_deep($val) . "</option>";
+                        $output .= ">" . htmlspecialchars($val) . "</option>";
                         if (!is_null($val) && ($max_option_size < strlen($val))) {
                             $max_option_size = strlen($val);
                         }
@@ -2759,6 +2815,13 @@ JAVASCRIPT;
         }
 
         $where = $item->getSystemSQLCriteria();
+
+        if (Toolbox::hasTrait($post['itemtype'], AssignableItem::class)) {
+            $visibility_criteria = $post['itemtype']::getAssignableVisiblityCriteria();
+            if (count($visibility_criteria)) {
+                $where[] = $visibility_criteria;
+            }
+        }
 
         if ($item->maybeDeleted()) {
             $where["$table.is_deleted"] = 0;
@@ -3419,10 +3482,6 @@ JAVASCRIPT;
                     }
             }
 
-            if (Toolbox::hasTrait($post['itemtype'], AssignableAsset::class)) {
-                $where[] = $post['itemtype']::getAssignableVisiblityCriteria();
-            }
-
             $criteria = array_merge(
                 $criteria,
                 [
@@ -3823,8 +3882,15 @@ JAVASCRIPT;
             return;
         }
 
-        $system_sql = $post['itemtype']::getSystemSQLCriteria();
-        $where = !empty($system_sql) ? [$system_sql] : [];
+        $where = $item->getSystemSQLCriteria();
+
+        if (Toolbox::hasTrait($post['itemtype'], AssignableItem::class)) {
+            $visibility_criteria = $post['itemtype']::getAssignableVisiblityCriteria();
+            if (count($visibility_criteria)) {
+                $where[] = $visibility_criteria;
+            }
+        }
+
         if (isset($post['used']) && !empty($post['used'])) {
             $where['NOT'] = ['id' => $post['used']];
         }
@@ -3892,10 +3958,6 @@ JAVASCRIPT;
         if (!isset($post['page'])) {
             $post['page']       = 1;
             $post['page_limit'] = $CFG_GLPI['dropdown_max'];
-        }
-
-        if (Toolbox::hasTrait($post['itemtype'], AssignableAsset::class)) {
-            $where[] = $post['itemtype']::getAssignableVisiblityCriteria();
         }
 
         $start = (int) (($post['page'] - 1) * $post['page_limit']);

@@ -38,8 +38,8 @@ namespace Glpi\Form\AccessControl;
 use CommonDBChild;
 use CommonGLPI;
 use InvalidArgumentException;
-use JsonConfigInterface;
 use Glpi\Application\View\TemplateRenderer;
+use Glpi\DBAL\JsonFieldInterface;
 use Glpi\Form\AccessControl\ControlType\ControlTypeInterface;
 use Glpi\Form\Form;
 use Override;
@@ -70,7 +70,14 @@ final class FormAccessControl extends CommonDBChild
             return false;
         }
 
-        return self::createTabEntry(self::getTypeName());
+        $form_access_mananger = FormAccessControlManager::getInstance();
+
+        $count = 0;
+        if ($_SESSION['glpishow_count_on_tabs']) {
+            $count = count($form_access_mananger->getActiveAccessControlsForForm($item));
+        }
+
+        return self::createTabEntry(self::getTypeName(), $count);
     }
 
     #[Override]
@@ -92,6 +99,7 @@ final class FormAccessControl extends CommonDBChild
         $twig = TemplateRenderer::getInstance();
         echo $twig->render('pages/admin/form/access_control.html.twig', [
             'form'            => $item,
+            'warnings'        => $manager->getWarnings($item),
             'access_controls' => $sorted_access_controls,
         ]);
 
@@ -228,7 +236,7 @@ final class FormAccessControl extends CommonDBChild
     {
         $control_type = $this->fields['strategy'];
         if (!$this->isValidStrategy($control_type)) {
-            throw new \RuntimeException();
+            throw new \RuntimeException("Unknown strategy");
         }
 
         return new $control_type();
@@ -237,22 +245,22 @@ final class FormAccessControl extends CommonDBChild
     /**
      * Get config for this item's strategy.
      *
-     * @return JsonConfigInterface
+     * @return JsonFieldInterface
      */
-    public function getConfig(): JsonConfigInterface
+    public function getConfig(): JsonFieldInterface
     {
         $config = json_decode($this->fields['config'], true);
         $strategy = $this->getStrategy();
         $config_class = $strategy->getConfigClass();
 
-        if (!is_a($config_class, JsonConfigInterface::class, true)) {
+        if (!is_a($config_class, JsonFieldInterface::class, true)) {
             throw new \RuntimeException("Invalid config class");
         }
 
-        return $config_class::createFromRawArray($config);
+        return $config_class::jsonDeserialize($config);
     }
 
-    public function createConfigFromUserInput(array $input): JsonConfigInterface
+    public function createConfigFromUserInput(array $input): JsonFieldInterface
     {
         $strategy_class = $input['strategy'] ?? $this->fields['strategy'] ?? null;
         if ($strategy_class === null || !$this->isValidStrategy($strategy_class)) {
@@ -262,6 +270,18 @@ final class FormAccessControl extends CommonDBChild
         }
         $strategy = new $strategy_class();
         return $strategy->createConfigFromUserInput($input);
+    }
+
+    /**
+     * Encode the input name to make sure it is unique and multiple items
+     * can be updated using a single form.
+     *
+     * @param string $name
+     * @return string
+     */
+    public function getNormalizedInputName(string $name): string
+    {
+        return "_access_control[{$this->getID()}][$name]";
     }
 
     #[Override]

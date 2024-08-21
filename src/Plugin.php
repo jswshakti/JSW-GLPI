@@ -110,6 +110,11 @@ class Plugin extends CommonDBTM
      */
     const OPTION_AUTOINSTALL_DISABLED = 'autoinstall_disabled';
 
+    /**
+     * Plugin key validation pattern.
+     */
+    private const PLUGIN_KEY_PATTERN = '/^[a-z0-9]+$/i';
+
     public static $rightname = 'config';
 
     /**
@@ -222,6 +227,34 @@ class Plugin extends CommonDBTM
         return false;
     }
 
+    public function prepareInputForAdd($input)
+    {
+        $input = $this->prepareInput($input);
+
+        return $input;
+    }
+
+    public function prepareInputForUpdate($input)
+    {
+        $input = $this->prepareInput($input);
+
+        return $input;
+    }
+
+    private function prepareInput(array $input)
+    {
+        if ($this->isNewItem() || array_key_exists('directory', $input)) {
+            if (preg_match(self::PLUGIN_KEY_PATTERN, $input['directory'] ?? '') !== 1) {
+                Session::addMessageAfterRedirect(
+                    __s('Invalid plugin directory'),
+                    false,
+                    ERROR
+                );
+                return false;
+            }
+        }
+        return $input;
+    }
 
     /**
      * Retrieve an item from the database using its directory
@@ -317,7 +350,7 @@ class Plugin extends CommonDBTM
                 $loaded = true;
                 if (!in_array($plugin_key, self::$loaded_plugins)) {
                     // Register PSR-4 autoloader
-                    $psr4_dir = $plugin_directory . '/src/' . ucfirst($plugin_key);
+                    $psr4_dir = $plugin_directory . '/src/';
                     if (is_dir($psr4_dir)) {
                         $psr4_autoloader = new \Composer\Autoload\ClassLoader();
                         $psr4_autoloader->addPsr4(NS_PLUG . ucfirst($plugin_key) . '\\', $psr4_dir);
@@ -1394,6 +1427,19 @@ class Plugin extends CommonDBTM
             return false;
         }
 
+        // Handle `linkuser_types`/`linkgroup_types`/`linkuser_tech_types`/`linkgroup_tech_types` deprecation
+        $is_assignable = false;
+        foreach (['linkuser_types', 'linkgroup_types', 'linkuser_tech_types', 'linkgroup_tech_types'] as $cfg_key) {
+            if (isset($attrib[$cfg_key]) && $attrib[$cfg_key]) {
+                Toolbox::deprecated(sprintf('`%s` configuration is deprecated, use `%s` instead.', $cfg_key, 'assignable_types'));
+                $is_assignable = true;
+                break;
+            }
+        }
+        if ($is_assignable) {
+            $attrib['assignable_types'] = true;
+        }
+
         $all_types = preg_grep('/.+_types/', array_keys($CFG_GLPI));
         $all_types[] = 'networkport_instantiations';
 
@@ -1722,6 +1768,11 @@ class Plugin extends CommonDBTM
      */
     private function loadPluginSetupFile(string $plugin_key): bool
     {
+        if (preg_match(self::PLUGIN_KEY_PATTERN, $plugin_key) !== 1) {
+            // Prevent issues with illegal chars
+            return false;
+        }
+
         foreach (PLUGINS_DIRECTORIES as $base_dir) {
             if (!is_dir($base_dir)) {
                 continue;
@@ -2553,16 +2604,19 @@ class Plugin extends CommonDBTM
                 if (in_array($state, [self::ACTIVATED, self::NOTUPDATED, self::TOBECONFIGURED, self::NOTACTIVATED], true)) {
                    // Uninstall button for installed plugins
                     if (function_exists("plugin_" . $directory . "_uninstall")) {
-                        $output .= TemplateRenderer::getInstance()->render('components/plugin_uninstall_modal.html.twig', [
-                            'plugin_name' => $plugin->getField('name'),
+                        $uninstall_label = __s("Uninstall");
+                        $output .= <<<TWIG
+                            <a class="pointer"><span class="fas fa-fw fa-folder-minus fa-2x me-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#uninstallModal{$plugin->getField('directory')}"
+                                title="{$uninstall_label}">
+                                <span class="sr-only">{$uninstall_label}</span>
+                            </span></a>
+TWIG;
+
+                        $output .= TemplateRenderer::getInstance()->render('components/danger_modal.html.twig', [
                             'modal_id' => 'uninstallModal' . $plugin->getField('directory'),
-                            'open_btn' => '<a class="pointer"><span class="fas fa-fw fa-folder-minus fa-2x me-1"
-                                                  data-bs-toggle="modal"
-                                                  data-bs-target="#uninstallModal' . $plugin->getField('directory') . '"
-                                                  title="' . __s("Uninstall") . '">
-                                                  <span class="sr-only">' . __s("Uninstall") . '</span>
-                                              </span></a>',
-                            'uninstall_btn' => Html::getSimpleForm(
+                            'confirm_btn' => Html::getSimpleForm(
                                 static::getFormURL(),
                                 ['action' => 'uninstall'],
                                 _x('button', 'Uninstall'),
@@ -2570,6 +2624,10 @@ class Plugin extends CommonDBTM
                                 '',
                                 'class="btn btn-danger w-100"'
                             ),
+                            'content' => sprintf(
+                                __s('By uninstalling the "%s" plugin you will lose all the data of the plugin.'),
+                                htmlspecialchars($plugin->getField('name'))
+                            )
                         ]);
                     } else {
                        //TRANS: %s is the list of missing functions
@@ -2597,8 +2655,9 @@ class Plugin extends CommonDBTM
                 return self::getState($state);
             break;
             case 'homepage':
-                $value = Html::entities_deep(Toolbox::formatOutputWebLink($values[$field]));
+                $value = Toolbox::formatOutputWebLink($values[$field]);
                 if (!empty($value)) {
+                    $value = htmlspecialchars($value);
                     return "<a href=\"" . $value . "\" target='_blank'>
                      <i class='fas fa-external-link-alt fa-2x'></i><span class='sr-only'>$value</span>
                   </a>";

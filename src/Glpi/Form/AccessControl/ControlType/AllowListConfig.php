@@ -35,11 +35,10 @@
 
 namespace Glpi\Form\AccessControl\ControlType;
 
-use JsonConfigInterface;
-use JsonSerializable;
+use Glpi\DBAL\JsonFieldInterface;
 use Override;
 
-final class AllowListConfig implements JsonConfigInterface, JsonSerializable
+final class AllowListConfig implements JsonFieldInterface
 {
     public function __construct(
         private array $user_ids = [],
@@ -49,7 +48,7 @@ final class AllowListConfig implements JsonConfigInterface, JsonSerializable
     }
 
     #[Override]
-    public static function createFromRawArray(array $data): self
+    public static function jsonDeserialize(array $data): self
     {
         return new self(
             user_ids   : $data['user_ids'] ?? [],

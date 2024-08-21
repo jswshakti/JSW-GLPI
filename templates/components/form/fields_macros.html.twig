@@ -38,8 +38,8 @@
    {% endif %}
 
    <div class="card border-0 shadow-none p-0 m-0 {{ margins }}">
-      <div class="card-header mb-3">
-         <h4 class="card-title {{ icon|length ? 'ms-4' : '' }}">
+      <div class="card-header mb-3 pt-2">
+         <h4 class="card-title {{ icon|length ? 'ms-5' : '' }}">
             {% if icon|length %}
                <div class="ribbon ribbon-bookmark ribbon-top ribbon-start bg-blue s-1">
                   <i class="fa-2x {{ icon }}"></i>
@@ -444,7 +444,7 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownArrayField(name, value, elements, label = '', options = {}) %}
@@ -472,7 +472,7 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownTimestampField(name, value, label = '', options = {}) %}
@@ -499,7 +499,7 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownYesNo(name, value, label = '', options = {}) %}
@@ -525,7 +525,7 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownItemTypes(name, value, label = '', options = {}) %}
@@ -554,7 +554,7 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownItemsFromItemtypes(name, label = '', options = {}) %}
@@ -569,7 +569,7 @@
    {% set field %}
       {% do call('Dropdown::showSelectItemFromItemtypes', [options]) %}
    {% endset %}
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownIcons(name, value, label = '', options = {}) %}
@@ -595,13 +595,12 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownWebIcons(name, value, label = '', options = {}) %}
     {% set options = {
         rand: random(),
-        icon_sets: ['ti'],
     }|merge(options|merge({
         noselect2: true,
     })) %}
@@ -612,7 +611,7 @@
     <script type="module">
         import('{{ js_path('js/modules/Form/WebIconSelector.js') }}').then((m) => {
             const dropdown_id = '{{ ('dropdown_' ~ name ~ options.rand)|replace({'[': '_', ']': '_'}) }}';
-            const selector = new m.default(document.getElementById(dropdown_id), {{ options.icon_sets|json_encode|raw }});
+            const selector = new m.default(document.getElementById(dropdown_id));
             selector.init();
         });
     </script>
@@ -642,7 +641,7 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownFrequency(name, value, label = '', options = {}) %}
@@ -667,7 +666,7 @@
       }|merge(options)]) %}
    {% endset %}
 
-   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+   {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
 {% endmacro %}
 
 {% macro dropdownField(itemtype, name, value, label = '', options = {}) %}
@@ -704,7 +703,7 @@
    {% endset %}
 
    {% if field|trim is not empty %}
-      {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name ~ options.rand})) }}
+      {{ _self.field(name, field, label, options|merge({'id': 'dropdown_' ~ name|replace({'[': '_', ']': '_'}) ~ options.rand})) }}
    {% endif %}
 {% endmacro %}
 
