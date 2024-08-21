@@ -584,6 +584,7 @@ class Search extends DbTestCase
                 \NetworkPortInstantiation::class, // should be abstract
                 \NotificationSettingConfig::class, // not searchable
                 \PendingReasonCron::class, // not searchable
+                \PrintPreview::class, // not searchable
                 '/^[A-z]+Stencil/', // not searchable
             ]
         );
@@ -2575,6 +2576,7 @@ class Search extends DbTestCase
                 'NetworkPortMigration', // Tables only exists in specific cases
                 'NotificationSettingConfig', // Stores its data in glpi_configs, does not acts as a CommonDBTM
                 'PendingReasonCron',
+                \PrintPreview::class, // not searchable
                 '/^[A-z]+Stencil/'
             ]
         );

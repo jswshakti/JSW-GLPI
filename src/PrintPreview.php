@@ -84,7 +84,7 @@ class PrintPreview extends CommonDBTM
         $action_prefix = 'PrintPreview' . MassiveAction::CLASS_ACTION_SEPARATOR;
         $item = new $itemtype();
         if ($item instanceof CommonDBTM) {
-            $actions[$action_prefix . 'print_preview'] = '<i class="' . self::getIcon() . '"> </i>' . __('Display to a printable view');
+            $actions[$action_prefix . 'print_preview'] = '<i class="' . self::getIcon() . '"></i>' . __('Display to a printable view');
         }
     }
 
