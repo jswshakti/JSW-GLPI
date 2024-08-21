@@ -39,6 +39,7 @@ use CommonITILObject;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Form\AnswersSet;
 use Glpi\Form\Destination\CommonITILField\ContentField;
+use Glpi\Form\Destination\CommonITILField\EntityField;
 use Glpi\Form\Destination\CommonITILField\TitleField;
 use Glpi\Form\Form;
 use Override;
@@ -79,8 +80,6 @@ abstract class AbstractCommonITILFormDestination extends AbstractFormDestination
         $input = [
             'name'    => '',
             'content' => '',
-            // Temporary as entity configuration is not yet available
-            'entities_id' => $form->fields['entities_id']
         ];
 
         // Compute and apply template predefined template fields
@@ -143,6 +142,7 @@ abstract class AbstractCommonITILFormDestination extends AbstractFormDestination
         return [
             new TitleField(),
             new ContentField(),
+            new EntityField(),
         ];
     }
 
