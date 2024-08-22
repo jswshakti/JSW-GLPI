@@ -48,12 +48,6 @@ use Override;
 class UrgencyField extends AbstractConfigField
 {
     #[Override]
-    public function getKey(): string
-    {
-        return 'urgency';
-    }
-
-    #[Override]
     public function getLabel(): string
     {
         return __("Urgency");
