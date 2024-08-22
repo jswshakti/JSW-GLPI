@@ -38,14 +38,14 @@ use Glpi\Http\Response;
 
 $definition = new AssetDefinition();
 $classname  = array_key_exists('class', $_GET) && $definition->getFromDBBySystemName((string)$_GET['class'])
-    ? $definition->getAssetClassName()
+    ? $definition->getAssetClassName(false)
     : null;
 
-if ($classname === null || !class_exists($classname)) {
+if ($classname === null) {
     Response::sendError(400, 'Bad request', Response::CONTENT_TYPE_TEXT_HTML);
 }
 
-$rulecollection_class = 'RuleDictionary' . $classname . 'ModelCollection';
+$rulecollection_class = 'Glpi\\CustomAsset\\RuleDictionary' . $definition->getAssetModelClassName(false) . 'ModelCollection';
 $rulecollection = new $rulecollection_class();
 
 include(GLPI_ROOT . "/front/rule.common.form.php");

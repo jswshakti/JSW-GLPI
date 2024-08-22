@@ -443,6 +443,7 @@ PHP
 
     private function loadConcreteModelDictionaryClass(AssetDefinition $definition): void
     {
+        $model_class = $definition->getAssetModelClassName();
         eval(<<<PHP
 namespace Glpi\\CustomAsset;
 
@@ -460,7 +461,7 @@ final class RuleDictionary{$definition->getAssetModelClassName(false)} extends R
 
         \$criterias['name']['field']         = 'name';
         \$criterias['name']['name']          =  _n('Model', 'Models', 1);
-        \$criterias['name']['table']         = {$definition->getAssetModelClassName()::getTable()};
+        \$criterias['name']['table']         = '{$model_class::getTable()}';
 
         \$criterias['manufacturer']['field'] = 'name';
         \$criterias['manufacturer']['name']  = Manufacturer::getTypeName(1);
@@ -477,6 +478,7 @@ final class RuleDictionary{$definition->getAssetModelClassName(false)} extends R
 
         return \$actions;
     }
+}
 PHP
         );
     }
@@ -500,7 +502,7 @@ final class RuleDictionary{$definition->getAssetTypeClassName(false)} extends Ru
 
         \$criterias['name']['field'] = 'name';
         \$criterias['name']['name']  = _n('Type', 'Types', 1);
-        \$criterias['name']['table'] = {$definition->getAssetTypeClassName()::getTable()};
+        \$criterias['name']['table'] = '{$definition->getAssetTypeClassName()::getTable()}';
 
         return \$criterias;
     }
@@ -520,6 +522,7 @@ PHP
 
     private function loadConcreteModelDictionaryCollectionClass(AssetDefinition $definition): void
     {
+        $model_class = $definition->getAssetModelClassName();
         eval(<<<PHP
 namespace Glpi\\CustomAsset;
 
@@ -527,12 +530,12 @@ use RuleDictionnaryDropdownCollection;
 
 final class RuleDictionary{$definition->getAssetModelClassName(false)}Collection extends RuleDictionnaryDropdownCollection
 {
-    public \$item_table  = {$definition->getAssetModelClassName()::getTable()};
+    public \$item_table  = '{$model_class::getTable()}';
     public \$menu_option = "model.{$definition->fields['system_name']}";
 
     public function getTitle()
     {
-        return sprintf(__('Dictionary of % models'), {$definition->getAssetModelClassName()}::getTypeName());
+        return sprintf(__('Dictionary of %s'), '{$model_class::getTypeName()}');
     }
 }
 PHP
@@ -541,6 +544,7 @@ PHP
 
     private function loadConcreteTypeDictionaryCollectionClass(AssetDefinition $definition): void
     {
+        $type_class = $definition->getAssetTypeClassName();
         eval(<<<PHP
 namespace Glpi\\CustomAsset;
 
@@ -548,12 +552,12 @@ use RuleDictionnaryDropdownCollection;
 
 final class RuleDictionary{$definition->getAssetTypeClassName(false)}Collection extends RuleDictionnaryDropdownCollection
 {
-    public \$item_table  = {$definition->getAssetTypeClassName()::getTable()};
+    public \$item_table  = '{$type_class::getTable()}';
     public \$menu_option = "model.{$definition->fields['system_name']}";
 
     public function getTitle()
     {
-        return sprintf(__('Dictionary of % types'), {$definition->getAssetTypeClassName()}::getTypeName());
+        return sprintf(__('Dictionary of %s'), '{$type_class::getTypeName()}');
     }
 }
 PHP
