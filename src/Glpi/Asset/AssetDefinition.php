@@ -48,6 +48,7 @@ use Glpi\DBAL\QueryFunction;
 use Glpi\Search\SearchOption;
 use Profile;
 use ProfileRight;
+use RuleDictionnaryDropdownCollection;
 use Session;
 
 final class AssetDefinition extends CommonDBTM
@@ -872,6 +873,36 @@ TWIG, ['name' => $name, 'value' => $value]);
     public function getAssetTypeClassName(bool $with_namespace = true): string
     {
         return $this->getAssetClassName($with_namespace) . 'Type';
+    }
+
+    /**
+     * Get the definition's concrete asset model dictionary collection class name.
+     *
+     * @param bool $with_namespace
+     * @return class-string<RuleDictionnaryDropdownCollection>
+     */
+    public function getAssetModelDictionaryCollectionClassName(bool $with_namespace = true): string
+    {
+        $classname = 'RuleDictionary' . $this->getAssetModelClassName(false) . 'Collection';
+        if ($with_namespace) {
+            $classname = 'Glpi\\CustomAsset\\' . $classname;
+        }
+        return $classname;
+    }
+
+    /**
+     * Get the definition's concrete asset type dictionary collection class name.
+     *
+     * @param bool $with_namespace
+     * @return class-string<RuleDictionnaryDropdownCollection>
+     */
+    public function getAssetTypeDictionaryCollectionClassName(bool $with_namespace = true): string
+    {
+        $classname = 'RuleDictionary' . $this->getAssetTypeClassName(false) . 'Collection';
+        if ($with_namespace) {
+            $classname = 'Glpi\\CustomAsset\\' . $classname;
+        }
+        return $classname;
     }
 
     /**

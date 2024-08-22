@@ -182,6 +182,10 @@ final class AssetDefinitionManager
             $CFG_GLPI[$config_key][] = $asset_class_name;
         }
 
+        // Add type and model to dictionnary config entry
+        $CFG_GLPI['dictionnary_types'][] = $definition->getAssetTypeClassName();
+        $CFG_GLPI['dictionnary_types'][] = $definition->getAssetModelClassName();
+
         // Bootstrap capacities
         foreach ($capacities as $capacity) {
             if ($definition->hasCapacityEnabled($capacity)) {
@@ -478,6 +482,20 @@ final class RuleDictionary{$definition->getAssetModelClassName(false)} extends R
 
         return \$actions;
     }
+    
+    public static function getSearchURL(\$full = true)
+    {
+        /** @var array \$CFG_GLPI */
+        global \$CFG_GLPI;
+        return (\$full ? \$CFG_GLPI['root_doc'] : '') . '/front/asset/ruledictionarymodel.php?class={$definition->fields['system_name']}';
+    }
+
+    public static function getFormURL(\$full = true)
+    {
+        /** @var array \$CFG_GLPI */
+        global \$CFG_GLPI;
+        return (\$full ? \$CFG_GLPI['root_doc'] : '') . '/front/asset/ruledictionarymodel.form.php?class={$definition->fields['system_name']}';
+    }
 }
 PHP
         );
@@ -514,6 +532,20 @@ final class RuleDictionary{$definition->getAssetTypeClassName(false)} extends Ru
         \$actions['name']['force_actions'] = ['append_regex_result', 'assign','regex_result'];
 
         return \$actions;
+    }
+    
+    public static function getSearchURL(\$full = true)
+    {
+        /** @var array \$CFG_GLPI */
+        global \$CFG_GLPI;
+        return (\$full ? \$CFG_GLPI['root_doc'] : '') . 'asset/ruledictionarytype.php?class={$definition->fields['system_name']}';
+    }
+
+    public static function getFormURL(\$full = true)
+    {
+        /** @var array \$CFG_GLPI */
+        global \$CFG_GLPI;
+        return (\$full ? \$CFG_GLPI['root_doc'] : '') . 'asset/ruledictionarytype.form.php?class={$definition->fields['system_name']}';
     }
 }
 PHP

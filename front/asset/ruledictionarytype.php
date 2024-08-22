@@ -45,7 +45,7 @@ if ($classname === null || !class_exists($classname)) {
     Response::sendError(400, 'Bad request', Response::CONTENT_TYPE_TEXT_HTML);
 }
 
-$rulecollection_class = 'RuleDictionary' . $classname . 'TypeCollection';
+$rulecollection_class = $definition->getAssetTypeDictionaryCollectionClassName();
 $rulecollection = new $rulecollection_class();
 
 include(GLPI_ROOT . "/front/rule.common.php");
