@@ -846,6 +846,13 @@ class CronTask extends CommonDBTM
         }
 
         if (self::get_lock()) {
+            // Save current session values that could be overwritten for cron tasks
+            $old_session_values = [
+                'glpicronuserrunning' => $_SESSION["glpicronuserrunning"] ?? null,
+                'glpiname'            => $_SESSION["glpiname"] ?? null,
+                'glpigroups'          => $_SESSION["glpigroups"] ?? null,
+            ];
+
             for ($i = 1; $i <= $max; $i++) {
                 $msgprefix = sprintf(
                 //TRANS: %1$s is mode (external or internal), %2$s is an order number,
@@ -855,6 +862,8 @@ class CronTask extends CommonDBTM
                 );
                 if ($crontask->getNeedToRun($mode, $name)) {
                      $_SESSION["glpicronuserrunning"] = "cron_" . $crontask->fields['name'];
+                     $_SESSION["glpiname"]            = "cron";
+                     $_SESSION["glpigroups"]          = [];
 
                      $function = sprintf('%s::cron%s', $crontask->fields['itemtype'], $crontask->fields['name']);
 
@@ -919,7 +928,15 @@ class CronTask extends CommonDBTM
                     Toolbox::logInFile('cron', $msgcron . "\n");
                 }
             }
-            $_SESSION["glpicronuserrunning"] = '';
+
+            // Restore session values
+            foreach ($old_session_values as $key => $value) {
+                if ($value === null) {
+                    unset($_SESSION[$key]);
+                } else {
+                    $_SESSION[$key] = $value;
+                }
+            }
             self::release_lock();
         } else {
             Toolbox::logInFile('cron', __("Can't get DB lock") . "\n");
