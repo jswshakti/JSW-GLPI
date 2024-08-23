@@ -2672,6 +2672,7 @@ class APIRest extends atoum
                     ["key" => "Reservation:unavailable",         "label" => "Make unavailable for reservations"],
                     ["key" => "MassiveAction:amend_comment",     "label" => "Amend comment"],
                     ["key" => "MassiveAction:add_note",          "label" => "Add note"],
+                    ["key" => "PrintPreview:print_preview",      "label" => "Display to a printable view"],
                     ["key" => "Lock:unlock_component",           "label" => "Unlock components"],
                     ["key" => "Lock:unlock_fields",              "label" => "Unlock fields"],
                 ],
@@ -2834,6 +2835,11 @@ class APIRest extends atoum
                 'response' => [
                     ["name" => "add_note", "type" => "text"],
                 ],
+            ],
+            [
+                'url' => 'getMassiveActionParameters/Computer/PrintPreview:print_preview',
+                'status' => 200,
+                'response' => [],
             ],
             [
                 'url' => 'getMassiveActionParameters/Computer/Lock:unlock_component',
