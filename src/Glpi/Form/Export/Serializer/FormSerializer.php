@@ -71,7 +71,7 @@ final class FormSerializer extends AbstractFormSerializer
     /** @return Form[] */
     public function importFormsFromJson(
         string $json,
-        DatabaseMapper $context = new DatabaseMapper(),
+        DatabaseMapper $mapper,
     ): ImportResult {
         $export_specification = $this->deserialize($json);
 
@@ -84,9 +84,9 @@ final class FormSerializer extends AbstractFormSerializer
         $result = new ImportResult();
         foreach ($export_specification->forms as $form_spec) {
             $requirements = $form_spec->data_requirements;
-            $context->loadExistingContextForRequirements($requirements);
+            $mapper->loadExistingContextForRequirements($requirements);
 
-            if (!$context->validateRequirements($requirements)) {
+            if (!$mapper->validateRequirements($requirements)) {
                 $result->addFailedFormImport(
                     $form_spec->name,
                     ImportError::MISSING_DATA_REQUIREMENT
@@ -94,7 +94,7 @@ final class FormSerializer extends AbstractFormSerializer
                 continue;
             }
 
-            $form = $this->importFormFromSpec($form_spec, $context);
+            $form = $this->importFormFromSpec($form_spec, $mapper);
             $result->addImportedForm($form);
         }
 
@@ -112,7 +112,7 @@ final class FormSerializer extends AbstractFormSerializer
 
     private function importFormFromSpec(
         FormContentSpecification $form_spec,
-        DatabaseMapper $mapper = new DatabaseMapper(),
+        DatabaseMapper $mapper,
     ): Form {
         /** @var \DBmysql $DB */
         global $DB;
@@ -132,7 +132,7 @@ final class FormSerializer extends AbstractFormSerializer
 
     private function doImportFormFormSpecs(
         FormContentSpecification $form_spec,
-        DatabaseMapper $mapper = new DatabaseMapper(),
+        DatabaseMapper $mapper,
     ): Form {
         // TODO: questions, ...
         $form = $this->importBasicFormProperties($form_spec, $mapper);
