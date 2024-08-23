@@ -33,6 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
+use Glpi\Asset\AssetDefinition;
 use Glpi\Tests\Log\TestHandler;
 use Monolog\Level;
 use Monolog\Logger;

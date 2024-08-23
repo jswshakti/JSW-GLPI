@@ -538,14 +538,14 @@ final class RuleDictionary{$definition->getAssetTypeClassName(false)} extends Ru
     {
         /** @var array \$CFG_GLPI */
         global \$CFG_GLPI;
-        return (\$full ? \$CFG_GLPI['root_doc'] : '') . 'asset/ruledictionarytype.php?class={$definition->fields['system_name']}';
+        return (\$full ? \$CFG_GLPI['root_doc'] : '') . '/front/asset/ruledictionarytype.php?class={$definition->fields['system_name']}';
     }
 
     public static function getFormURL(\$full = true)
     {
         /** @var array \$CFG_GLPI */
         global \$CFG_GLPI;
-        return (\$full ? \$CFG_GLPI['root_doc'] : '') . 'asset/ruledictionarytype.form.php?class={$definition->fields['system_name']}';
+        return (\$full ? \$CFG_GLPI['root_doc'] : '') . '/front/asset/ruledictionarytype.form.php?class={$definition->fields['system_name']}';
     }
 }
 PHP
