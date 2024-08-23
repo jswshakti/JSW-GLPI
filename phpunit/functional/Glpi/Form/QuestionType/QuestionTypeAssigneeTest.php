@@ -132,7 +132,7 @@ final class QuestionTypeAssigneeTest extends DbTestCase
     ): void {
         $builder = new FormBuilder();
         $builder->addQuestion("Assigned", QuestionTypeAssignee::class);
-        $builder->addDestination(FormDestinationTicket::class, "My ticket", ['is_multiple' => true]);
+        $builder->addDestination(FormDestinationTicket::class, "My ticket", ['is_multiple_actors' => true]);
         $form = $this->createForm($builder);
 
         $ticket = $this->sendFormAndGetCreatedTicket($form, [
@@ -147,7 +147,7 @@ final class QuestionTypeAssigneeTest extends DbTestCase
 
     public function testAssignedUserWithFullNameIsDisplayedInTicketDescription(): void
     {
-        // Create a user with a fullly qualified name and allow him to be an assignee by given the super admin profile
+        // Create a user with a fully qualified name and allow him to be an assignee by making him super admin profile
         $john_doe = $this->createItem(User::class, [
             'name' => 'jdoe',
             'firstname' => 'John',
