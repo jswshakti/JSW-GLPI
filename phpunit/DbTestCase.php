@@ -347,8 +347,8 @@ class DbTestCase extends \GLPITestCase
             ],
             skip_fields: ['capacities', 'profiles'] // JSON encoded fields cannot be automatically checked
         );
-        $this->array($this->callPrivateMethod($definition, 'getDecodedCapacitiesField'))->isEqualTo($capacities);
-        $this->array($this->callPrivateMethod($definition, 'getDecodedProfilesField'))->isEqualTo($profiles);
+        $this->assertEquals($capacities, $this->callPrivateMethod($definition, 'getDecodedCapacitiesField'));
+        $this->assertEquals($profiles, $this->callPrivateMethod($definition, 'getDecodedProfilesField'));
 
         $manager = AssetDefinitionManager::getInstance();
         $this->callPrivateMethod($manager, 'loadConcreteClass', $definition);
