@@ -37,27 +37,27 @@ namespace tests\units\Glpi\Form\QuestionType;
 
 use DbTestCase;
 use Glpi\Form\Destination\FormDestinationTicket;
-use Glpi\Form\QuestionType\QuestionTypeLongText;
+use Glpi\Form\QuestionType\QuestionTypeShortText;
 use Glpi\Tests\FormBuilder;
 use Glpi\Tests\FormTesterTrait;
 
-final class QuestionTypeLongTextTest extends DbTestCase
+final class QuestionTypeShortTextTest extends DbTestCase
 {
     use FormTesterTrait;
 
-    public function testLongTextAnswerIsDisplayedInTicketDescription(): void
+    public function testShortTextAnswerIsDisplayedInTicketDescription(): void
     {
         $builder = new FormBuilder();
-        $builder->addQuestion("Description", QuestionTypeLongText::class);
+        $builder->addQuestion("First name", QuestionTypeShortText::class);
         $builder->addDestination(FormDestinationTicket::class, "My ticket");
         $form = $this->createForm($builder);
 
         $ticket = $this->sendFormAndGetCreatedTicket($form, [
-            "Description" => "my description",
+            "First name" => "John",
         ]);
 
         $this->assertStringContainsString(
-            "1) Description: my description",
+            "1) First name: John",
             strip_tags($ticket->fields['content']),
         );
     }
