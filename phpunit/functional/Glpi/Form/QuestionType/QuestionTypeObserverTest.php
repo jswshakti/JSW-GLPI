@@ -50,7 +50,7 @@ final class QuestionTypeObserverTest extends DbTestCase
 {
     use FormTesterTrait;
 
-    public static function singleAssigneeAnswerIsDisplayedInTicketDescriptionProvider(): iterable
+    public static function singleObserverAnswerIsDisplayedInTicketDescriptionProvider(): iterable
     {
         $glpi_id = getItemByTypeName(User::class, "glpi", true);
         yield 'simple user' => [
@@ -65,8 +65,8 @@ final class QuestionTypeObserverTest extends DbTestCase
         ];
     }
 
-    #[DataProvider("singleAssigneeAnswerIsDisplayedInTicketDescriptionProvider")]
-    public function testSingleAssigneeAnswerIsDisplayedInTicketDescription(
+    #[DataProvider("singleObserverAnswerIsDisplayedInTicketDescriptionProvider")]
+    public function testSingleObserverAnswerIsDisplayedInTicketDescription(
         array $answer,
         string $expected
     ): void {
@@ -85,7 +85,7 @@ final class QuestionTypeObserverTest extends DbTestCase
         );
     }
 
-    public static function multipleAssigneeAnswerIsDisplayedInTicketDescriptionProvider(): iterable
+    public static function multipleObserverAnswerIsDisplayedInTicketDescriptionProvider(): iterable
     {
         $glpi_id = getItemByTypeName(User::class, "glpi", true);
         $tech_id = getItemByTypeName(User::class, "tech", true);
@@ -108,8 +108,8 @@ final class QuestionTypeObserverTest extends DbTestCase
         ];
     }
 
-    #[DataProvider("multipleAssigneeAnswerIsDisplayedInTicketDescriptionProvider")]
-    public function testMultipleAssigneeAnswerIsDisplayedInTicketDescription(
+    #[DataProvider("multipleObserverAnswerIsDisplayedInTicketDescriptionProvider")]
+    public function testMultipleObserverAnswerIsDisplayedInTicketDescription(
         array $answer,
         string $expected
     ): void {
@@ -128,9 +128,9 @@ final class QuestionTypeObserverTest extends DbTestCase
         );
     }
 
-    public function testAssignedUserWithFullNameIsDisplayedInTicketDescription(): void
+    public function testObserverUserWithFullNameIsDisplayedInTicketDescription(): void
     {
-        // Create a user with a fully qualified name and allow him to be an assignee by making him super admin profile
+        // Create a user with a fully qualified name and allow him to be an Observer by making him super admin profile
         $john_doe = $this->createItem(User::class, [
             'name' => 'jdoe',
             'firstname' => 'John',

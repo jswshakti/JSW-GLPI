@@ -50,7 +50,7 @@ final class QuestionTypeRequesterTest extends DbTestCase
 {
     use FormTesterTrait;
 
-    public static function singleAssigneeAnswerIsDisplayedInTicketDescriptionProvider(): iterable
+    public static function singleRequesterAnswerIsDisplayedInTicketDescriptionProvider(): iterable
     {
         $glpi_id = getItemByTypeName(User::class, "glpi", true);
         yield 'simple user' => [
@@ -65,8 +65,8 @@ final class QuestionTypeRequesterTest extends DbTestCase
         ];
     }
 
-    #[DataProvider("singleAssigneeAnswerIsDisplayedInTicketDescriptionProvider")]
-    public function testSingleAssigneeAnswerIsDisplayedInTicketDescription(
+    #[DataProvider("singleRequesterAnswerIsDisplayedInTicketDescriptionProvider")]
+    public function testSingleRequesterAnswerIsDisplayedInTicketDescription(
         array $answer,
         string $expected
     ): void {
@@ -85,7 +85,7 @@ final class QuestionTypeRequesterTest extends DbTestCase
         );
     }
 
-    public static function multipleAssigneeAnswerIsDisplayedInTicketDescriptionProvider(): iterable
+    public static function multipleRequesterAnswerIsDisplayedInTicketDescriptionProvider(): iterable
     {
         $glpi_id = getItemByTypeName(User::class, "glpi", true);
         $tech_id = getItemByTypeName(User::class, "tech", true);
@@ -108,8 +108,8 @@ final class QuestionTypeRequesterTest extends DbTestCase
         ];
     }
 
-    #[DataProvider("multipleAssigneeAnswerIsDisplayedInTicketDescriptionProvider")]
-    public function testMultipleAssigneeAnswerIsDisplayedInTicketDescription(
+    #[DataProvider("multipleRequesterAnswerIsDisplayedInTicketDescriptionProvider")]
+    public function testMultipleRequesterAnswerIsDisplayedInTicketDescription(
         array $answer,
         string $expected
     ): void {
@@ -128,9 +128,9 @@ final class QuestionTypeRequesterTest extends DbTestCase
         );
     }
 
-    public function testAssignedUserWithFullNameIsDisplayedInTicketDescription(): void
+    public function testRequesterUserWithFullNameIsDisplayedInTicketDescription(): void
     {
-        // Create a user with a fully qualified name and allow him to be an assignee by making him super admin profile
+        // Create a user with a fully qualified name and allow him to be an Requester by making him super admin profile
         $john_doe = $this->createItem(User::class, [
             'name' => 'jdoe',
             'firstname' => 'John',
