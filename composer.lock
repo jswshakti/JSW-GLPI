@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5b6a043576ad5d292544b1178fdcac3e",
+    "content-hash": "6fd7f9d85647d5d49419480b69ee0673",
     "packages": [
         {
             "name": "apereo/phpcas",
@@ -509,16 +509,16 @@
         },
         {
             "name": "donatj/phpuseragentparser",
-            "version": "v1.8.0",
+            "version": "v1.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/donatj/PhpUserAgent.git",
-                "reference": "b8c16fd6e963651c6d86f66cb782ce599d62418e"
+                "reference": "3ba73057d2a4a275badb88b7708e91e159c40367"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/donatj/PhpUserAgent/zipball/b8c16fd6e963651c6d86f66cb782ce599d62418e",
-                "reference": "b8c16fd6e963651c6d86f66cb782ce599d62418e",
+                "url": "https://api.github.com/repos/donatj/PhpUserAgent/zipball/3ba73057d2a4a275badb88b7708e91e159c40367",
+                "reference": "3ba73057d2a4a275badb88b7708e91e159c40367",
                 "shasum": ""
             },
             "require": {
@@ -563,7 +563,7 @@
             ],
             "support": {
                 "issues": "https://github.com/donatj/PhpUserAgent/issues",
-                "source": "https://github.com/donatj/PhpUserAgent/tree/v1.8.0"
+                "source": "https://github.com/donatj/PhpUserAgent/tree/v1.10.0"
             },
             "funding": [
                 {
@@ -579,7 +579,7 @@
                     "type": "ko_fi"
                 }
             ],
-            "time": "2023-10-27T05:22:44+00:00"
+            "time": "2024-10-30T15:45:03+00:00"
         },
         {
             "name": "egulias/email-validator",
